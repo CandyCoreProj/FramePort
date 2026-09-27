@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, nativeTheme } = require('electron');
 const { spawn } = require('child_process');
+const { randomBytes } = require('node:crypto');
+const { StringDecoder } = require('node:string_decoder');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
@@ -298,9 +300,10 @@ function run(bin, args, onLine) {
     procs.add(child);
     lowerPriority(child);
     const pending = { stdout: '', stderr: '' };
+    const decoders = Object.fromEntries(['stdout', 'stderr'].map((stream) => [stream, new StringDecoder('utf8')]));
     for (const stream of ['stdout', 'stderr']) {
       child[stream].on('data', (buf) => {
-        pending[stream] += buf.toString('utf8');
+        pending[stream] += decoders[stream].write(buf);
         const lines = pending[stream].split(/\r?\n/);
         pending[stream] = lines.pop();
         for (const line of lines) if (line.trim()) onLine(line);
@@ -308,6 +311,7 @@ function run(bin, args, onLine) {
     }
     child.on('error', (error) => { onLine(error.message); procs.delete(child); resolve(1); });
     child.on('close', (code) => {
+      for (const stream of ['stdout', 'stderr']) pending[stream] += decoders[stream].end();
       for (const line of Object.values(pending)) if (line.trim()) onLine(line);
       procs.delete(child);
       resolve(code);
@@ -362,8 +366,7 @@ function encode({ file, tmp, info, enc, variant, target, ff, hardwareDecode, lan
 }
 
 // คืนค่า { code, file } โดย file คือไฟล์สุดท้าย (อาจเปลี่ยนนามสกุลเป็น .mp4)
-async function convert(file, ff, { encoder, target, language }) {
-  const name = path.basename(file);
+async function convert(file, ff, { encoder, target, language, name = path.basename(file) }) {
   send('progress', { stage: 'convert', pct: 0, label: say(language, 'กำลังตรวจสอบไฟล์', 'Checking file'), name });
   const info = await probe(file, ff);
   if (cancelled) return { code: -1, file };
@@ -433,15 +436,15 @@ ipcMain.handle('download', async (_e, options) => {
 
   busy = true;
   cancelled = false;
-  let tempFolder = null;
-  let preserveTempFolder = false;
+  let tempPrefix = '';
+  const preserveFiles = new Set();
   try {
     const target = TARGETS[output] ? output : null;
-    tempFolder = fs.mkdtempSync(path.join(folder, '.frameport-'));
+    tempPrefix = `.frameport-${randomBytes(8).toString('hex')}-`;
     const args = [
-      '-P', tempFolder,
+      '-P', folder,
       // จำกัดความยาวชื่อไฟล์ กันเกิน path limit ของ Windows
-      '-o', '%(title).180B.%(ext)s',
+      '-o', `${tempPrefix}%(title).180B.%(ext)s`,
       '--no-overwrites',
       '--no-mtime',
       '--newline',
@@ -452,7 +455,7 @@ ipcMain.handle('download', async (_e, options) => {
       '--progress-template',
       'download:[P]%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.playlist_index)s|%(info.n_entries)s',
       // ได้ชื่อไฟล์ทันทีที่แต่ละไฟล์เสร็จ เพื่อแปลงไฟล์ก่อนหน้าไปพร้อมกับดาวน์โหลดไฟล์ถัดไป
-      '--print', 'after_move:[F]%(filepath)s',
+      '--print', 'after_move:[F]%(filepath)j',
       playlist ? '--yes-playlist' : '--no-playlist',
     ];
     if (ff === 'local') args.push('--ffmpeg-location', binDir());
@@ -481,9 +484,12 @@ ipcMain.handle('download', async (_e, options) => {
     const onFile = (file) => {
       if (seen.has(file)) return;
       seen.add(file);
+      const basename = path.basename(file);
+      const namedSource = path.join(path.dirname(file),
+        basename.startsWith(tempPrefix) ? basename.slice(tempPrefix.length) : basename);
       const reserved = reserveVersionedPath({
         folder,
-        downloadedPath: file,
+        downloadedPath: namedSource,
         finalExtension: kind === 'video' && target ? '.mp4' : path.extname(file),
         reserved: reservedNames,
       });
@@ -497,7 +503,7 @@ ipcMain.handle('download', async (_e, options) => {
         let result = { code: cancelled ? -1 : 0, file };
         try {
           if (kind === 'video' && target && !cancelled) {
-            result = await convert(file, ff, { encoder, target, language });
+            result = await convert(file, ff, { encoder, target, language, name: path.basename(namedSource) });
           }
         } catch (error) {
           send('log', error.message);
@@ -505,7 +511,8 @@ ipcMain.handle('download', async (_e, options) => {
           result = { code: 1, file };
         }
         if (result.code !== 0) convertCode = result.code;
-        completed.push({ source: file, file: result.file, reserved, converted: result.code === 0 && kind === 'video' && !!target });
+        completed.push({ source: file, namedSource, file: result.file, reserved,
+          converted: result.code === 0 && kind === 'video' && !!target });
       });
     };
 
@@ -520,7 +527,7 @@ ipcMain.handle('download', async (_e, options) => {
         const item = /^\d+$/.test(index) && /^\d+$/.test(total) ? `${index}/${total}` : '';
         send('progress', { stage: 'download', pct: value, speed, eta, label, item });
       } else if (line.startsWith('[F]')) {
-        onFile(line.slice(3).trim());
+        onFile(JSON.parse(line.slice(3).trim()));
       } else {
         if (/^ERROR:/.test(line)) lastError = line.replace(/^ERROR:\s*/, '');
         send('log', line);
@@ -530,24 +537,35 @@ ipcMain.handle('download', async (_e, options) => {
     for (const entry of completed) {
       let destination = entry.converted ? entry.reserved.finalPath : entry.reserved.path;
       if (!fs.existsSync(entry.file)) {
-        lastError = say(language, `ไม่พบไฟล์ที่ดาวน์โหลด: ${entry.file}`, `Downloaded file not found: ${entry.file}`);
-        send('log', lastError);
-        if (fs.readdirSync(tempFolder).length) preserveTempFolder = true;
-        convertCode = 1;
-        continue;
+        if (entry.converted && fs.existsSync(entry.source)) {
+          entry.file = entry.source;
+          entry.converted = false;
+          destination = entry.reserved.path;
+          convertCode = 1;
+          lastError = say(language, 'ไฟล์แปลงไม่สำเร็จ กำลังบันทึกไฟล์ต้นฉบับแทน',
+            'Conversion output is missing; saving the original file instead');
+          send('log', lastError);
+        } else {
+          lastError = say(language, `ไม่พบไฟล์ที่ดาวน์โหลด: ${entry.file}`, `Downloaded file not found: ${entry.file}`);
+          send('log', lastError);
+          convertCode = 1;
+          continue;
+        }
       }
       try {
         if (fs.existsSync(destination)) {
           const next = reserveVersionedPath({
-            folder, downloadedPath: entry.source,
+            folder, downloadedPath: entry.namedSource,
             finalExtension: path.extname(entry.reserved.finalPath), reserved: reservedNames,
           });
           destination = entry.converted ? next.finalPath : next.path;
         }
+        if (entry.converted) fs.rmSync(entry.source, { force: true });
         fs.renameSync(entry.file, destination);
         files.push(destination);
       } catch (error) {
-        preserveTempFolder = true;
+        preserveFiles.add(entry.source);
+        preserveFiles.add(entry.file);
         files.push(entry.file);
         convertCode = 1;
         lastError = error.message;
@@ -560,15 +578,21 @@ ipcMain.handle('download', async (_e, options) => {
     if (code === 0 && files.length === 0) {
       code = 1;
       lastError = say(language, 'ไม่มีไฟล์ที่ดาวน์โหลดสำเร็จ', 'No downloaded file was produced');
-      if (fs.readdirSync(tempFolder).length) preserveTempFolder = true;
     }
     return { code: cancelled ? -1 : code, files, error: code === 0 ? '' : lastError };
   } finally {
-    if (tempFolder && !preserveTempFolder) fs.rmSync(tempFolder, { recursive: true, force: true });
-    if (preserveTempFolder) send('log', say(language,
-      `เก็บไฟล์ที่จัดชื่อไม่สำเร็จไว้ใน ${tempFolder}`,
-      `The unorganized file was kept in ${tempFolder}`));
-    busy = false;
+    try {
+      if (tempPrefix) {
+        for (const name of fs.readdirSync(folder)) {
+          const file = path.join(folder, name);
+          if (name.startsWith(tempPrefix) && !preserveFiles.has(file)) {
+            fs.rmSync(file, { recursive: true, force: true });
+          }
+        }
+      }
+    } finally {
+      busy = false;
+    }
   }
 });
 
