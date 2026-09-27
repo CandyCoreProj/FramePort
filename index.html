@@ -37,6 +37,8 @@
       background: var(--page); color: var(--ink);
       font: var(--text-body)/1.5 "Anuphan", "Leelawadee UI", "Segoe UI", sans-serif;
       -webkit-font-smoothing: antialiased;
+      /* แอปเดสก์ท็อป: คลิกหรือดับเบิลคลิกไม่ให้คลุมข้อความ (ช่องลิงก์ พาธ และบันทึกยังคัดลอกได้) */
+      user-select: none; cursor: default;
     }
     button, input, select { font: inherit; }
     button { color: var(--ink); cursor: pointer; white-space: nowrap; }
