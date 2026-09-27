@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com">
+  <title>FramePort — Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Urbanist:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* คลิปโชว์โปรแกรม 1920×1080 แนว product launch: พื้นสว่าง + หน้าจอโปรแกรมจริง + กระจกฝ้า */
+    :root {
+      --paper: #f4efe9; --ink: #1c1917; --muted: #5c554f; --rust: #a8441a; --apricot: #f2a054; --peach: #ffd9ad;
+      --display: "Urbanist", "Noto Sans Thai", "Segoe UI Variable Display", "Leelawadee UI", "Segoe UI", sans-serif;
+      --mono: "Cascadia Mono", "Consolas", monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; overflow: hidden; background: #fbf8f4; }
+    #stage {
+      position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; overflow: hidden;
+      background: #f8f3ed; color: var(--ink); font-family: var(--display); -webkit-font-smoothing: antialiased;
+      transform: translate(-50%, -50%) scale(var(--fit, 1));
+    }
+    .scene { position: absolute; inset: 0; }
+    .blob { position: absolute; left: 0; top: 0; border-radius: 50%; }
+    #blobA { width: 1400px; height: 1400px; background: radial-gradient(circle, rgb(255 217 173 / 90%) 0%, rgb(255 217 173 / 32%) 40%, transparent 70%); }
+    #blobB { width: 1200px; height: 1200px; background: radial-gradient(circle, rgb(242 160 84 / 50%) 0%, rgb(242 160 84 / 15%) 40%, transparent 70%); }
+    #blobC { width: 1000px; height: 1000px; background: radial-gradient(circle, rgb(168 68 26 / 24%) 0%, rgb(168 68 26 / 7%) 40%, transparent 70%); }
+    #blobD { width: 1300px; height: 1300px; background: radial-gradient(circle, rgb(255 255 255 / 95%) 0%, rgb(255 255 255 / 45%) 40%, transparent 70%); }
+
+    /* กระจกฝ้าสีขาว */
+    .lg {
+      position: absolute; left: 0; top: 0; overflow: hidden; isolation: isolate;
+      background: linear-gradient(160deg, rgb(255 255 255 / 84%), rgb(255 255 255 / 56%));
+      -webkit-backdrop-filter: blur(28px) saturate(160%); backdrop-filter: blur(28px) saturate(160%);
+      box-shadow: inset 0 1.5px 0 rgb(255 255 255 / 95%), inset 0 0 0 1px rgb(255 255 255 / 65%),
+        0 40px 90px -36px rgb(110 60 25 / 42%), 0 10px 26px -14px rgb(28 25 23 / 20%);
+    }
+    .sheen {
+      position: absolute; top: -30%; left: 0; z-index: 3; width: 45%; height: 160%; pointer-events: none;
+      background: linear-gradient(100deg, transparent 0%, rgb(255 255 255 / 0%) 30%, rgb(255 255 255 / 75%) 50%, rgb(255 255 255 / 0%) 70%, transparent 100%);
+      transform: translateX(-300%);
+    }
+
+    /* ตัวอักษรเรื่องเล่า */
+    .type { font: 600 88px/1.15 var(--display); letter-spacing: -.035em; color: var(--ink); white-space: nowrap; }
+    .type .w { display: inline-block; padding: .14em .01em .18em; }
+    .type .hot { color: var(--rust); }
+    :lang(th) .type { letter-spacing: -.005em; }
+    .center { position: absolute; left: 0; right: 0; text-align: center; }
+    .glow { position: absolute; border-radius: 50%; background: radial-gradient(ellipse, rgb(255 255 255 / 92%) 0%, rgb(255 255 255 / 70%) 35%, transparent 70%); }
+
+    /* ฉาก 1: ผนังคำสั่งจริงที่ FramePort สั่งเบื้องหลัง */
+    #wall { position: absolute; left: 0; top: 0; width: 2800px; height: 1900px; transform-origin: 50% 50%;
+      -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 35%, transparent 78%); mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 35%, transparent 78%); }
+    .cmd { position: absolute; left: 0; top: 0; height: 66px; display: flex; align-items: center; padding: 0 30px; border-radius: 18px; white-space: nowrap;
+      font: 500 27px/1 var(--mono); color: #7a6d63; background: rgb(255 255 255 / 70%);
+      box-shadow: inset 0 0 0 1px rgb(255 255 255 / 90%), 0 18px 40px -24px rgb(110 60 25 / 40%); }
+    .cmd b { margin-right: .6em; color: var(--rust); font-weight: 700; }
+
+    /* ฉาก 2: โลโก้ */
+    .icon { display: block; width: 100%; height: 100%; }
+    #logoCard { width: 320px; height: 320px; border-radius: 84px; }
+    #logoCard .icon { position: absolute; left: 52px; top: 52px; width: 216px; height: 216px; filter: drop-shadow(0 18px 30px rgb(28 25 23 / 30%)); }
+    .wordmark { font: 700 132px/1 var(--display); letter-spacing: -.045em; white-space: nowrap; }
+    .wordmark span { display: inline-block; padding: .08em 0 .12em; }
+    .wordmark .port { color: var(--rust); }
+    .subline { font: 500 34px/1.35 var(--display); color: var(--muted); white-space: nowrap; }
+    .subline .w { display: inline-block; }
+
+    /* ฉาก 3: หน้าต่างโปรแกรม (Windows 11 + Mica) */
+    #win {
+      position: absolute; left: 0; top: 0; width: 940px; overflow: hidden; border-radius: 12px; transform-origin: 0 0;
+      background: rgb(244 239 233 / 90%); -webkit-backdrop-filter: blur(30px) saturate(140%); backdrop-filter: blur(30px) saturate(140%);
+      box-shadow: 0 0 0 1px rgb(28 25 23 / 10%), 0 50px 110px -34px rgb(90 50 20 / 48%), 0 14px 34px -14px rgb(28 25 23 / 26%);
+    }
+    .titlebar { height: 34px; display: flex; align-items: center; gap: 10px; padding-left: 14px; font: 12px/1 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: var(--ink); }
+    .titlebar .icon { width: 16px; height: 16px; }
+    .ctl { display: flex; margin-left: auto; }
+    .ctl i { width: 46px; height: 34px; display: grid; place-items: center; }
+    .ctl svg { width: 10px; height: 10px; fill: none; stroke: var(--ink); stroke-width: 1; }
+    #app { padding: 6px 22px 16px; }
+    .dot { position: absolute; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; opacity: 0;
+      background: rgb(28 25 23 / 80%); box-shadow: 0 0 0 3px rgb(255 255 255 / 88%), 0 6px 16px rgb(28 25 23 / 35%); }
+    .ring { position: absolute; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 2px solid var(--rust); opacity: 0; }
+    /* ระยะชัดตื้นด้านซ้าย: หน้าต่างส่วนที่อยู่หลังคำบรรยายจะเบลอและจางเข้าพื้นหลัง */
+    #veil { position: absolute; left: 0; top: 0; z-index: 1; width: 820px; height: 1080px; pointer-events: none; opacity: 0;
+      background: linear-gradient(90deg, rgb(248 243 237 / 95%) 0%, rgb(248 243 237 / 86%) 45%, rgb(248 243 237 / 0%) 100%);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+      -webkit-mask-image: linear-gradient(90deg, #000 45%, transparent 100%); mask-image: linear-gradient(90deg, #000 45%, transparent 100%); }
+    #caps { position: absolute; inset: 0; z-index: 2; }
+    .cap { position: absolute; left: 110px; top: 0; }
+    .cap .type { font-size: 80px; }
+    .cap-sub { max-width: 470px; margin-top: 10px; font: 500 26px/1.4 var(--display); color: var(--muted); }
+    .cap-sub .w { display: inline-block; }
+
+    /* ฉาก 4 และ 5 */
+    #plane { position: absolute; left: 0; top: 0; width: 2360px; height: 700px; transform-origin: 50% 50%; }
+    .gcard { width: 560px; height: 330px; border-radius: 34px; padding: 30px 30px 0; }
+    .gcard .ui { zoom: 1.35; }
+    .gcard .glabel { margin-bottom: 8px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    #dl { width: 880px; height: 400px; border-radius: 52px; }
+    .dl-in { position: absolute; inset: 0; z-index: 1; display: grid; grid-template-columns: 170px 1fr; align-items: center; column-gap: 46px; padding: 0 64px; }
+    .dl-title { font: 700 54px/1.15 var(--display); letter-spacing: -.03em; }
+    .dl-sub { margin-top: 10px; font: 500 26px/1.3 var(--display); color: var(--muted); }
+    .dl-btns { display: flex; gap: 16px; margin-top: 30px; }
+    .pbtn, .sbtn { display: inline-flex; align-items: center; gap: 12px; padding: 20px 32px; border-radius: 999px; font: 700 26px/1 var(--display); white-space: nowrap; }
+    .pbtn { background: var(--apricot); color: #2a1405; box-shadow: 0 14px 30px -14px rgb(242 160 84 / 90%); }
+    .sbtn { background: #fff; box-shadow: inset 0 0 0 1px #e0d6ca; }
+    .pbtn svg { width: 26px; height: 26px; }
+    .url { font: 600 30px/1 var(--display); color: var(--rust); white-space: nowrap; }
+
+    #vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 75% at 50% 50%, transparent 58%, rgb(120 70 30 / 13%) 100%); }
+    #fade { position: absolute; inset: 0; background: #fbf8f4; pointer-events: none; }
+
+    /* ---------- สำเนาหน้าตาโปรแกรมจริงจาก index.html ---------- */
+    .ui {
+      --page: #f4efe9; --surface: #fff; --field: #eae2d8; --line: #e0d6ca; --field-line: #e0d6ca; --ink: #1c1917; --muted: #5c554f;
+      --accent: #a8441a; --accent-soft: #ede3d6; --action: #f2a054; --on-action: #2a1405; --ok: #2f7d4f; --error: #b3261e;
+      color: var(--ink); font: 14px/1.4 "Leelawadee UI", "Segoe UI Variable Text", "Noto Sans Thai", "Segoe UI", sans-serif; letter-spacing: 0;
+    }
+    .ui.dark { --page: #1c1917; --surface: #2a211d; --field: #332921; --line: #493a30; --field-line: #66503e; --ink: #f4efe9; --muted: #c8b9ac; --accent: #f2a054; --accent-soft: #463526; --ok: #75c18d; }
+    .ui .topbar { min-height: 45px; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 0 2px 9px; border-bottom: 1px solid var(--line); }
+    .ui .logo { width: 38px; height: 38px; flex: none; border-radius: 12px; box-shadow: 0 3px 8px rgb(28 25 23 / 12%); }
+    .ui h1 { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.01em; }
+    .ui .sub { display: flex; align-items: center; gap: 7px; margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .ui .okdot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--ok); }
+    .ui .spacer { flex: 1; }
+    .ui .hc { display: flex; gap: 6px; }
+    .ui .btn { min-height: 32px; display: inline-flex; align-items: center; padding: 4px 9px; border: 1px solid var(--field-line); border-radius: 999px; background: var(--surface); font-size: 12px; white-space: nowrap; }
+    .ui .btn.accent { color: var(--accent); }
+    .ui .panel { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: 0 8px 24px rgb(28 25 23 / 7%); }
+    .ui .kicker { display: flex; align-items: center; gap: 7px; margin-bottom: -6px; color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .ui .kicker::before { width: 14px; height: 2px; content: ""; border-radius: 2px; background: var(--action); }
+    .ui .headline { font-size: 18px; line-height: 1.2; font-weight: 750; letter-spacing: -.02em; }
+    .ui .label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .ui .url-label { margin-bottom: -5px; }
+    .ui .url-row { display: flex; gap: 7px; align-items: stretch; }
+    .ui .input { min-width: 0; height: 40px; flex: 1; display: flex; align-items: center; overflow: hidden; padding: 0 11px; border: 1px solid var(--field-line); border-radius: 999px; background: var(--field); font-size: 13px; white-space: nowrap; }
+    .ui .input .ph { color: var(--muted); }
+    .ui .cbtn { min-height: 36px; display: inline-flex; align-items: center; padding: 5px 11px; border: 1px solid var(--field-line); border-radius: 999px; background: var(--field); font-size: 12px; white-space: nowrap; }
+    .ui .options { display: grid; grid-template-columns: minmax(155px, .8fr) minmax(0, 2.5fr); gap: 10px; align-items: start; }
+    .ui .full { grid-column: 1 / -1; }
+    .ui .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--field); }
+    .ui .tabs span { padding: 7px 4px; border-radius: 999px; color: var(--muted); text-align: center; font-size: 12px; line-height: 1.25; }
+    .ui .tabs span.on { background: var(--surface); color: var(--ink); }
+    .ui .seg { display: grid; gap: 5px; }
+    .ui .seg6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .ui .seg3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .ui .seg > span { min-width: 0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; padding: 5px 2px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); text-align: center; font-size: 12px; line-height: 1.2; font-weight: 700; }
+    .ui .seg small { margin-top: 2px; color: var(--muted); font-size: 10px; font-weight: 400; }
+    .ui .seg > span.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+    .ui .seg > span.on small { color: var(--accent); }
+    .ui .seg.out > span { min-height: 58px; align-items: flex-start; padding-inline: 10px; text-align: left; }
+    .ui .seg.out strong { font-size: 12px; }
+    .ui .seg.out small { font-size: 9px; }
+    .ui .hint { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+    .ui .outgrid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(230px, 1fr); gap: 12px; align-items: end; padding-top: 10px; border-top: 1px solid var(--line); }
+    .ui .folder-row { display: flex; align-items: center; gap: 6px; }
+    .ui .folder { min-width: 0; min-height: 36px; flex: 1; overflow: hidden; padding: 8px 10px; border: 1px solid var(--field-line); border-radius: 999px; background: var(--field); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .ui .enc { width: 100%; min-height: 42px; display: flex; align-items: center; gap: 10px; padding: 6px 11px; border: 1px solid var(--field-line); border-radius: 15px; background: var(--field); }
+    .ui .enc-copy { min-width: 0; flex: 1; }
+    .ui .enc-value { display: block; font-size: 12px; font-weight: 750; }
+    .ui .enc-desc { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; }
+    .ui .chev { width: 8px; height: 8px; flex: none; margin: -4px 2px 0 0; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg); }
+    .ui .final { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; }
+    .ui .check { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; }
+    .ui .box { width: 15px; height: 15px; display: grid; place-items: center; border: 1.5px solid var(--muted); border-radius: 3px; }
+    .ui .box.on { border-color: var(--accent); background: var(--accent); }
+    .ui .box svg { width: 11px; height: 11px; }
+    .ui .progress { grid-column: 1 / -1; grid-row: 2; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+    .ui .phase { margin-bottom: 4px; overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .ui .bar { height: 5px; overflow: hidden; border-radius: 99px; background: var(--line); }
+    .ui .fill { height: 100%; border-radius: inherit; background: var(--accent); transform-origin: left; }
+    .ui .stats { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .ui .stats b { color: var(--ink); }
+    .ui .primary { min-width: 150px; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border-radius: 999px; background: var(--action); color: var(--on-action); font-size: 13px; font-weight: 700; }
+    .ui .cancel { min-height: 38px; border-color: var(--error); color: var(--error); }
+    .ui .result { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+    .ui .result > svg { width: 20px; height: 20px; flex: none; color: var(--ok); }
+    .ui .rcopy { min-width: 0; flex: 1; }
+    .ui .rtitle { font-size: 12px; font-weight: 750; }
+    .ui .rdetail { color: var(--muted); font-size: 11px; }
+    .ui .menu { display: grid; gap: 3px; padding: 5px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+    .ui .opt { min-height: 40px; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid transparent; border-radius: 10px; }
+    .ui .opt.on { border-color: var(--line); background: var(--accent-soft); }
+    .ui .opt-check { width: 15px; flex: none; color: var(--accent); font-size: 13px; font-weight: 800; text-align: center; }
+    .ui .opt-copy { min-width: 0; flex: 1; }
+    .ui .opt-title { display: block; font-size: 11px; font-weight: 750; }
+    .ui .opt-desc { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+    .ui .badge { flex: none; padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .04em; }
+    .ui .opt.on .badge { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); color: var(--accent); }
+    .ui .files { display: grid; gap: 6px; }
+    .ui .file { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); font-size: 12px; font-weight: 700; }
+    .ui .file small { margin-left: auto; color: var(--muted); font-weight: 400; }
+  </style>
+</head>
+<body>
+  <main id="stage" role="img" aria-label="FramePort">
+    <div class="blob" id="blobA"></div>
+    <div class="blob" id="blobB"></div>
+    <div class="blob" id="blobC"></div>
+    <div class="blob" id="blobD"></div>
+
+    <div class="scene" id="s1">
+      <div id="wall"></div>
+      <div class="glow" id="hookGlow"></div>
+      <div class="center type" id="hook"></div>
+    </div>
+
+    <div class="scene" id="s2">
+      <div class="lg" id="logoCard"><span id="logoIcon"></span><i class="sheen" id="logoSheen"></i></div>
+      <div class="center wordmark" id="logoWord"></div>
+      <div class="center subline" id="logoSub"></div>
+    </div>
+
+    <div class="scene" id="s3">
+      <div id="caps"></div>
+      <div id="win">
+        <div class="titlebar">
+          <span id="titleIcon" style="width:16px;height:16px"></span><span>FramePort</span>
+          <span class="ctl">
+            <i><svg viewBox="0 0 10 10"><path d="M0 5.5h10"/></svg></i>
+            <i><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" rx="1.5"/></svg></i>
+            <i><svg viewBox="0 0 10 10"><path d="m.5.5 9 9m0-9-9 9"/></svg></i>
+          </span>
+        </div>
+        <div id="app" class="ui"></div>
+        <i class="ring" id="ring"></i>
+        <i class="dot" id="dot"></i>
+      </div>
+      <div id="veil"></div>
+    </div>
+
+    <div class="scene" id="s4">
+      <div id="plane"></div>
+      <div class="glow" id="gridGlow"></div>
+      <div class="center type" id="gridTitle"></div>
+    </div>
+
+    <div class="scene" id="s5">
+      <div class="lg" id="dl"><div class="dl-in" id="dlIn"></div><i class="sheen" id="dlSheen"></i></div>
+      <i class="ring" id="ring2"></i>
+      <i class="dot" id="dot2"></i>
+      <div id="endIcon" style="position:absolute;left:0;top:0;width:180px;height:180px"></div>
+      <div class="center wordmark" id="endWord"></div>
+      <div class="center subline" id="endLine"></div>
+      <div class="center url" id="endUrl"></div>
+    </div>
+
+    <div id="vignette"></div>
+    <div id="fade"></div>
+  </main>
+  <script>
+    // เรื่องเล่า: [คำ] = สีเน้น · ข้อความในหน้าจอโปรแกรมคัดลอกจาก renderer.js (words) และ main.js
+    const COPY = {
+      th: {
+        label: 'FramePort — คลิปแนะนำโปรแกรม',
+        hook: 'ไม่ต้องพิมพ์[คำสั่งยาวๆ] อีกต่อไป',
+        logoSub: 'ดาวน์โหลดวิดีโอและแปลงไฟล์ให้ง่าย',
+        caps: [
+          ['วางลิงก์', 'รองรับ YouTube, TikTok, Facebook, X และอีกหลายเว็บไซต์'],
+          ['เลือก [4K]', 'สูงสุด · 4K · 2K · 1080p · 720p · 480p'],
+          ['แปลงด้วย [GPU]', 'NVIDIA NVENC · Intel Quick Sync · AMD AMF'],
+          ['[พร้อมตัดต่อ]', 'เปิดได้ใน Premiere, Resolve, CapCut และทุกเครื่องเล่น'],
+        ],
+        gridTitle: 'ครบใน[หน้าจอเดียว]',
+        dlTitle: 'ดาวน์โหลด FramePort วันนี้', dlSub: 'Windows x64 · ภาษาไทยและ English', setup: 'ดาวน์โหลด Setup', portable: 'ดาวน์โหลด Portable',
+        endLine: 'โหลดคลิป แปลงไฟล์ [พร้อมใช้]',
+        ui: {
+          appTitle: 'ดาวน์โหลดวิดีโอ', ready: 'พร้อมใช้งาน', lang: 'EN', theme: 'Dark', light: 'Light', update: 'อัปเดต yt-dlp',
+          kicker: 'ดาวน์โหลดและแปลงไฟล์', headline: 'วางลิงก์ แล้วเลือกไฟล์', urlLabel: 'ลิงก์วิดีโอ', placeholder: 'วางลิงก์วิดีโอ เช่น https://youtu.be/…',
+          paste: 'วางลิงก์', clear: 'ล้างลิงก์', format: 'รูปแบบไฟล์', video: 'วิดีโอ', audio: 'เสียง',
+          resolution: 'ความละเอียด', best: 'สูงสุด', available: 'ที่มี', smallFile: 'ไฟล์เล็ก',
+          hint: 'เลือกต้นทางที่คมชัดที่สุดตามความละเอียด แล้วแปลงตามรูปแบบที่เลือก',
+          outputLabel: 'ไฟล์วิดีโอที่ได้', h264Tag: 'พร้อมตัดต่อ', h264Desc: 'เปิดได้ใน Premiere, Resolve, CapCut และทุกเครื่องเล่น',
+          hevcTag: 'คุณภาพสูง', hevcDesc: 'คงรายละเอียดภาพ เหมาะกับโปรแกรมรุ่นใหม่', originalTitle: 'ต้นฉบับ', originalTag: 'เร็วที่สุด', originalDesc: 'ไม่แปลงไฟล์ คุณภาพต้นฉบับ (AV1/VP9)',
+          saveTo: 'บันทึกที่', choose: 'เปลี่ยน', open: 'เปิดโฟลเดอร์', encoderLabel: 'ตัวเข้ารหัสวิดีโอ', auto: 'อัตโนมัติ', autoUsing: 'ใช้ ',
+          playlist: 'ดาวน์โหลดทั้งเพลย์ลิสต์', start: 'เริ่มดาวน์โหลด', working: 'กำลังทำงาน…', cancel: 'ยกเลิก',
+          downloading: 'กำลังดาวน์โหลด', converting: 'กำลังแปลงเป็น H.264 · NVIDIA NVENC', finished: 'เสร็จแล้ว', remaining: 'เหลือ ', item: 'ไฟล์ ',
+          savedOne: 'บันทึกไฟล์แล้ว', showInFolder: 'แสดงในโฟลเดอร์',
+          audioFormat: 'ไฟล์เสียง', smallPlay: 'เปิดได้ทุกที่', lossless: 'ไม่เสียคุณภาพ', uncompressed: 'ไม่บีบอัด', recommended: 'แนะนำ',
+          nvDesc: 'การ์ดจอ NVIDIA GeForce / RTX', intelDesc: 'กราฟิก Intel ในตัวหรือ Arc', amdDesc: 'กราฟิก AMD ในตัวหรือ Radeon', cpuDesc: 'x264 / x265 ใช้ได้ทุกเครื่อง',
+          namesCard: 'ชื่อไฟล์ตรงกับชื่อคลิป', themeCard: 'ธีมสว่างและมืด', langCard: 'ภาษาไทยและ English',
+        },
+      },
+      en: {
+        label: 'FramePort — product showcase',
+        hook: 'No more [long commands.]',
+        logoSub: 'Reliable video downloads and edit-ready conversion',
+        caps: [
+          ['Paste a link.', 'Works with YouTube, TikTok, Facebook, X and many more sites'],
+          ['Pick [4K.]', 'Best · 4K · 2K · 1080p · 720p · 480p'],
+          ['GPU-[powered.]', 'NVIDIA NVENC · Intel Quick Sync · AMD AMF'],
+          ['[Edit-ready.]', 'Opens in Premiere, Resolve, CapCut and every player'],
+        ],
+        gridTitle: 'All in [one screen.]',
+        dlTitle: 'Get FramePort today', dlSub: 'Windows x64 · Thai and English', setup: 'Download Setup', portable: 'Download Portable',
+        endLine: 'Download clips. Convert. [Get to work.]',
+        ui: {
+          appTitle: 'Video Downloader', ready: 'Ready', lang: 'ไทย', theme: 'Dark', light: 'Light', update: 'Update yt-dlp',
+          kicker: 'Download and convert', headline: 'Paste a link and choose a format', urlLabel: 'Video link', placeholder: 'Paste a video link, e.g. https://youtu.be/…',
+          paste: 'Paste', clear: 'Clear link', format: 'Format', video: 'Video', audio: 'Audio',
+          resolution: 'Resolution', best: 'Best', available: 'available', smallFile: 'Smaller',
+          hint: 'Selects the clearest source at your chosen resolution, then converts to your chosen format',
+          outputLabel: 'Video output', h264Tag: 'Edit-ready', h264Desc: 'Opens in Premiere, Resolve, CapCut and every player',
+          hevcTag: 'High quality', hevcDesc: 'Preserves picture detail for modern apps', originalTitle: 'Original', originalTag: 'Fastest', originalDesc: 'No conversion, original quality (AV1/VP9)',
+          saveTo: 'Save to', choose: 'Change', open: 'Open folder', encoderLabel: 'Video encoder', auto: 'Automatic', autoUsing: 'Using ',
+          playlist: 'Download entire playlist', start: 'Download', working: 'Working…', cancel: 'Cancel',
+          downloading: 'Downloading', converting: 'Converting to H.264 · NVIDIA NVENC', finished: 'Complete', remaining: 'ETA ', item: 'Item ',
+          savedOne: 'File saved', showInFolder: 'Show in folder',
+          audioFormat: 'Audio format', smallPlay: 'Plays anywhere', lossless: 'Lossless', uncompressed: 'Uncompressed', recommended: 'Recommended',
+          nvDesc: 'NVIDIA GeForce / RTX graphics', intelDesc: 'Intel integrated graphics or Arc', amdDesc: 'AMD integrated graphics or Radeon', cpuDesc: 'x264 / x265, works on any PC',
+          namesCard: 'Keep the clip title', themeCard: 'Light and dark themes', langCard: 'Thai and English',
+        },
+      },
+    };
+    // คำสั่งที่ FramePort สั่ง yt-dlp / FFmpeg ให้เบื้องหลัง (อาร์กิวเมนต์จริงจาก main.js)
+    const COMMANDS = [
+      ['yt-dlp', '-f "bv+ba/b" -S "res:2160,fps,hdr:sdr,br" --merge-output-format mp4'],
+      ['ffmpeg', '-hwaccel cuda -i "Travel vlog 4K.webm" -c:v h264_nvenc -preset p2 -rc vbr -cq 14'],
+      ['yt-dlp', '-f "ba/b" -x --audio-format flac --audio-quality 0 --embed-metadata'],
+      ['ffprobe', '-v error -show_entries stream=codec_type,codec_name,pix_fmt -of json'],
+      ['ffmpeg', '-i clip.webm -c:v hevc_qsv -preset veryfast -global_quality 16 -tag:v hvc1'],
+      ['yt-dlp', '--concurrent-fragments 8 --no-overwrites --no-mtime --newline --progress'],
+      ['ffmpeg', '-i clip.webm -c:v h264_amf -quality balanced -rc cqp -qp_i 14 -qp_p 16'],
+      ['yt-dlp', '--yes-playlist -o "%(title).180B.%(ext)s" --remux-video mp4'],
+      ['ffmpeg', '-i clip.webm -c:v libx264 -preset veryfast -crf 14 -profile:v high -c:a aac'],
+      ['yt-dlp', '-U'],
+    ];
+    const URL_TEXT = 'https://youtu.be/…';
+    const FILE = 'Travel vlog 4K.mp4';
+    const FOLDER = 'C:\\Users\\User\\Downloads';
+    const YTDLP = '2026.08.19'; // yt-dlp ที่ FramePort ติดตั้งไว้ในเครื่อง ณ วันที่ทำคลิป
+    const SITE = 'CandyCoreProj.github.io/FramePort';
+    const DURATION = 15;
+
+    const params = new URLSearchParams(location.search);
+    const lang = params.get('lang') === 'en' ? 'en' : 'th';
+    document.documentElement.lang = lang;
+    const T = COPY[lang];
+    const u = T.ui;
+    const VERSION = (params.get('v') || '1.0.0').slice(0, 20);
+    const $ = (id) => document.getElementById(id);
+
+    // ---------- สร้างชิ้นส่วน ----------
+    let iconSeq = 0;
+    const icon = () => {
+      const id = `clip${++iconSeq}`;
+      return `<svg class="icon" viewBox="0 0 512 512"><defs><clipPath id="${id}"><rect x="16" y="16" width="480" height="480" rx="112"/></clipPath></defs>`
+        + '<rect x="16" y="16" width="480" height="480" rx="112" fill="#1c1917"/>'
+        + '<path fill="none" stroke="#f4efe9" stroke-linecap="round" stroke-linejoin="round" stroke-width="20" d="M142 198v-56h68M302 142h68v56M370 314v56h-68M210 370h-68v-56"/>'
+        + '<line class="under" x1="201" y1="404" x2="311" y2="404" stroke="#a8441a" stroke-linecap="round" stroke-width="20"/>'
+        + `<g clip-path="url(#${id})"><path class="arrow" fill="#f2a054" d="M239 174h34v92l37-37 24 24-78 78-78-78 24-24 37 37z"/></g></svg>`;
+    };
+    const words = (text) => text.split(/(\[[^\]]*\])/).filter(Boolean).map((part) => {
+      const hot = part.startsWith('[');
+      return (hot ? part.slice(1, -1) : part).split(/( )/)
+        .map((w) => (w === ' ' ? ' ' : w ? `<span class="w${hot ? ' hot' : ''}">${w}</span>` : '')).join('');
+    }).join('');
+    const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+    const tick = '<svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 6.2 2.3 2.3L9.5 3.8"/></svg>';
+    const seg6 = (on) => `<div class="seg seg6">${[[u.best, u.available], ['4K', '2160p'], ['2K', '1440p'], ['1080p', 'Full HD'], ['720p', 'HD'], ['480p', u.smallFile]]
+      .map(([a, b], i) => `<span class="${i === on ? 'on' : ''}">${a}<small>${b}</small></span>`).join('')}</div>`;
+    const outSeg = `<div class="seg seg3 out"><span class="on"><strong>H.264</strong><small>${u.h264Tag}</small><small>${u.h264Desc}</small></span>`
+      + `<span><strong>H.265</strong><small>${u.hevcTag}</small><small>${u.hevcDesc}</small></span>`
+      + `<span><strong>${u.originalTitle}</strong><small>${u.originalTag}</small><small>${u.originalDesc}</small></span></div>`;
+    const topbar = (themeLabel) => `<header class="topbar"><span class="logo">${icon()}</span><div><h1>${u.appTitle}</h1>`
+      + `<div class="sub"><span class="okdot"></span><span>${u.ready} · yt-dlp ${YTDLP}</span><span>v${VERSION}</span></div></div>`
+      + `<div class="spacer"></div><div class="hc"><span class="btn">${u.lang}</span><span class="btn">${themeLabel}</span><span class="btn accent">${u.update}</span></div></header>`;
+
+    // หน้าจอหลักของโปรแกรม (โครงเดียวกับ index.html)
+    $('app').innerHTML = topbar(u.theme) + `<main class="panel">
+      <div class="kicker">${u.kicker}</div><div class="headline">${u.headline}</div>
+      <span class="label url-label">${u.urlLabel}</span>
+      <div class="url-row" id="uRow"><div class="input" id="uIn"><span class="ph">${u.placeholder}</span></div><span class="cbtn" id="uClear">${u.clear}</span><span class="cbtn" id="uPaste">${u.paste}</span></div>
+      <div class="options">
+        <div><div class="label">${u.format}</div><div class="tabs"><span class="on">${u.video}</span><span>${u.audio}</span></div></div>
+        <div><div class="label">${u.resolution}</div><div id="uRes">${seg6(0)}</div><div class="hint">${u.hint}</div></div>
+        <div class="full"><div class="label">${u.outputLabel}</div>${outSeg}</div>
+      </div>
+      <div class="outgrid">
+        <div><div class="label">${u.saveTo}</div><div class="folder-row"><div class="folder">${FOLDER}</div><span class="cbtn">${u.choose}</span><span class="cbtn">${u.open}</span></div></div>
+        <div><div class="label">${u.encoderLabel}</div><div class="enc"><span class="enc-copy"><span class="enc-value">${u.auto}</span><span class="enc-desc">${u.autoUsing}NVIDIA NVENC</span></span><span class="chev"></span></div></div>
+      </div>
+      <div class="final" id="uFinal">
+        <span class="check"><span class="box"></span>${u.playlist}</span>
+        <div class="progress" id="uProg"><div class="phase" id="uPhase"></div><div class="bar"><div class="fill" id="uFill"></div></div>
+          <div class="stats"><span><b id="uPct">0%</b></span><span id="uSpeed"></span><span id="uEta"></span></div></div>
+        <div class="url-row"><span class="primary" id="uGo">${u.start}</span><span class="cbtn cancel" id="uCancel">${u.cancel}</span></div>
+      </div>
+      <div class="result" id="uResult">${checkSvg}<div class="rcopy"><div class="rtitle">${u.savedOne}</div><div class="rdetail">${FILE}</div></div><span class="cbtn">${u.showInFolder}</span></div>
+    </main>`;
+    $('titleIcon').innerHTML = icon();
+
+    // การ์ดฟีเจอร์ 8 ใบ: ทุกใบคือส่วนหนึ่งของหน้าจอโปรแกรมจริง
+    const opt = (title, desc, badge, on) => `<div class="opt${on ? ' on' : ''}"><span class="opt-check">${on ? '✓' : ''}</span><span class="opt-copy"><span class="opt-title">${title}</span><span class="opt-desc">${desc}</span></span><span class="badge">${badge}</span></div>`;
+    const CARDS = [
+      [u.resolution, seg6(1) + `<div class="hint">${u.hint}</div>`],
+      [u.audioFormat, `<div class="seg seg3"><span>MP3<small>${u.smallPlay}</small></span><span class="on">FLAC<small>${u.lossless}</small></span><span>WAV<small>${u.uncompressed}</small></span></div>`],
+      [u.encoderLabel, `<div class="menu">${opt('NVIDIA · CUDA / NVENC', u.nvDesc, u.recommended, true)}${opt('Intel · Quick Sync', u.intelDesc, 'iGPU')}${opt('AMD · AMF', u.amdDesc, 'GPU')}</div>`],
+      [u.namesCard, `<div class="files">${['Clip.mp4', 'Clip 2.mp4', 'Clip 3.mp4'].map((f) => `<div class="file">${f}<small>H.264</small></div>`).join('')}</div>`],
+      [u.outputLabel, outSeg],
+      [u.playlist, `<span class="check"><span class="box on">${tick}</span>${u.playlist}</span><div class="progress" style="margin-top:6px"><div class="phase">${u.downloading} · ${u.item}3/12</div><div class="bar"><div class="fill" style="transform:scaleX(.42)"></div></div><div class="stats"><span><b>42.0%</b></span><span>42.80MiB/s</span><span>${u.remaining}00:06</span></div></div>`],
+      [u.themeCard, `<div class="ui dark" style="padding:10px 12px 12px;border-radius:14px;background:var(--page)">${topbar(u.light)}<span class="primary">${u.start}</span></div>`],
+      [u.langCard, `<div class="tabs" style="margin-bottom:10px"><span class="on">ไทย</span><span>English</span></div><div class="headline">${COPY.th.ui.headline}</div><div class="headline" style="margin-top:6px;color:var(--muted)">${COPY.en.ui.headline}</div>`],
+    ];
+    $('plane').innerHTML = CARDS.map(([label, body]) => `<div class="lg gcard"><div class="ui"><div class="glabel">${label}</div>${body}</div><i class="sheen"></i></div>`).join('');
+
+    $('wall').innerHTML = Array.from({ length: 16 }, (_, row) => {
+      const a = COMMANDS[row % COMMANDS.length], b = COMMANDS[(row * 3 + 4) % COMMANDS.length];
+      return `<div class="wrow" style="position:absolute;left:${(row * 419) % 900 - 300}px;top:${60 + row * 110}px;display:flex;gap:40px">`
+        + [a, b].map(([bin, rest]) => `<div class="cmd" style="position:relative"><b>${bin}</b>${rest}</div>`).join('') + '</div>';
+    }).join('');
+    $('hook').innerHTML = words(T.hook);
+    $('logoIcon').innerHTML = icon();
+    $('logoWord').innerHTML = [...'FramePort'].map((c, i) => `<span class="${i > 4 ? 'port' : ''}">${c}</span>`).join('');
+    $('logoSub').innerHTML = words(T.logoSub);
+    $('caps').innerHTML = T.caps.map(([title, sub]) => `<div class="cap"><div class="type">${words(title)}</div><div class="cap-sub">${words(sub)}</div></div>`).join('');
+    $('gridTitle').innerHTML = words(T.gridTitle);
+    $('dlIn').innerHTML = `<span style="display:block;width:170px;height:170px;filter:drop-shadow(0 14px 24px rgb(28 25 23 / 28%))">${icon()}</span><div>`
+      + `<div class="dl-title">${T.dlTitle}</div><div class="dl-sub">${T.dlSub}</div>`
+      + `<div class="dl-btns"><span class="pbtn" id="setupBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 17v3h16v-3"/></svg>${T.setup}</span><span class="sbtn">${T.portable}</span></div></div>`;
+    $('endIcon').innerHTML = icon();
+    $('endWord').innerHTML = $('logoWord').innerHTML;
+    $('endLine').innerHTML = words(T.endLine);
+    $('endUrl').innerHTML = `<span class="w" style="display:inline-block">${SITE}</span>`;
+    $('stage').setAttribute('aria-label', T.label);
+
+    const all = (selector, root) => [...root.querySelectorAll(selector)];
+    const el = {
+      stage: $('stage'), blobs: ['blobA', 'blobB', 'blobC', 'blobD'].map($), fade: $('fade'),
+      scenes: ['s1', 's2', 's3', 's4', 's5'].map($),
+      wall: $('wall'), hook: all('.w', $('hook')), hookBox: $('hook'), hookGlow: $('hookGlow'),
+      logoCard: $('logoCard'), logoArrow: $('logoIcon').querySelector('.arrow'), logoUnder: $('logoIcon').querySelector('.under'), logoSheen: $('logoSheen'),
+      logoWord: $('logoWord'), logoLetters: [...$('logoWord').children], logoSubBox: $('logoSub'), logoSub: all('.w', $('logoSub')),
+      win: $('win'), dot: $('dot'), ring: $('ring'),
+      caps: all('.cap', $('caps')).map((root) => ({ root, title: all('.type .w', root), sub: all('.cap-sub .w', root) })),
+      uIn: $('uIn'), uClear: $('uClear'), uPaste: $('uPaste'), chips: all('.seg > span', $('uRes')), uGo: $('uGo'), uCancel: $('uCancel'),
+      uProg: $('uProg'), uPhase: $('uPhase'), uFill: $('uFill'), uPct: $('uPct'), uSpeed: $('uSpeed'), uEta: $('uEta'), uResult: $('uResult'),
+      plane: $('plane'), gcards: [...$('plane').children], gridTitleBox: $('gridTitle'), gridTitle: all('.w', $('gridTitle')), gridGlow: $('gridGlow'),
+      dl: $('dl'), dlSheen: $('dlSheen'), setupBtn: $('setupBtn'), dot2: $('dot2'), ring2: $('ring2'),
+      endIcon: $('endIcon'), endArrow: $('endIcon').querySelector('.arrow'), endUnder: $('endIcon').querySelector('.under'),
+      endWord: $('endWord'), endLetters: [...$('endWord').children], endLineBox: $('endLine'), endLine: all('.w', $('endLine')), endUrl: $('endUrl').firstElementChild,
+    };
+
+    // ---------- เวลาและการเคลื่อนไหว ----------
+    const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+    const lerp = (a, b, p) => a + (b - a) * p;
+    const E = {
+      lin: (p) => p,
+      in: (p) => p ** 3,
+      inOut: (p) => (p < .5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2),
+      expo: (p) => (p >= 1 ? 1 : 1 - 2 ** (-10 * p)),
+      back: (p) => 1 + 2.4 * (p - 1) ** 3 + 1.4 * (p - 1) ** 2,
+    };
+    const ramp = (t, a, b, ease = E.inOut) => ease(clamp((t - a) / (b - a)));
+    const bump = (t, c, d = .3) => Math.sin(Math.PI * clamp((t - c + d * .3) / d));
+    const mix = (a, b, p) => { const o = {}; for (const k in a) o[k] = lerp(a[k], b[k], p); return o; };
+    const px = (v) => v.toFixed(2);
+    const shown = new Map();
+    const text = (node, value) => { if (shown.get(node) !== value) { shown.set(node, value); node.textContent = value; } };
+    function show(node, opacity) {
+      const visible = opacity > .002;
+      node.style.visibility = visible ? '' : 'hidden';
+      node.style.opacity = visible ? opacity.toFixed(3) : 0;
+      return visible;
+    }
+    const blurCss = (amount) => (amount > .05 ? `blur(${px(amount)}px)` : 'none');
+    // ตัวอักษรชัดขึ้นจากความเบลอทีละคำ (a = เข้า 0→1, b = ออก 0→1)
+    function fx(node, a, b = 0, o = {}) {
+      const { blur = 14, rise = 24, lift = -16, outBlur = 14, grow = 1.04, outScale = 1 } = o;
+      if (!show(node, clamp(a) * (1 - b))) return;
+      node.style.filter = blurCss((1 - a) * blur + b * outBlur);
+      node.style.transform = `translateY(${px((1 - a) * rise + b * lift)}px) scale(${(lerp(grow, 1, a) * lerp(1, outScale, b)).toFixed(4)})`;
+    }
+    const sweep = (node, p, width) => {
+      node.style.opacity = p > 0 && p < 1 ? 1 : 0;
+      node.style.transform = `translateX(${px(lerp(-width * .5, width * 1.05, p))}px)`;
+    };
+    // ลูกศรในไอคอนหล่นลง (viewBox 512) แล้วเส้นใต้กวาดออก
+    function iconMotion(arrow, under, drop, line) {
+      arrow.setAttribute('transform', `translate(0 ${lerp(-330, 0, drop).toFixed(1)})`);
+      const half = 55 * line;
+      under.setAttribute('x1', (256 - half).toFixed(1));
+      under.setAttribute('x2', (256 + half).toFixed(1));
+      under.setAttribute('opacity', half > .5 ? 1 : 0);
+    }
+
+    // ---------- วัดตำแหน่งจริงของปุ่มในหน้าจอโปรแกรม ----------
+    let M = null;
+    function centerIn(node, root) {
+      let x = node.offsetWidth / 2, y = node.offsetHeight / 2;
+      for (let n = node; n && n !== root; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+      return { x, y };
+    }
+    const middle = (node, cy) => { node.style.top = `${px(cy - node.offsetHeight / 2)}px`; };
+    function measure() {
+      M = {
+        winW: el.win.offsetWidth, winH: el.win.offsetHeight,
+        paste: centerIn(el.uPaste, el.win), chip4k: centerIn(el.chips[1], el.win), go: centerIn(el.uGo, el.win),
+        row: centerIn($('uRow'), el.win), res: centerIn($('uRes'), el.win), fin: centerIn($('uFinal'), el.win),
+        setup: centerIn(el.setupBtn, el.dl), dlW: el.dl.offsetWidth, dlH: el.dl.offsetHeight,
+      };
+      middle(el.hookBox, 540);
+      middle(el.logoWord, 655);
+      middle(el.logoSubBox, 758);
+      el.caps.forEach((cap) => middle(cap.root, 540));
+      middle(el.gridTitleBox, 540);
+      middle(el.endWord, 588);
+      middle(el.endLineBox, 700);
+      middle($('endUrl'), 786);
+      el.gcards.forEach((card, k) => { card.style.left = `${(k % 4) * 600}px`; card.style.top = `${Math.floor(k / 4) * 370}px`; });
+      const glow = (node, w, h) => Object.assign(node.style, { width: `${w}px`, height: `${h}px`, left: `${960 - w / 2}px`, top: `${540 - h / 2}px` });
+      glow(el.hookGlow, 1500, 520);
+      glow(el.gridGlow, 1300, 460);
+    }
+
+    // กล้องของฉากหน้าต่างโปรแกรม: จุดโฟกัสในหน้าต่าง (fx, fy) ไปอยู่ที่ตำแหน่งจอ (X, Y)
+    function camAt(t) {
+      const mid = { x: M.winW / 2, y: M.winH / 2 };
+      const A = { fx: mid.x, fy: mid.y, X: 1640, Y: 640, s: .7, rx: 14, ry: -42, o: 0, b: 16 };
+      const B = { fx: mid.x, fy: mid.y, X: 1220, Y: 555, s: .98, rx: 5, ry: -14, o: 1, b: 0 };
+      // จุดโฟกัสเยื้องไปทางขวาของแต่ละส่วน ปุ่มที่ถูกแตะจึงอยู่ในเฟรมเสมอ ส่วนซ้ายหลบใต้คำบรรยาย
+      const C = { fx: M.row.x, fy: M.row.y, X: 1290, Y: 500, s: 1.36, rx: 3, ry: -8, o: 1, b: 0 };
+      const D = { fx: M.res.x + 60, fy: M.res.y, X: 1230, Y: 520, s: 1.45, rx: 3, ry: -7, o: 1, b: 0 };
+      const F = { fx: M.fin.x, fy: M.fin.y, X: 1290, Y: 560, s: 1.3, rx: 4, ry: -9, o: 1, b: 0 };
+      const G = { fx: mid.x + 100, fy: M.winH * .62, X: 1225, Y: 560, s: 1.12, rx: 5, ry: -12, o: 1, b: 0 };
+      const H = { ...G, s: 1.03, ry: -14 };
+      const Z = { fx: mid.x, fy: mid.y, X: 1300, Y: 380, s: .78, rx: 30, ry: -28, o: 0, b: 18 };
+      const keys = [[4.1, A], [4.75, B], [5.05, C], [5.35, C], [5.95, D], [6.25, D], [6.9, F], [8.45, F], [8.9, G], [9.25, H], [9.7, Z]];
+      if (t <= keys[0][0]) return A;
+      for (let i = 1; i < keys.length; i++) {
+        if (t <= keys[i][0]) return mix(keys[i - 1][1], keys[i][1], E.inOut((t - keys[i - 1][0]) / (keys[i][0] - keys[i - 1][0])));
+      }
+      return Z;
+    }
+
+    // จุดแตะ (แทนนิ้ว) ในพิกัดหน้าต่าง: วางลิงก์ → 4K → เริ่มดาวน์โหลด
+    const TAPS = [5.12, 5.95, 6.9];
+    function dotAt(t) {
+      const start = { x: M.winW * .72, y: M.winH * .8 };
+      const away = { x: M.go.x + 70, y: M.go.y + 80 };
+      let p = mix(start, M.paste, ramp(t, 4.75, 5.05));
+      p = mix(p, M.chip4k, ramp(t, 5.55, 5.9));
+      p = mix(p, M.go, ramp(t, 6.45, 6.85));
+      return mix(p, away, ramp(t, 7, 7.3));
+    }
+    function tapRing(ring, t, taps, at) {
+      const h = taps.filter((x) => x <= t).pop();
+      const p = h === undefined ? 1 : clamp((t - h) / .45);
+      if (!show(ring, (1 - p) * .9)) return;
+      const c = at(h);
+      ring.style.transform = `translate(${px(c.x)}px,${px(c.y)}px) scale(${lerp(1, 3.2, E.expo(p)).toFixed(3)})`;
+    }
+
+    const blurWith = (amount, extra) => (amount > .05 ? `blur(${px(amount)}px) ${extra}` : extra);
+    const CAPS = [[5.1, 5.95], [5.98, 7.65], [7.72, 8.5], [8.55, 9.3]];
+
+    function render(t) {
+      if (!M) return;
+      // พื้นหลัง: แสงพีช/แอปริคอตไหลช้าๆ
+      const blob = (node, size, cx, cy, s) => { node.style.transform = `translate(${px(cx - size / 2)}px,${px(cy - size / 2)}px) scale(${s.toFixed(4)})`; };
+      blob(el.blobs[0], 1400, 560 + 140 * Math.sin(t * .3), 300 + 90 * Math.cos(t * .27), 1 + .05 * Math.sin(t * .4));
+      blob(el.blobs[1], 1200, 1500 + 110 * Math.cos(t * .25), 850 + 90 * Math.sin(t * .33), 1 + .06 * Math.cos(t * .35));
+      blob(el.blobs[2], 1000, 250 + 90 * Math.sin(t * .21 + 1), 950 + 60 * Math.cos(t * .29), 1);
+      blob(el.blobs[3], 1300, 960 + 60 * Math.sin(t * .2), 500 + 40 * Math.cos(t * .23), 1);
+      el.fade.style.opacity = (1 - ramp(t, 0, .35)).toFixed(3);
+      const on = [t < 2.6, t > 2.25 && t < 4.45, t > 4.05 && t < 9.75, t > 9.3 && t < 12.5, t > 12.1];
+      el.scenes.forEach((scene, i) => show(scene, on[i] ? 1 : 0));
+
+      // ฉาก 1: ผนังคำสั่ง + "ไม่ต้องพิมพ์คำสั่งยาวๆ อีกต่อไป"
+      if (on[0]) {
+        const out = ramp(t, 2.05, 2.5, E.in);
+        el.wall.style.transform = `translate(${960 - 1400}px,${540 - 950}px) perspective(1400px) rotateX(52deg) rotateZ(-20deg) translateY(${px(-60 * t)}px) scale(${lerp(1, 1.3, out).toFixed(4)})`;
+        el.wall.style.opacity = (ramp(t, 0, .5) * (1 - out)).toFixed(3);
+        el.wall.style.filter = blurCss(out * 14);
+        show(el.hookGlow, .95 * ramp(t, .2, .7) * (1 - out));
+        el.hook.forEach((w, j) => fx(w, ramp(t, .4 + j * .14, .95 + j * .14, E.expo), ramp(t, 2, 2.4, E.in), { lift: -12, outBlur: 18, outScale: 1.06 }));
+      }
+
+      // ฉาก 2: ไอคอนบนการ์ดกระจก + ชื่อโปรแกรม
+      if (on[1]) {
+        const a = ramp(t, 2.35, 2.95, E.back), settle = ramp(t, 2.35, 2.95, E.expo), q = ramp(t, 3.95, 4.35, E.in);
+        el.logoCard.style.transform = `translate(800px,240px) perspective(1200px) rotateX(${lerp(28, 0, settle).toFixed(3)}deg) rotateY(${lerp(-18, 0, settle).toFixed(3)}deg) scale(${(lerp(.55, 1, a) * lerp(1, .6, q)).toFixed(4)})`;
+        el.logoCard.style.filter = blurCss((1 - ramp(t, 2.35, 2.8)) * 14 + q * 14);
+        show(el.logoCard, ramp(t, 2.35, 2.6) * (1 - q));
+        iconMotion(el.logoArrow, el.logoUnder, ramp(t, 2.62, 3.02, E.back), ramp(t, 2.9, 3.2, E.expo));
+        sweep(el.logoSheen, ramp(t, 3.15, 3.65), 320);
+        el.logoLetters.forEach((n, i) => fx(n, ramp(t, 2.95 + i * .04, 3.45 + i * .04, E.expo), q, { rise: 34, lift: -24, outBlur: 16 }));
+        el.logoSub.forEach((n, j) => fx(n, ramp(t, 3.3 + j * .06, 3.8 + j * .06, E.expo), q, { rise: 20, blur: 12 }));
+      }
+
+      // ฉาก 3: ใช้งานหน้าจอโปรแกรมจริง
+      if (on[2]) {
+        const c = camAt(t);
+        el.win.style.transform = `translate(${px(c.X)}px,${px(c.Y)}px) perspective(1800px) rotateX(${c.rx.toFixed(3)}deg) rotateY(${c.ry.toFixed(3)}deg) scale(${c.s.toFixed(4)}) translate(${px(-c.fx)}px,${px(-c.fy)}px)`;
+        el.win.style.filter = blurCss(c.b);
+        show(el.win, c.o);
+
+        const d = dotAt(t);
+        const press = TAPS.reduce((v, h) => Math.max(v, bump(t, h, .24)), 0);
+        el.dot.style.transform = `translate(${px(d.x)}px,${px(d.y)}px) scale(${(1 - .22 * press).toFixed(3)})`;
+        show(el.dot, ramp(t, 4.65, 4.8) * (1 - ramp(t, 7.05, 7.3)));
+        tapRing(el.ring, t, TAPS, dotAt);
+        [el.uPaste, el.chips[1], el.uGo].forEach((node, k) => { node.style.transform = `scale(${(1 - .06 * bump(t, TAPS[k], .24)).toFixed(4)})`; });
+
+        const pasted = t >= TAPS[0] + .03;
+        if (shown.get(el.uIn) !== pasted) {
+          shown.set(el.uIn, pasted);
+          el.uIn.innerHTML = pasted ? URL_TEXT : `<span class="ph">${u.placeholder}</span>`;
+        }
+        const focus = pasted && t < 6.2;
+        el.uIn.style.borderColor = focus ? 'var(--accent)' : '';
+        el.uIn.style.boxShadow = focus ? '0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent)' : '';
+        el.uIn.style.background = pasted ? `color-mix(in srgb, var(--accent-soft) ${Math.round(100 * (1 - ramp(t, TAPS[0], TAPS[0] + .5)))}%, var(--field))` : '';
+        show(el.uClear, pasted ? 1 : 0);
+        const fourK = t >= TAPS[1] + .03;
+        el.chips[0].classList.toggle('on', !fourK);
+        el.chips[1].classList.toggle('on', fourK);
+
+        // ความคืบหน้าแบบเดียวกับโปรแกรม: ดาวน์โหลด → แปลงไฟล์ → เสร็จแล้ว
+        const start = TAPS[2] + .03, convertAt = 7.72, doneAt = 8.48;
+        const running = t >= start && t < doneAt;
+        text(el.uGo, running ? u.working : u.start);
+        show(el.uCancel, running ? 1 : 0);
+        show(el.uProg, ramp(t, start, start + .12));
+        let pct = 1, speed = '', eta = '';
+        if (t < convertAt) {
+          pct = ramp(t, start + .02, convertAt - .02);
+          text(el.uPhase, u.downloading);
+          speed = '42.80MiB/s';
+          eta = `${u.remaining}00:0${Math.max(1, Math.ceil((1 - pct) * 4))}`;
+        } else if (t < doneAt) {
+          pct = ramp(t, convertAt, doneAt - .02);
+          text(el.uPhase, `${u.converting} · ${FILE}`);
+          speed = '6.1×';
+          eta = `${u.remaining}00:0${Math.max(1, Math.ceil((1 - pct) * 3))}`;
+        } else text(el.uPhase, u.finished);
+        el.uFill.style.transform = `scaleX(${pct.toFixed(4)})`;
+        text(el.uPct, pct > 0 ? `${(pct * 100).toFixed(1)}%` : '');
+        text(el.uSpeed, speed);
+        text(el.uEta, eta);
+        const result = ramp(t, doneAt + .02, doneAt + .25);
+        show(el.uResult, result);
+        el.uResult.style.transform = `translateY(${px((1 - result) * 8)}px)`;
+
+        show($('veil'), ramp(t, 4.95, 5.25) * (1 - ramp(t, 9.2, 9.45)));
+        el.caps.forEach((cap, k) => {
+          const [s, e] = CAPS[k];
+          const out = ramp(t, e - .1, e + .15, E.in);
+          cap.title.forEach((n, j) => fx(n, ramp(t, s + j * .08, s + .45 + j * .08, E.expo), out));
+          cap.sub.forEach((n, j) => fx(n, ramp(t, s + .15 + j * .03, s + .6 + j * .03, E.expo), out, { rise: 14, blur: 10 }));
+        });
+      }
+
+      // ฉาก 4: ตารางการ์ดฟีเจอร์เอียงแบบ 3D
+      if (on[3]) {
+        const e = ramp(t, 9.35, 10, E.expo), q = ramp(t, 12, 12.45, E.in);
+        el.plane.style.transform = `translate(${960 - 1180}px,${560 - 350}px) perspective(1800px) rotateX(${lerp(62, 40, e).toFixed(3)}deg) rotateZ(-12deg) translateX(${px(lerp(300, -300, ramp(t, 9.35, 12.45)))}px) scale(${(lerp(.9, 1, e) * lerp(1, 1.15, q)).toFixed(4)})`;
+        el.plane.style.filter = blurCss((1 - e) * 16 + q * 18);
+        show(el.plane, clamp(e * 1.5) * (1 - q));
+        el.gcards.forEach((card, k) => {
+          const a = ramp(t, 9.45 + k * .05, 9.95 + k * .05, E.expo);
+          show(card, a);
+          card.style.transform = `translateY(${px((1 - a) * 80)}px)`;
+          sweep(card.lastElementChild, ramp(t, 10.4 + k * .08, 10.9 + k * .08), 560);
+        });
+        show(el.gridGlow, .95 * ramp(t, 9.9, 10.3) * (1 - ramp(t, 11.95, 12.3)));
+        el.gridTitle.forEach((n, j) => fx(n, ramp(t, 9.95 + j * .1, 10.5 + j * .1, E.expo), ramp(t, 11.95, 12.3, E.in), { rise: 26, lift: -20, blur: 16 }));
+      }
+
+      // ฉาก 5: การ์ดดาวน์โหลด → โลโก้ปิดท้าย
+      if (on[4]) {
+        const a = ramp(t, 12.15, 12.7, E.back), settle = ramp(t, 12.15, 12.7, E.expo), q = ramp(t, 13.2, 13.55, E.in);
+        const x0 = 960 - M.dlW / 2, y0 = 540 - M.dlH / 2;
+        el.dl.style.transform = `translate(${px(x0)}px,${px(y0)}px) perspective(1400px) rotateX(${lerp(20, 0, settle).toFixed(3)}deg) scale(${(lerp(.8, 1, a) * lerp(1, .85, q)).toFixed(4)})`;
+        el.dl.style.filter = blurCss((1 - ramp(t, 12.15, 12.55)) * 14 + q * 16);
+        show(el.dl, ramp(t, 12.15, 12.4) * (1 - q));
+        sweep(el.dlSheen, ramp(t, 12.55, 13.05), M.dlW);
+        const setup = { x: x0 + M.setup.x, y: y0 + M.setup.y };
+        const d2 = mix({ x: 1420, y: 860 }, setup, ramp(t, 12.55, 12.88));
+        el.dot2.style.transform = `translate(${px(d2.x)}px,${px(d2.y)}px) scale(${(1 - .22 * bump(t, 12.95, .24)).toFixed(3)})`;
+        show(el.dot2, ramp(t, 12.5, 12.6) * (1 - ramp(t, 13.1, 13.25)));
+        tapRing(el.ring2, t, [12.95], () => setup);
+        el.setupBtn.style.transform = `scale(${(1 - .06 * bump(t, 12.95, .24)).toFixed(4)})`;
+
+        const ia = ramp(t, 13.3, 13.85, E.back);
+        el.endIcon.style.transform = `translate(870px,270px) scale(${lerp(.6, 1, ia).toFixed(4)})`;
+        el.endIcon.style.filter = blurWith((1 - ramp(t, 13.3, 13.6)) * 14, 'drop-shadow(0 18px 30px rgb(28 25 23 / 28%))');
+        show(el.endIcon, ramp(t, 13.3, 13.5));
+        iconMotion(el.endArrow, el.endUnder, ramp(t, 13.5, 13.9, E.back), ramp(t, 13.75, 14.05, E.expo));
+        el.endLetters.forEach((n, i) => fx(n, ramp(t, 13.6 + i * .04, 14.1 + i * .04, E.expo), 0, { rise: 30, blur: 16 }));
+        el.endLine.forEach((n, j) => fx(n, ramp(t, 13.95 + j * .06, 14.45 + j * .06, E.expo), 0, { rise: 20, blur: 12 }));
+        fx(el.endUrl, ramp(t, 14.2, 14.6, E.expo), 0, { rise: 14, blur: 10 });
+      }
+    }
+
+    // ---------- เล่นดูในเบราว์เซอร์ (?t=วินาที&paused&lang=en) หรือให้ promo/render.js คุมทีละเฟรม (?render) ----------
+    const rendering = params.has('render');
+    let playhead = clamp(Number(params.get('t')) || 0, 0, DURATION);
+    let last = 0;
+    const draw = () => render(playhead);
+    function loop(now) {
+      const dt = last ? Math.min(.25, (now - last) / 1000) : 0;
+      last = now;
+      if (!params.has('paused')) playhead = (playhead + dt) % DURATION;
+      draw();
+      requestAnimationFrame(loop);
+    }
+    const fit = () => el.stage.style.setProperty('--fit', Math.min(innerWidth / 1920, innerHeight / 1080));
+    addEventListener('resize', fit);
+    fit();
+    const relayout = () => { measure(); draw(); };
+    document.fonts?.addEventListener('loadingdone', relayout);
+    // โหลดฟอนต์ทุกน้ำหนักและทุกตัวอักษรที่ใช้ก่อนเริ่ม ทุกเฟรมจึงใช้ฟอนต์เดียวกัน
+    const sample = [JSON.stringify(COPY), COMMANDS.flat().join(' '), URL_TEXT, FILE, FOLDER, SITE, '0123456789 %×·…✓'].join(' ');
+    const fontsReady = Promise.all(['400', '500', '600', '700', '800'].flatMap((weight) =>
+      ['Urbanist', 'Noto Sans Thai'].map((family) => document.fonts.load(`${weight} 40px "${family}"`, sample))))
+      .catch(() => {})
+      .then(() => document.fonts.ready)
+      .then(relayout);
+    if (!rendering) fontsReady.then(() => requestAnimationFrame(loop));
+
+    // สเปกคลิปสำหรับ promo/render.js: 24fps, motion blur = เฟรมย่อย 10 เฟรมภายในชัตเตอร์ 180°
+    window.FramePortClip = {
+      duration: DURATION, fps: 24, samples: 10, shutter: .5,
+      ready: () => fontsReady.then(() => DURATION),
+      renderAt: (v) => {
+        playhead = v;
+        draw();
+        return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));
+      },
+    };
+  </script>
+</body>
+</html>

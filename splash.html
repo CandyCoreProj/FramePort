@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com">
+  <title>FramePort</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Urbanist:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    // ใช้ธีมและภาษาเดียวกับหน้าหลัก (renderer.js เก็บไว้ใน localStorage คีย์ theme / language)
+    (() => {
+      const q = new URLSearchParams(location.search);
+      const read = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+      const root = document.documentElement;
+      let theme = q.get('theme') || read('theme');
+      if (theme !== 'dark' && theme !== 'light') {
+        root.dataset.auto = '';
+        theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      root.dataset.theme = theme;
+      let lang = q.get('lang') || read('language');
+      if (lang !== 'th' && lang !== 'en') {
+        try {
+          const cached = JSON.parse(read('frameport-ip-country'));
+          if (cached?.expiresAt > Date.now() && cached.countryCode) lang = cached.countryCode === 'TH' ? 'th' : 'en';
+        } catch {}
+      }
+      if (lang !== 'th' && lang !== 'en') {
+        const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        lang = (navigator.language || '').toLowerCase().startsWith('th') || zone === 'Asia/Bangkok' ? 'th' : 'en';
+      }
+      root.lang = lang;
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f4efe9; --surface: #fff; --field: #eae2d8; --line: #e0d6ca; --field-line: #e0d6ca;
+      --ink: #1c1917; --muted: #5c554f; --accent: #a8441a; --accent-soft: #ede3d6;
+      --action: #f2a054; --on-action: #2a1405; --ok: #2f7d4f;
+      --tile: #1c1917; --paper: #f4efe9; --rust: #a8441a; --apricot: #f2a054;
+      --glow: rgb(242 160 84 / 24%); --grid: rgb(28 25 23 / 6%);
+      --tile-edge: rgb(28 25 23 / 8%); --tile-shadow: 0 1.4rem 3.2rem -1.2rem rgb(28 25 23 / 38%);
+      --card-shadow: 0 1rem 2.6rem -1.4rem rgb(28 25 23 / 30%);
+      --display: "Urbanist", "Noto Sans Thai", "Segoe UI Variable Display", "Leelawadee UI", "Segoe UI", sans-serif;
+      --body: "Noto Sans Thai", "Urbanist", "Leelawadee UI", "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --page: #171412; --surface: #2a211d; --field: #332921; --line: #493a30; --field-line: #66503e;
+      --ink: #f4efe9; --muted: #c8b9ac; --accent: #f2a054; --accent-soft: #463526; --ok: #75c18d;
+      --glow: rgb(168 68 26 / 36%); --grid: rgb(244 239 233 / 5%);
+      --tile-edge: rgb(244 239 233 / 12%); --tile-shadow: 0 1.4rem 3.2rem -1.2rem rgb(0 0 0 / 65%);
+      --card-shadow: 0 1rem 2.6rem -1.4rem rgb(0 0 0 / 60%);
+    }
+    * { box-sizing: border-box; }
+    html { height: 100%; font-size: clamp(6px, min(1.1vw, 1.75vh), 14px); }
+    body {
+      height: 100%; margin: 0; overflow: hidden;
+      background: var(--page); color: var(--ink); font-family: var(--body);
+      -webkit-font-smoothing: antialiased; user-select: none; cursor: default;
+      -webkit-app-region: drag; transition: opacity .38s ease;
+    }
+    body.leaving { opacity: 0; }
+    .stage { position: fixed; inset: 0; overflow: hidden; isolation: isolate; }
+    .grid {
+      position: absolute; inset: 0; z-index: -1;
+      background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 3.4rem 3.4rem; background-position: center;
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 5%, transparent 68%);
+      mask-image: radial-gradient(ellipse at center, #000 5%, transparent 68%);
+    }
+    .glow {
+      position: absolute; left: 0; top: 0; z-index: -1; width: 60rem; height: 60rem;
+      border-radius: 50%; background: radial-gradient(circle, var(--glow), transparent 62%); opacity: 0;
+    }
+    .layer { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+    .slot { flex: none; visibility: hidden; }
+    .slot-a { width: 18rem; height: 18rem; }
+
+    /* ชื่อโปรแกรม */
+    .lockup { display: flex; align-items: center; gap: 2.6rem; }
+    .tile-b { width: 9rem; height: 9rem; }
+    .lockup-c { gap: 1rem; margin-bottom: 3.4rem; }
+    .tile-c { width: 3.4rem; height: 3.4rem; }
+    .wordmark { font: 700 8.4rem/1 var(--display); letter-spacing: -.035em; white-space: nowrap; padding: .1em .02em .14em; }
+    .wordmark-c { font-size: 2.2rem; }
+    .wl { display: inline-block; }
+    .port { color: var(--accent); }
+    .word { position: absolute; left: 0; top: 0; overflow: hidden; transform-origin: 0 0; }
+    .mask { display: inline-block; overflow: hidden; padding: .2em .06em .24em; margin: -.2em -.06em -.24em; vertical-align: top; }
+    .mask > span { display: inline-block; }
+    .phrases { display: flex; gap: 1em; margin-top: 4.4rem; color: var(--muted); font: 500 2.3rem/1.3 var(--display); letter-spacing: -.02em; white-space: nowrap; }
+    .phrases .last { color: var(--accent); }
+
+    /* โลโก้ */
+    .tile {
+      position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0;
+      border-radius: 23.333%; background: var(--tile); box-shadow: 0 0 0 1px var(--tile-edge), var(--tile-shadow);
+    }
+    .tile svg { display: block; width: 100%; height: 100%; }
+    .frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+
+    /* หัวข้อฟีเจอร์ */
+    .head { display: flex; flex-direction: column; align-items: center; opacity: 0; }
+    .kicker { display: flex; align-items: center; gap: .7rem; color: var(--accent); font: 800 1.2rem/1.3 var(--display); letter-spacing: .14em; }
+    .kicker::before { width: 1.8rem; height: .22rem; content: ""; border-radius: 1rem; background: var(--action); }
+    .odo { display: inline-block; height: 1.3em; overflow: hidden; vertical-align: top; }
+    .odo-col { display: flex; flex-direction: column; }
+    .odo-col span { height: 1.3em; }
+    .total { color: var(--muted); }
+    .titles { position: relative; width: 60rem; max-width: 96vw; height: 1.35em; margin-top: .7rem; font: 500 3.4rem/1.35 var(--display); letter-spacing: -.04em; }
+    .title { position: absolute; inset: 0; margin: 0; font: inherit; text-align: center; white-space: nowrap; }
+    .area { position: relative; flex: none; width: 52rem; height: 17rem; margin-top: 3.2rem; }
+    .panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; }
+    .captions { position: relative; width: 60rem; max-width: 96vw; height: 1.6em; margin-top: 3rem; color: var(--muted); font: 500 1.45rem/1.6 var(--body); text-align: center; }
+    .caption { position: absolute; inset: 0; margin: 0; white-space: nowrap; opacity: 0; }
+    :lang(th) .phrases, :lang(th) .titles { letter-spacing: 0; }
+
+    /* 1 · วางลิงก์ */
+    .url { width: 44rem; height: 5rem; display: flex; align-items: center; gap: 1rem; padding: 0 .6rem 0 1.7rem; border: 1px solid var(--field-line); border-radius: 999px; background: var(--field); }
+    .url svg { width: 1.8rem; height: 1.8rem; flex: none; color: var(--muted); }
+    .url-text { min-width: 0; flex: 1; display: flex; align-items: center; overflow: hidden; font: 500 1.6rem/1 var(--body); white-space: nowrap; }
+    .caret { width: .15rem; height: 2rem; margin-left: .15rem; border-radius: 1px; background: var(--accent); }
+    .go { height: 3.8rem; flex: none; display: flex; align-items: center; padding: 0 2rem; border-radius: 999px; background: var(--action); color: var(--on-action); font: 700 1.45rem/1 var(--body); }
+    .sites { display: flex; gap: .8rem; margin-top: 2rem; }
+    .sites span { padding: .6rem 1.3rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font: 600 1.2rem/1 var(--display); opacity: 0; }
+
+    /* 2 · รูปแบบไฟล์ */
+    .seg { position: relative; width: 50rem; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .6rem; }
+    .chip { height: 5.4rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; border: 1px solid var(--line); border-radius: 1.4rem; background: var(--field); font: 700 1.6rem/1.1 var(--body); opacity: 0; }
+    .chip small { color: var(--muted); font: 400 1.05rem/1.1 var(--body); }
+    .chip.on { background: var(--accent-soft); color: var(--accent); }
+    .chip.on small { color: var(--accent); }
+    .seg-sel { position: absolute; left: 0; top: 0; height: 100%; border: .18rem solid var(--accent); border-radius: 1.4rem; opacity: 0; }
+    .pills { display: flex; gap: .8rem; margin-top: 1.8rem; }
+    .pill { height: 3.4rem; display: flex; align-items: center; padding: 0 1.5rem; border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); border-radius: 999px; color: var(--accent); font: 700 1.25rem/1 var(--display); letter-spacing: .05em; opacity: 0; }
+    .pill.warm { border-color: var(--action); background: var(--action); color: var(--on-action); }
+
+    /* 3 · ตัวเข้ารหัส */
+    .p3 { flex-direction: row; gap: 4.4rem; }
+    .codec { display: flex; flex-direction: column; align-items: flex-start; }
+    .codec-name { font: 600 7.4rem/1 var(--display); letter-spacing: -.045em; white-space: nowrap; }
+    .roll { display: inline-block; height: 1em; overflow: hidden; vertical-align: top; }
+    .roll-col { display: flex; flex-direction: column; }
+    .roll-col > span { height: 1em; }
+    .digit { color: var(--accent); }
+    .codec-tag { margin-top: 1rem; color: var(--accent); font: 800 1.25rem/1.4 var(--display); letter-spacing: .14em; text-transform: uppercase; }
+    .codec-tag .roll { height: 1.4em; }
+    .codec-tag .roll-col > span { height: 1.4em; }
+    :lang(th) .codec-tag { letter-spacing: .02em; }
+    .encs { position: relative; width: 26rem; display: grid; gap: .45rem; }
+    .enc { height: 3.3rem; display: flex; align-items: center; gap: .8rem; padding: 0 1rem; border: 1px solid transparent; border-radius: 1rem; font: 700 1.2rem/1 var(--body); opacity: 0; }
+    .enc.on { border-color: var(--line); background: var(--accent-soft); }
+    .enc-check { width: 1.2rem; color: var(--accent); font-weight: 800; opacity: 0; }
+    .enc-name { flex: 1; white-space: nowrap; }
+    .badge { padding: .3rem .6rem; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: 800 .9rem/1 var(--display); letter-spacing: .05em; }
+    .enc.on .badge { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); color: var(--accent); }
+    .enc-scan { position: absolute; left: 0; right: 0; top: 0; height: 3.3rem; border: .15rem solid var(--accent); border-radius: 1rem; opacity: 0; }
+
+    /* 4 · ดาวน์โหลดและแปลงไฟล์ */
+    .job { width: 44rem; padding: 1.8rem 2rem 2rem; border: 1px solid var(--line); border-radius: 2rem; background: var(--surface); box-shadow: var(--card-shadow); }
+    .job-row { display: flex; align-items: center; gap: 1.1rem; font: 600 1.6rem/1.2 var(--display); }
+    .job-icon { position: relative; width: 3rem; height: 3rem; flex: none; border-radius: 50%; background: var(--accent-soft); }
+    .job-icon svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .job-name { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .job-pct { color: var(--accent); font-variant-numeric: tabular-nums; }
+    .metas { position: relative; height: 1.5em; margin: .5rem 0 0 4.1rem; color: var(--muted); font: 500 1.25rem/1.5 var(--body); }
+    .meta { position: absolute; left: 0; top: 0; white-space: nowrap; opacity: 0; }
+    .bar { position: relative; height: .6rem; margin-top: 1.3rem; overflow: hidden; border-radius: 99px; background: var(--line); }
+    .fill, .fill-ok { position: absolute; inset: 0; border-radius: inherit; }
+    .fill { background: linear-gradient(90deg, var(--rust), var(--apricot)); transform: scaleX(0); transform-origin: left; }
+    .fill-ok { background: var(--ok); opacity: 0; }
+
+    .foot { position: absolute; left: 0; right: 0; bottom: 2.2rem; display: flex; justify-content: center; gap: 1rem; color: var(--muted); font: 500 1.1rem/1.3 var(--body); opacity: 0; }
+    .foot .ver { font-variant-numeric: tabular-nums; opacity: .8; }
+  </style>
+</head>
+<body>
+  <main class="stage" id="stage" role="img" aria-label="FramePort">
+    <div class="grid" aria-hidden="true"></div>
+    <div class="glow" id="glow" aria-hidden="true"></div>
+
+    <div class="layer" aria-hidden="true"><div class="slot slot-a" id="slotA"></div></div>
+
+    <div class="layer" aria-hidden="true">
+      <div class="lockup" id="lockupB">
+        <div class="slot tile-b" id="slotTileB"></div>
+        <div class="slot wordmark" id="slotWordB"></div>
+      </div>
+      <div class="phrases" id="phrases"></div>
+    </div>
+
+    <div class="layer" aria-hidden="true">
+      <div class="lockup lockup-c">
+        <div class="slot tile-c" id="slotTileC"></div>
+        <div class="slot wordmark wordmark-c" id="slotWordC"></div>
+      </div>
+      <div class="head" id="head">
+        <div class="kicker"><span class="odo"><span class="odo-col" id="odo"><span>01</span><span>02</span><span>03</span><span>04</span></span></span><span class="total">/ 04</span></div>
+        <div class="titles" id="titles"></div>
+      </div>
+      <div class="area" id="area">
+        <section class="panel" id="p1">
+          <div class="url">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>
+            <span class="url-text"><span id="typed"></span><i class="caret" id="caret"></i></span>
+            <span class="go" id="go" data-k="start"></span>
+          </div>
+          <div class="sites" id="sites"><span>YouTube</span><span>TikTok</span><span>Facebook</span><span>X</span></div>
+        </section>
+        <section class="panel" id="p2">
+          <div class="seg">
+            <span class="chip"><span data-k="best"></span><small data-k="available"></small></span>
+            <span class="chip">4K<small>2160p</small></span>
+            <span class="chip">2K<small>1440p</small></span>
+            <span class="chip">1080p<small>Full HD</small></span>
+            <span class="chip">720p<small>HD</small></span>
+            <span class="chip">480p<small data-k="smallFile"></small></span>
+            <i class="seg-sel" id="sel"></i>
+          </div>
+          <div class="pills"><span class="pill warm">MP4</span><span class="pill">MP3</span><span class="pill">FLAC</span><span class="pill">WAV</span></div>
+        </section>
+        <section class="panel p3" id="p3">
+          <div class="codec">
+            <div class="codec-name">H.26<span class="roll digit"><span class="roll-col" id="codecRoll"><span>5</span><span>4</span></span></span></div>
+            <div class="codec-tag"><span class="roll"><span class="roll-col" id="tagRoll"><span data-k="hevcTag"></span><span data-k="h264Tag"></span></span></span></div>
+          </div>
+          <div class="encs">
+            <div class="enc"><span class="enc-check">✓</span><span class="enc-name">NVIDIA · CUDA / NVENC</span><span class="badge">GPU</span></div>
+            <div class="enc"><span class="enc-check">✓</span><span class="enc-name">Intel · Quick Sync</span><span class="badge">iGPU</span></div>
+            <div class="enc"><span class="enc-check">✓</span><span class="enc-name">AMD · AMF</span><span class="badge">GPU</span></div>
+            <div class="enc"><span class="enc-check">✓</span><span class="enc-name">CPU · x264</span><span class="badge">CPU</span></div>
+            <i class="enc-scan" id="scan"></i>
+          </div>
+        </section>
+        <section class="panel" id="p4">
+          <div class="job">
+            <div class="job-row">
+              <span class="job-icon">
+                <svg id="jobArrow" viewBox="0 0 24 24" stroke="var(--accent)"><path d="M12 7v9m0 0 3.5-3.5M12 16l-3.5-3.5"/></svg>
+                <svg viewBox="0 0 24 24" stroke="var(--ok)"><path id="jobCheck" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" d="m7.5 12.5 3 3 6-6.5"/></svg>
+              </span>
+              <span class="job-name">Travel vlog 4K.mp4</span><b class="job-pct" id="pct">0%</b>
+            </div>
+            <div class="metas"><span class="meta" data-k="meta0"></span><span class="meta" data-k="meta1"></span><span class="meta" data-k="meta2"></span></div>
+            <div class="bar"><i class="fill" id="fill"></i><i class="fill-ok" id="fillOk"></i></div>
+          </div>
+        </section>
+      </div>
+      <div class="captions" id="captions"></div>
+    </div>
+
+    <div class="tile" id="tile" aria-hidden="true">
+      <svg viewBox="16 16 480 480">
+        <path id="tileCorners" fill="none" stroke="#f4efe9" stroke-linecap="round" stroke-linejoin="round" stroke-width="20" opacity="0" d="M142 198v-56h68M302 142h68v56M370 314v56h-68M210 370h-68v-56"/>
+        <line id="under" x1="256" y1="404" x2="256" y2="404" stroke="#a8441a" stroke-linecap="round" stroke-width="20" opacity="0"/>
+        <path id="arrow" fill="#f2a054" transform="translate(0 -300)" d="M239 174h34v92l37-37 24 24-78 78-78-78 24-24 37 37z"/>
+      </svg>
+    </div>
+    <div class="wordmark word" id="word" aria-hidden="true"></div>
+    <svg class="frame" id="frame" aria-hidden="true"><path/><path/><path/><path/></svg>
+    <footer class="foot" id="foot"><span data-k="tools"></span><span class="ver" id="ver"></span></footer>
+  </main>
+  <script>
+    // ข้อความทั้งหมดมาจาก renderer.js, docs/index.html และ package.json ของ FramePort
+    const COPY = {
+      th: {
+        label: 'FramePort — ดาวน์โหลดวิดีโอและแปลงไฟล์',
+        phrases: ['โหลดคลิป', 'แปลงไฟล์', 'พร้อมใช้'],
+        titles: ['วางลิงก์', 'เลือกรูปแบบ', 'ตัวเข้ารหัสวิดีโอ', 'ดาวน์โหลดและแปลงไฟล์'],
+        captions: ['ทำงานในเครื่องคุณ ไม่ต้องสมัครบัญชี', 'เลือกต้นทางที่คมชัดที่สุดตามความละเอียด', 'เลือก GPU ที่เร็วที่สุดในเครื่องให้เอง', 'ไฟล์บันทึกตรงลงโฟลเดอร์ที่คุณเลือก'],
+        start: 'เริ่มดาวน์โหลด', best: 'สูงสุด', available: 'ที่มี', smallFile: 'ไฟล์เล็ก',
+        h264Tag: 'พร้อมตัดต่อ', hevcTag: 'คุณภาพสูง',
+        meta0: 'กำลังดาวน์โหลด · 42.8 MB/s', meta1: 'H.264 · NVIDIA NVENC · 6.1×', meta2: 'เสร็จแล้ว · พร้อมตัดต่อ',
+        tools: 'ใช้ yt-dlp และ FFmpeg โอเพนซอร์ส',
+      },
+      en: {
+        label: 'FramePort — reliable video downloads and edit-ready conversion',
+        phrases: ['Download clips.', 'Convert.', 'Get to work.'],
+        titles: ['Paste a link', 'Choose a format', 'Video encoder', 'Download and convert'],
+        captions: ['Runs on your PC, no account needed', 'Selects the clearest source at your chosen resolution', 'Picks the fastest GPU in this PC', 'Files save straight to the folder you choose'],
+        start: 'Download', best: 'Best', available: 'available', smallFile: 'Smaller',
+        h264Tag: 'Edit-ready', hevcTag: 'High quality',
+        meta0: 'Downloading · 42.8 MB/s', meta1: 'H.264 · NVIDIA NVENC · 6.1×', meta2: 'Complete · edit-ready',
+        tools: 'Built on open-source yt-dlp and FFmpeg',
+      },
+    };
+    const URL_TEXT = 'https://youtu.be/…';
+    const LOOP = 12; // วินาที · 24 จังหวะ จังหวะละ 0.5 วินาที
+    const STEPS = [[3.9, 5], [5, 6.5], [6.5, 8], [8, 10]];
+
+    const $ = (id) => document.getElementById(id);
+    const root = document.documentElement;
+    const params = new URLSearchParams(location.search);
+    const T = COPY[root.lang === 'th' ? 'th' : 'en'];
+
+    // ---------- ข้อความ ----------
+    const masked = (text, cls = '') => `<span class="mask${cls}"><span>${text}</span></span>`;
+    const letters = [...'FramePort'].map((c, i) => `<span class="wl${i > 4 ? ' port' : ''}">${c}</span>`).join('');
+    for (const id of ['word', 'slotWordB', 'slotWordC']) $(id).innerHTML = letters;
+    $('phrases').innerHTML = T.phrases.map((p, i) => masked(p, i === 2 ? ' last' : '')).join('');
+    $('titles').innerHTML = T.titles.map((x) => `<h2 class="title">${x.split(' ').map((w) => masked(w)).join(' ')}</h2>`).join('');
+    $('captions').innerHTML = T.captions.map((x) => `<p class="caption">${x}</p>`).join('');
+    document.querySelectorAll('[data-k]').forEach((node) => { node.textContent = T[node.dataset.k]; });
+    $('stage').setAttribute('aria-label', T.label);
+    const version = params.get('v');
+    if (version) $('ver').textContent = 'v' + version.slice(0, 20);
+
+    const el = {
+      stage: $('stage'), glow: $('glow'), tile: $('tile'), tileCorners: $('tileCorners'), arrow: $('arrow'), under: $('under'),
+      word: $('word'), letters: [...$('word').children], frame: [...$('frame').children],
+      phrases: [...$('phrases').children].map((m) => m.firstElementChild), foot: $('foot'),
+      head: $('head'), odo: $('odo'), titles: [...$('titles').children].map((h) => [...h.querySelectorAll('.mask > span')]),
+      panels: [1, 2, 3, 4].map((i) => $('p' + i)), captions: [...$('captions').children],
+      typed: $('typed'), caret: $('caret'), go: $('go'), sites: [...$('sites').children],
+      chips: [...document.querySelectorAll('.chip')], sel: $('sel'), pills: [...document.querySelectorAll('.pill')],
+      codecRoll: $('codecRoll'), tagRoll: $('tagRoll'), encs: [...document.querySelectorAll('.enc')], scan: $('scan'),
+      pct: $('pct'), fill: $('fill'), fillOk: $('fillOk'), metas: [...document.querySelectorAll('.meta')],
+      jobArrow: $('jobArrow'), jobCheck: $('jobCheck'),
+    };
+
+    // ---------- เวลาและการเคลื่อนไหว ----------
+    const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+    const lerp = (a, b, p) => a + (b - a) * p;
+    const E = {
+      lin: (p) => p,
+      out: (p) => 1 - (1 - p) ** 3,
+      in: (p) => p ** 3,
+      inOut: (p) => (p < .5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2),
+      expo: (p) => (p >= 1 ? 1 : 1 - 2 ** (-10 * p)),
+      back: (p) => 1 + 2.4 * (p - 1) ** 3 + 1.4 * (p - 1) ** 2,
+    };
+    const ramp = (t, a, b, ease = E.out) => ease(clamp((t - a) / (b - a)));
+    const bump = (t, c, d = .4) => Math.sin(Math.PI * clamp((t - c + d * .2) / d));
+    const mixRect = (a, b, p) => { const o = {}; for (const k in a) o[k] = lerp(a[k], b[k], p); return o; };
+    const scaleRect = (r, s) => ({ ...r, x: r.x + r.w * (1 - s) / 2, y: r.y + r.h * (1 - s) / 2, w: r.w * s, h: r.h * s });
+    const hex = (value) => (value.trim().match(/[\da-f]{2}/gi) || ['00', '00', '00']).map((h) => parseInt(h, 16));
+    const mixColor = (a, b, p) => `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], p))).join(' ')})`;
+
+    // ---------- วัดตำแหน่งจาก layout จริง (รองรับทุกขนาดหน้าต่าง) ----------
+    let R = null;
+    let rem = 10;
+    let ink = [28, 25, 23];
+    let paper = [244, 239, 233];
+    function measure() {
+      const s = el.stage.getBoundingClientRect();
+      const box = (node) => { const b = node.getBoundingClientRect(); return { x: b.left - s.left, y: b.top - s.top, w: b.width, h: b.height }; };
+      const style = getComputedStyle(root);
+      rem = parseFloat(style.fontSize);
+      ink = hex(style.getPropertyValue('--ink'));
+      paper = hex(style.getPropertyValue('--paper'));
+      R = {
+        A: box($('slotA')), B: box($('slotTileB')), C: box($('slotTileC')),
+        wB: box($('slotWordB')), wC: box($('slotWordC')), lock: box($('lockupB')), area: box($('area')),
+        chips: el.chips.map((c) => ({ x: c.offsetLeft, w: c.offsetWidth })),
+        encs: el.encs.map((r) => r.offsetTop),
+      };
+    }
+
+    // ---------- วาดหนึ่งเฟรม ณ เวลา t ----------
+    // ตำแหน่งมุมเฟรมตรงกับ build/icon.svg: กล่อง 142–370 ใน viewBox 512, แขน 68/56, เส้นหนา 20
+    const iconBox = (r) => {
+      const k = r.w / 480;
+      return { x: r.x + 126 * k, y: r.y + 126 * k, w: 228 * k, h: 228 * k, aH: 68 * k, aV: 56 * k, th: 20 * k };
+    };
+    const around = (r, px, py, th) => ({ x: r.x - px, y: r.y - py, w: r.w + px * 2, h: r.h + py * 2, aH: 3.4 * rem, aV: 2.8 * rem, th });
+    const n = (v) => v.toFixed(1);
+    function cornerPath(f, i, p) {
+      const H = f.aH * p, V = f.aV * p, r = f.x + f.w, b = f.y + f.h;
+      return [
+        `M${n(f.x)} ${n(f.y + V)}V${n(f.y)}H${n(f.x + H)}`,
+        `M${n(r - H)} ${n(f.y)}H${n(r)}V${n(f.y + V)}`,
+        `M${n(r)} ${n(b - V)}V${n(b)}H${n(r - H)}`,
+        `M${n(f.x + H)} ${n(b)}H${n(f.x)}V${n(b - V)}`,
+      ][i];
+    }
+    const shown = new Map();
+    const text = (node, value) => { if (shown.get(node) !== value) { shown.set(node, value); node.textContent = value; } };
+    const slide = (node, y, unit = '%') => { node.style.transform = `translateY(${y.toFixed(2)}${unit})`; };
+
+    function render(t) {
+      if (!R) return;
+      // โลโก้เดินทาง: กลางจอ → คู่กับชื่อ → หัวฉากฟีเจอร์ → กลับกลางจอ
+      const toB = ramp(t, 1.5, 2.15, E.inOut);
+      const toC = ramp(t, 3.5, 4.1, E.inOut);
+      const toA = ramp(t, 10, 10.75, E.inOut);
+      const fade = ramp(t, 11.35, 11.95, E.inOut);
+      const vis = ramp(t, 0, .4) * (1 - fade);
+      const land = bump(t, 1.03, .32);
+      const base = t < 3.5 ? mixRect(R.A, R.B, toB) : t < 10 ? mixRect(R.B, R.C, toC) : mixRect(R.C, R.A, toA);
+      const tile = scaleRect(base, lerp(.82, 1, ramp(t, 0, .6, E.back)) * (1 + .035 * land) * lerp(1, .9, fade));
+      el.tile.style.cssText = `opacity:${vis.toFixed(3)};width:${tile.w.toFixed(2)}px;height:${tile.h.toFixed(2)}px;transform:translate(${tile.x.toFixed(2)}px,${tile.y.toFixed(2)}px)`;
+      el.tileCorners.setAttribute('opacity', t >= .95 ? 1 : 0);
+
+      // ลูกศรหล่นเข้าตอนต้นลูป และจมผ่านเส้นใต้ตอนท้าย จึงไหลลงต่อเนื่องข้ามรอยต่อลูป
+      const drop = t < 6 ? lerp(-300, 0, ramp(t, .5, 1.05, E.back)) : lerp(0, 300, ramp(t, 10.85, 11.3, E.in));
+      el.arrow.setAttribute('transform', `translate(0 ${drop.toFixed(1)})`);
+      const half = 55 * (t < 6 ? ramp(t, .95, 1.4, E.expo) : 1) * (1 + .3 * bump(t, 11.12, .4));
+      el.under.setAttribute('x1', (256 - half).toFixed(1));
+      el.under.setAttribute('x2', (256 + half).toFixed(1));
+      el.under.setAttribute('opacity', half > .5 ? 1 : 0);
+
+      // เฟรม viewfinder: มุมของโลโก้ขยายออกไปกรอบแต่ละฉาก และหดโฟกัสทุกครั้งที่เปลี่ยนฉาก
+      const fA = iconBox(tile);
+      const fB = around(R.lock, 2.4 * rem, 2 * rem, .42 * rem);
+      const fC = around(R.area, 1.4 * rem, 1.2 * rem, .36 * rem);
+      let f = t < 3.5 ? mixRect(fA, fB, ramp(t, 1.5, 2.2, E.expo))
+        : t < 10 ? mixRect(fB, fC, toC) : mixRect(fC, fA, ramp(t, 10, 10.8, E.inOut));
+      const pinch = .35 * rem * (bump(t, 2.3, .3) + bump(t, 2.55, .3) + bump(t, 2.8, .3))
+        + .7 * rem * (bump(t, 5) + bump(t, 6.5) + bump(t, 8));
+      f = { ...f, x: f.x + pinch, y: f.y + pinch, w: f.w - pinch * 2, h: f.h - pinch * 2 };
+      const color = mixColor(paper, ink, t < 10 ? ramp(t, 1.55, 1.95) : 1 - ramp(t, 10.35, 10.75));
+      el.frame.forEach((path, i) => {
+        const p = t < 1.5 ? ramp(t, .25 + i * .07, .8 + i * .07, E.inOut) : 1;
+        path.setAttribute('d', cornerPath(f, i, p));
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', f.th.toFixed(2));
+        path.setAttribute('opacity', p > .002 ? (1 - fade).toFixed(3) : 0);
+      });
+      const glow = clamp(f.w * 2.2 / (60 * rem), .5, 1.3);
+      el.glow.style.transform = `translate(${n(f.x + f.w / 2)}px,${n(f.y + f.h / 2)}px) translate(-50%,-50%) scale(${glow.toFixed(3)})`;
+      el.glow.style.opacity = (vis * (.8 + .2 * land)).toFixed(3);
+
+      // kinetic typography: Frame ลอยขึ้น ส่วน Port หล่นลงแบบเดียวกับลูกศร
+      const wr = t < 3.5 ? R.wB : t < 10 ? mixRect(R.wB, R.wC, toC) : R.wC;
+      el.word.style.transform = `translate(${wr.x.toFixed(2)}px,${wr.y.toFixed(2)}px) scale(${(wr.h / R.wB.h).toFixed(4)})`;
+      el.letters.forEach((node, i) => {
+        const enter = ramp(t, 1.72 + i * .045, 2.3 + i * .045, E.expo);
+        const leave = ramp(t, 9.84 + i * .025, 10.12 + i * .025, E.in);
+        slide(node, (1 - enter) * (i > 4 ? -120 : 120) + leave * 120);
+      });
+      el.phrases.forEach((node, i) => slide(node,
+        (1 - ramp(t, 2.3 + i * .25, 2.75 + i * .25, E.expo)) * 115 - ramp(t, 3.4, 3.7, E.in) * 115));
+      el.foot.style.opacity = (ramp(t, 2.6, 3.2) * (1 - ramp(t, 10, 10.4))).toFixed(3);
+
+      // ฉากฟีเจอร์: หัวข้อ เดโม และคำบรรยาย เข้า-ออกตามจังหวะเดียวกัน
+      el.head.style.opacity = (ramp(t, 3.85, 4.25) * (1 - ramp(t, 9.9, 10.25))).toFixed(3);
+      const step = ramp(t, 4.95, 5.35, E.expo) + ramp(t, 6.45, 6.85, E.expo) + ramp(t, 7.95, 8.35, E.expo);
+      el.odo.style.transform = `translateY(${(-step * 1.3).toFixed(3)}em)`;
+      STEPS.forEach(([s, e], k) => {
+        el.titles[k].forEach((node, j) => slide(node,
+          (1 - ramp(t, s + j * .06, s + .5 + j * .06, E.expo)) * 115 - ramp(t, e - .12 + j * .04, e + .18 + j * .04, E.in) * 115));
+        const enter = ramp(t, s + .05, s + .5, E.expo);
+        const leave = ramp(t, e - .15, e + .15, E.in);
+        el.panels[k].style.opacity = (enter * (1 - leave)).toFixed(3);
+        slide(el.panels[k], (1 - enter) * 1.6 - leave * 1.6, 'rem');
+        el.captions[k].style.opacity = (ramp(t, s + .2, s + .55) * (1 - ramp(t, e - .15, e + .08))).toFixed(3);
+      });
+
+      // 1 · วางลิงก์
+      text(el.typed, URL_TEXT.slice(0, Math.round(ramp(t, 4.15, 4.6, E.lin) * URL_TEXT.length)));
+      el.caret.style.opacity = t > 4.6 && Math.floor(t * 4) % 2 ? 0 : 1;
+      el.go.style.transform = `scale(${(1 - .07 * bump(t, 4.72, .28)).toFixed(3)})`;
+      el.sites.forEach((node, i) => {
+        const o = ramp(t, 4.3 + i * .06, 4.6 + i * .06);
+        node.style.opacity = o.toFixed(3);
+        slide(node, (1 - o) * .8, 'rem');
+      });
+
+      // 2 · ความละเอียดและรูปแบบไฟล์: ตัวเลือกเลื่อนจาก สูงสุด → 4K → 1080p
+      el.chips.forEach((node, i) => {
+        const o = ramp(t, 5.05 + i * .035, 5.4 + i * .035, E.back);
+        node.style.opacity = clamp(o * 1.5).toFixed(3);
+        node.style.transform = `scale(${lerp(.86, 1, o).toFixed(3)})`;
+      });
+      const idx = ramp(t, 5.55, 5.8, E.expo) + 2 * ramp(t, 5.95, 6.22, E.expo);
+      const lo = Math.min(4, Math.floor(idx));
+      const sel = mixRect(R.chips[lo], R.chips[lo + 1], idx - lo);
+      el.sel.style.cssText = `opacity:${ramp(t, 5.3, 5.45).toFixed(3)};width:${sel.w.toFixed(2)}px;transform:translateX(${sel.x.toFixed(2)}px)`;
+      el.chips.forEach((node, i) => node.classList.toggle('on', t > 5.3 && i === Math.round(idx)));
+      el.pills.forEach((node, i) => {
+        const o = ramp(t, 5.35 + i * .05, 5.7 + i * .05, E.back);
+        node.style.opacity = clamp(o * 1.5).toFixed(3);
+        slide(node, (1 - o) * .8, 'rem');
+      });
+
+      // 3 · ตัวเข้ารหัส: H.265 → H.264 แล้วสแกนหา GPU และเลือก NVENC
+      const roll = ramp(t, 7.05, 7.4, E.expo);
+      el.codecRoll.style.transform = `translateY(${(-roll).toFixed(3)}em)`;
+      el.tagRoll.style.transform = `translateY(${(-roll * 1.4).toFixed(3)}em)`;
+      el.encs.forEach((node, i) => {
+        const o = ramp(t, 6.62 + i * .05, 6.95 + i * .05);
+        node.style.opacity = o.toFixed(3);
+        node.style.transform = `translateX(${((1 - o) * 1.2).toFixed(3)}rem)`;
+      });
+      const scan = 3 * ramp(t, 6.9, 7.35, E.inOut) - 3 * ramp(t, 7.4, 7.62, E.expo);
+      const row = Math.min(2, Math.floor(scan));
+      el.scan.style.cssText = `opacity:${(ramp(t, 6.85, 6.95) * (1 - ramp(t, 7.62, 7.78))).toFixed(3)};transform:translateY(${lerp(R.encs[row], R.encs[row + 1], scan - row).toFixed(2)}px)`;
+      const picked = ramp(t, 7.62, 7.8);
+      el.encs[0].classList.toggle('on', picked > 0);
+      el.encs[0].firstElementChild.style.opacity = picked.toFixed(3);
+
+      // 4 · ดาวน์โหลด → แปลงไฟล์ → เสร็จ
+      const down = ramp(t, 8.2, 8.95, E.inOut);
+      const conv = ramp(t, 9.02, 9.55, E.inOut);
+      const done = ramp(t, 9.55, 9.72);
+      text(el.pct, Math.round((t < 8.97 ? down : t < 9.55 ? conv : 1) * 100) + '%');
+      el.fill.style.transform = `scaleX(${(t < 8.95 ? down : t < 9.02 ? 1 - ramp(t, 8.95, 9.02) : conv).toFixed(4)})`;
+      el.fillOk.style.opacity = done.toFixed(3);
+      const metaOn = [1 - ramp(t, 8.93, 9.03), ramp(t, 8.97, 9.07) * (1 - ramp(t, 9.5, 9.6)), ramp(t, 9.55, 9.65)];
+      el.metas.forEach((node, i) => {
+        node.style.opacity = metaOn[i].toFixed(3);
+        slide(node, (1 - metaOn[i]) * 40);
+      });
+      el.jobArrow.style.opacity = (1 - done).toFixed(3);
+      el.jobCheck.setAttribute('stroke-dashoffset', (1 - ramp(t, 9.58, 9.85)).toFixed(3));
+    }
+
+    // ---------- นาฬิกาเดียวขับทุกฉาก ----------
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    let clock = ((Number(params.get('t')) || 0) % LOOP + LOOP) % LOOP;
+    let playing = !params.has('paused');
+    let last = 0;
+    const draw = () => render(still.matches ? 3.3 : clock);
+    function tick(now) {
+      // จำกัดไว้ 0.25 วินาที: เครื่องหน่วงช่วงเปิดโปรแกรมยังเดินตามเวลาจริง แต่ไม่กระโดดหลังหน้าต่างถูกซ่อน
+      const dt = last ? Math.min(.25, (now - last) / 1000) : 0;
+      last = now;
+      if (playing && !still.matches) clock = (clock + dt) % LOOP;
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    const relayout = () => { measure(); draw(); };
+    new ResizeObserver(relayout).observe(el.stage);
+    document.fonts?.addEventListener('loadingdone', relayout);
+    const dark = matchMedia('(prefers-color-scheme: dark)');
+    dark.addEventListener('change', () => {
+      if (!('auto' in root.dataset)) return;
+      root.dataset.theme = dark.matches ? 'dark' : 'light';
+      relayout();
+    });
+    // รอฟอนต์ไม่เกิน 0.8 วินาที ถ้าออฟไลน์จะใช้ฟอนต์ของ Windows แทน
+    Promise.race([document.fonts?.ready, new Promise((r) => setTimeout(r, 800))]).then(() => {
+      relayout();
+      requestAnimationFrame(tick);
+    });
+
+    // ให้ main process ควบคุมได้: FramePortSplash.finish() จางออกแล้วค่อยปิดหน้าต่าง
+    window.FramePortSplash = {
+      duration: LOOP,
+      finish(ms = 380) {
+        document.body.classList.add('leaving');
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      },
+      seek(t) { clock = ((t % LOOP) + LOOP) % LOOP; draw(); },
+      pause() { playing = false; },
+      play() { playing = true; },
+    };
+  </script>
+</body>
+</html>

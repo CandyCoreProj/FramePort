@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.icon-ico/
+*.log
+.DS_Store
+Thumbs.db
+build/uninstall-files.nsh
