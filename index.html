@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://ipwho.is; style-src 'self' 'unsafe-inline'">
   <title>FramePort</title>
   <style>
     :root {
@@ -225,7 +225,7 @@
     </div>
     <div class="spacer"></div>
     <div class="header-controls">
-      <button class="compact-button" id="langBtn" type="button" aria-label="Switch language">EN</button>
+      <button class="compact-button" id="langBtn" type="button" aria-label="Switch language" data-i18n-title="languageNotice">EN</button>
       <button class="compact-button" id="themeBtn" type="button" aria-label="Toggle color theme" aria-pressed="false">Dark</button>
       <button class="compact-button hidden" id="updateBtn" type="button" data-i18n="update" data-i18n-title="updateTitle">อัปเดต yt-dlp</button>
     </div>
@@ -357,6 +357,7 @@
 
   <div class="log hidden" id="log" role="log" aria-label="รายละเอียดการทำงาน" data-i18n-aria="details"></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="docs/language.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

@@ -36,6 +36,7 @@ FramePort ดาวน์โหลดเครื่องมือเหล่�
 - ดาวน์โหลดทั้งเพลย์ลิสต์ได้เมื่อเลือกตัวเลือกนี้
 - บันทึกไฟล์ด้วยชื่อคลิป โดยไม่เพิ่มข้อความต่อท้าย
 - ใช้งานหน้าจอได้ทั้งภาษาไทยและภาษาอังกฤษ พร้อมธีมสว่างและมืด
+- ตั้งภาษาเริ่มต้นตามประเทศของ IP เป็นไทยหรืออังกฤษ และจำภาษาที่ผู้ใช้เลือกเอง
 
 การรองรับวิดีโอขึ้นอยู่กับเว็บไซต์และ yt-dlp รุ่นที่ใช้งาน ความเร็วการแปลงด้วย GPU ขึ้นอยู่กับฮาร์ดแวร์ ไดรเวอร์ และรูปแบบวิดีโอต้นทาง
 
@@ -65,6 +66,8 @@ npm run dist
 
 ไฟล์ที่สร้างจะอยู่ใน `dist/` โฟลเดอร์นี้ถูกละเว้นโดย Git เพื่อไม่เก็บตัวติดตั้งขนาดใหญ่ไว้ในประวัติซอร์สโค้ด
 
+ตรวจพฤติกรรมเลือกภาษาอัตโนมัติได้ด้วย `npm run test:language`.
+
 ## โครงสร้างโปรเจกต์
 
 | ไฟล์/โฟลเดอร์ | หน้าที่ |
@@ -72,6 +75,8 @@ npm run dist
 | `main.js` | Electron main process, ดาวน์โหลดไฟล์ และเรียก FFmpeg |
 | `preload.js` | สะพาน API ระหว่างหน้าจอกับ main process |
 | `index.html`, `renderer.js` | หน้าจอโปรแกรมและการโต้ตอบ |
+| `docs/language.js` | ตรวจประเทศจาก IP และเลือกภาษาเริ่มต้น |
+| `test-language.js` | ตรวจการเลือกภาษาตามประเทศและ fallback |
 | `build/` | ไอคอนโปรแกรมและสคริปต์สร้างไอคอน |
 | `docs/` | เว็บไซต์แนะนำและดาวน์โหลด FramePort |
 | `.github/workflows/pages.yml` | เผยแพร่เว็บไซต์ด้วย GitHub Pages |
@@ -79,6 +84,8 @@ npm run dist
 ## หมายเหตุ
 
 FramePort ใช้ [yt-dlp](https://github.com/yt-dlp/yt-dlp) และ [FFmpeg](https://ffmpeg.org/) ซึ่งดาวน์โหลดเมื่อติดตั้งเครื่องมือครั้งแรก โปรดปฏิบัติตามข้อกำหนดของเว็บไซต์และดาวน์โหลดเฉพาะเนื้อหาที่คุณมีสิทธิ์ใช้งาน
+
+ภาษาเริ่มต้นตรวจ country code ของ IP โดยประมาณผ่าน [ipwho.is](https://ipwhois.io/) และแคชรหัสประเทศไว้ในเครื่อง 24 ชั่วโมง บริการจะได้รับ public IP เพื่อระบุประเทศเท่านั้น ไม่ขอตำแหน่ง GPS หากตรวจไม่ได้จะใช้ภาษาอุปกรณ์หรือเขตเวลาแทน ผู้ใช้ยังเปลี่ยนภาษาเองได้
 
 ---
 
@@ -111,6 +118,7 @@ These tools are downloaded when needed instead of being bundled into the main in
 - Download an entire playlist when enabled.
 - Keep the clip title as the filename, without extra suffixes.
 - Use the app in Thai or English, with light and dark themes.
+- Default to Thai or English based on the IP country, and remember a language chosen manually.
 
 Website support depends on the site and the installed yt-dlp version. GPU conversion speed depends on your hardware, drivers, and source video format.
 
@@ -140,6 +148,8 @@ npm run dist
 
 The generated files are saved to `dist/`. This folder is ignored by Git so large installers stay out of the source history.
 
+Check automatic language selection with `npm run test:language`.
+
 ### Project structure
 
 | File/folder | Purpose |
@@ -147,6 +157,8 @@ The generated files are saved to `dist/`. This folder is ignored by Git so large
 | `main.js` | Electron main process, file downloads, and FFmpeg conversion |
 | `preload.js` | API bridge between the app UI and main process |
 | `index.html`, `renderer.js` | App interface and interactions |
+| `docs/language.js` | IP country lookup and default language selection |
+| `test-language.js` | Checks country-based language selection and fallback behavior |
 | `build/` | App icon and icon generation script |
 | `docs/` | FramePort product and download website |
 | `.github/workflows/pages.yml` | GitHub Pages publishing workflow |
@@ -154,3 +166,5 @@ The generated files are saved to `dist/`. This folder is ignored by Git so large
 ### Note
 
 FramePort uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [FFmpeg](https://ffmpeg.org/), which are downloaded when the tools are first installed. Follow the relevant website terms and only download content you have permission to use.
+
+The default language checks the estimated IP country code through [ipwho.is](https://ipwhois.io/) and caches the country code locally for 24 hours. The service receives the public IP to identify the country; FramePort does not request GPS location. If the lookup fails, the app uses the device language or timezone. Users can still choose a language manually.

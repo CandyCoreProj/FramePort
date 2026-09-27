@@ -33,6 +33,7 @@ const words = {
     starting: 'กำลังเริ่ม…', finished: 'เสร็จแล้ว ✓', cancelled: 'ยกเลิกแล้ว',
     failed: 'ไม่สำเร็จ', failedDetail: 'ดาวน์โหลดไม่สำเร็จ ดูรายละเอียดด้านล่าง',
     remaining: 'เหลือ ', switchLanguage: 'เปลี่ยนภาษา',
+    languageNotice: 'ตั้งภาษาเริ่มต้นจากประเทศ IP โดยประมาณผ่าน ipwho.is ไม่ใช้ GPS',
     toggleTheme: 'สลับธีมสี', darkTheme: 'มืด', lightTheme: 'สว่าง',
     details: 'รายละเอียดการทำงาน',
   },
@@ -67,12 +68,15 @@ const words = {
     starting: 'Starting…', finished: 'Complete ✓', cancelled: 'Cancelled',
     failed: 'Failed', failedDetail: 'Download failed. See details below.',
     remaining: 'Remaining ', switchLanguage: 'Switch language',
+    languageNotice: 'Default language uses your estimated IP country via ipwho.is. No GPS location is requested.',
     toggleTheme: 'Toggle color theme', darkTheme: 'Dark', lightTheme: 'Light',
     details: 'Activity details',
   },
 };
 
-let lang = localStorage.getItem('language') === 'en' ? 'en' : 'th';
+const savedLanguage = localStorage.getItem('language');
+let languageWasChosen = savedLanguage === 'th' || savedLanguage === 'en';
+let lang = languageWasChosen ? savedLanguage : window.framePortLanguage.fallback();
 let theme = localStorage.getItem('theme') ||
   (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 let folder = localStorage.getItem('folder');
@@ -234,6 +238,7 @@ async function refresh() {
 
 $('langBtn').onclick = () => {
   lang = lang === 'th' ? 'en' : 'th';
+  languageWasChosen = true;
   localStorage.setItem('language', lang);
   applyLanguage();
 };
@@ -407,6 +412,13 @@ $('cancelBtn').onclick = () => {
 };
 
 applyLanguage();
+if (!languageWasChosen) {
+  window.framePortLanguage.detect().then((detected) => {
+    if (languageWasChosen || detected === lang) return;
+    lang = detected;
+    applyLanguage();
+  }).catch(() => {});
+}
 refresh().catch((error) => {
   $('ver').textContent = error.message;
   $('dot').className = 'dot err';

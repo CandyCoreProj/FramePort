@@ -190,6 +190,7 @@
     .footer-brand { display: flex; align-items: center; gap: 11px; font: 700 19px/1 var(--display); }
     .footer-brand img { width: 34px; height: 34px; border-radius: 11px; }
     .footer-copy { margin: 6px 0 0 45px; color: #C8B9AC; font-size: 12px; }
+    .footer-note { max-width: 520px; margin: 5px 0 0 45px; color: #A99A8E; font-size: 10px; line-height: 1.45; }
     .footer-links { display: flex; flex-wrap: wrap; gap: 20px; }
     .footer-links a { color: #D1C2B4; font: 600 13px/1.4 var(--display); text-underline-offset: 4px; }
     .footer-links a:hover { color: var(--apricot); }
@@ -272,7 +273,7 @@
         <a href="#faq" data-i18n="navFaq">คำถามที่พบบ่อย</a>
       </div>
       <div class="nav-actions">
-        <button class="language-toggle" id="languageToggle" type="button" aria-label="Switch language to English">EN</button>
+        <button class="language-toggle" id="languageToggle" type="button" aria-label="Switch language to English" data-i18n-title="languageNotice">EN</button>
         <a class="button button-primary" href="#download" data-i18n="navDownload">ดาวน์โหลด</a>
       </div>
     </nav>
@@ -403,6 +404,7 @@
       <div>
         <div class="footer-brand"><img src="assets/frameport-icon.svg" alt="" width="34" height="34"><span>FramePort</span></div>
         <p class="footer-copy" data-i18n="footerCopy">เครื่องมือดาวน์โหลดและแปลงไฟล์สำหรับ Windows</p>
+        <p class="footer-note" data-i18n="languageNotice">ตั้งภาษาเริ่มต้นจากประเทศของ IP ผ่าน ipwho.is และไม่ขอตำแหน่ง GPS</p>
       </div>
       <nav class="footer-links" aria-label="เมนูท้ายเว็บ" data-i18n-aria="footerNavLabel">
         <a href="https://github.com/ArmZOfficial/FramePort" target="_blank" rel="noopener noreferrer" data-i18n="footerSource">ซอร์สโค้ด</a>
@@ -412,6 +414,7 @@
   </footer>
   <div class="sr-only" id="languageStatus" aria-live="polite"></div>
 
+  <script src="language.js"></script>
   <script>
     const copy = {
       th: {
@@ -440,6 +443,7 @@
         faqFourQuestion: "ดาวน์โหลดได้จากทุกเว็บไซต์หรือไม่?", faqFourAnswer: "FramePort ใช้ yt-dlp และการรองรับขึ้นอยู่กับเว็บไซต์และรุ่นของ yt-dlp โปรดดาวน์โหลดเฉพาะเนื้อหาที่คุณมีสิทธิ์ใช้งาน",
         footerCopy: "เครื่องมือดาวน์โหลดและแปลงไฟล์สำหรับ Windows", footerSource: "ซอร์สโค้ด", footerSupport: "แจ้งปัญหา",
         switchLanguage: "เปลี่ยนภาษาเป็นภาษาอังกฤษ", languageChanged: "เปลี่ยนภาษาเป็นภาษาไทยแล้ว",
+        languageNotice: "ตั้งภาษาเริ่มต้นจากประเทศ IP โดยประมาณผ่าน ipwho.is; บริการได้รับ IP สาธารณะเพื่อเช็กรหัสประเทศ ไม่ขอตำแหน่ง GPS",
         navLabel: "เมนูหลัก", detailsAria: "รายละเอียดโปรแกรม", visualAria: "ไอคอน FramePort พร้อมรูปแบบวิดีโอและเสียง",
         formatListAria: "รูปแบบไฟล์ที่รองรับ", footerNavLabel: "เมนูท้ายเว็บ",
         metaDescription: "FramePort ดาวน์โหลดวิดีโอและเสียง พร้อมแปลงไฟล์ให้พร้อมใช้งาน โปรแกรม Windows ที่ใช้งานได้ทั้งภาษาไทยและอังกฤษ"
@@ -470,6 +474,7 @@
         faqFourQuestion: "Does it work with every website?", faqFourAnswer: "FramePort uses yt-dlp. Website support depends on the site and yt-dlp version. Only download content you have permission to use.",
         footerCopy: "Video download and conversion for Windows", footerSource: "Source code", footerSupport: "Report an issue",
         switchLanguage: "Switch page language to Thai", languageChanged: "Page language changed to English",
+        languageNotice: "Default language uses your estimated IP country via ipwho.is; it receives your public IP to check country code. No GPS location is requested.",
         navLabel: "Main navigation", detailsAria: "App details", visualAria: "FramePort icon surrounded by video and audio format labels",
         formatListAria: "Supported output formats", footerNavLabel: "Footer navigation",
         metaDescription: "FramePort downloads video and audio, then converts files into formats ready to use. A simple Windows app in Thai and English."
@@ -477,9 +482,14 @@
     };
     const languageToggle = document.getElementById("languageToggle");
     const languageStatus = document.getElementById("languageStatus");
-    let language = "th";
-    try { language = localStorage.getItem("frameport-language") === "en" ? "en" : "th"; } catch (_) {}
-    function setLanguage(next) {
+    let savedLanguage = null;
+    try {
+      savedLanguage = localStorage.getItem("frameport-language-choice");
+      if (!savedLanguage && localStorage.getItem("frameport-language") === "en") savedLanguage = "en";
+    } catch (_) {}
+    let languageWasChosen = savedLanguage === "th" || savedLanguage === "en";
+    let language = savedLanguage || window.framePortLanguage.fallback();
+    function setLanguage(next, remember = false) {
       language = next;
       document.documentElement.lang = next;
       document.title = next === "th" ? "FramePort | ดาวน์โหลดและแปลงวิดีโอ" : "FramePort | Download and convert video";
@@ -494,11 +504,26 @@
       });
       languageToggle.textContent = next === "th" ? "EN" : "TH";
       languageToggle.setAttribute("aria-label", copy[next].switchLanguage);
+      languageToggle.title = copy[next].languageNotice;
       languageStatus.textContent = copy[next].languageChanged;
-      try { localStorage.setItem("frameport-language", next); } catch (_) {}
+      if (remember) {
+        try { localStorage.setItem("frameport-language-choice", next); } catch (_) {}
+      }
     }
-    languageToggle.addEventListener("click", () => setLanguage(language === "th" ? "en" : "th"));
+    document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+      const value = copy[language][element.dataset.i18nTitle];
+      if (value !== undefined) element.title = value;
+    });
+    languageToggle.addEventListener("click", () => {
+      languageWasChosen = true;
+      setLanguage(language === "th" ? "en" : "th", true);
+    });
     setLanguage(language);
+    if (!languageWasChosen) {
+      window.framePortLanguage.detect().then((detected) => {
+        if (!languageWasChosen && detected !== language) setLanguage(detected);
+      }).catch(() => {});
+    }
   </script>
 </body>
 </html>

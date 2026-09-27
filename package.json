@@ -8,7 +8,8 @@
   "scripts": {
     "start": "electron .",
     "icon": "electron build/make-icon.js",
-    "dist": "electron-builder --win"
+    "dist": "electron-builder --win",
+    "test:language": "node test-language.js"
   },
   "build": {
     "appId": "com.tunarmz.videodownloader",
@@ -22,6 +23,7 @@
       "preload.js",
       "index.html",
       "renderer.js",
+      "docs/language.js",
       "build/icon.svg"
     ],
     "directories": {
