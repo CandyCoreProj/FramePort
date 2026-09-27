@@ -1,7 +1,7 @@
 {
   "name": "frameport",
   "productName": "FramePort",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "FramePort — reliable video downloads and edit-ready conversion",
   "author": "tunarmz",
   "main": "main.js",
