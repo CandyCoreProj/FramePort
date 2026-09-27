@@ -1,7 +1,7 @@
 {
   "name": "frameport",
   "productName": "FramePort",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "FramePort — reliable video downloads and edit-ready conversion",
   "author": "tunarmz",
   "main": "main.js",
@@ -55,7 +55,9 @@
         }
       ]
     },
+    "afterPack": "build/list-installed-files.js",
     "nsis": {
+      "include": "build/installer.nsh",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
