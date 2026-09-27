@@ -40,6 +40,7 @@
       /* แอปเดสก์ท็อป: คลิกหรือดับเบิลคลิกไม่ให้คลุมข้อความ (ช่องลิงก์ พาธ และบันทึกยังคัดลอกได้) */
       user-select: none; cursor: default;
     }
+    img, svg { -webkit-user-drag: none; }
     button, input, select { font: inherit; }
     button { color: var(--ink); cursor: pointer; white-space: nowrap; }
     button:disabled { opacity: .55; cursor: wait; }
@@ -243,7 +244,7 @@
 </head>
 <body>
   <header class="topbar">
-    <img class="logo" src="build/icon.svg" alt="" aria-hidden="true">
+    <img class="logo" src="build/icon.svg" alt="" aria-hidden="true" draggable="false">
     <div class="identity">
       <h1 data-i18n="appTitle">ดาวน์โหลดวิดีโอ</h1>
       <div class="sub"><span class="dot" id="dot"></span><span id="ver" data-i18n="checking">กำลังตรวจสอบ…</span><span id="appVersion"></span></div>
