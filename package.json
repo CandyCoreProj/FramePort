@@ -1,84 +1,10 @@
 {
   "name": "frameport",
   "productName": "FramePort",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "FramePort — reliable video downloads and edit-ready conversion",
   "author": "CandyCore",
   "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "icon": "electron build/make-icon.js",
-    "dist": "electron-builder --win",
-    "test:language": "node test-language.js",
-    "test:updater": "node test-updater.js",
-    "test:download-path": "node test-download-path.js",
-    "test:download-quality": "electron test-download-quality.js",
-    "test:startup": "electron test-startup.js"
-  },
-  "build": {
-    "appId": "com.tunarmz.videodownloader",
-    "productName": "FramePort",
-    "electronLanguages": [
-      "en-US",
-      "th"
-    ],
-    "files": [
-      "main.js",
-      "ytdlp-updater.js",
-      "app-updater.js",
-      "download-path.js",
-      "preload.js",
-      "index.html",
-      "renderer.js",
-      "docs/language.js",
-      "fonts/*.woff2",
-      "fonts/OFL.txt",
-      "build/icon.svg"
-    ],
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "icon": "build/icon.png",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "afterPack": "build/list-installed-files.js",
-    "nsis": {
-      "include": "build/installer.nsh",
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "artifactName": "FramePort-Setup.${ext}"
-    },
-    "portable": {
-      "artifactName": "FramePort.${ext}"
-    },
-    "compression": "maximum",
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "CandyCoreProj",
-        "repo": "FramePort"
-      }
-    ]
-  },
-  "devDependencies": {
-    "electron": "^38.0.0",
-    "electron-builder": "^26.15.3"
-  },
   "dependencies": {
     "electron-updater": "^6.8.9"
   }
