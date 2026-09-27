@@ -7,7 +7,7 @@ const store = {
 
 const words = {
   th: {
-    checking: 'กำลังตรวจสอบ…', notInstalled: 'ยังไม่ได้ติดตั้งเครื่องมือ', ready: 'พร้อมใช้งาน', missing: 'ยังไม่มี',
+    appTitle: 'ดาวน์โหลดวิดีโอ', checking: 'กำลังตรวจสอบ…', notInstalled: 'ยังไม่ได้ติดตั้งเครื่องมือ', ready: 'พร้อมใช้งาน', missing: 'ยังไม่มี',
     setupTitle: 'เริ่มใช้งานครั้งแรก', setupDescription: 'ติดตั้งส่วนที่จำเป็นครั้งเดียว แล้วเริ่มดาวน์โหลดได้ทันที',
     setupNote: 'ดาวน์โหลดจาก GitHub ทางการของ yt-dlp',
     ytdlpDescription: 'ตัวดาวน์โหลด · ~18 MB', ffmpegDescription: 'แปลงวิดีโอและเสียง · ~150 MB',
@@ -45,7 +45,7 @@ const words = {
     trustFiles: 'ไฟล์บันทึกตรงลงโฟลเดอร์ที่คุณเลือก',
   },
   en: {
-    checking: 'Checking tools…', notInstalled: 'Tools not installed', ready: 'Ready', missing: 'Missing',
+    appTitle: 'Video Downloader', checking: 'Checking tools…', notInstalled: 'Tools not installed', ready: 'Ready', missing: 'Missing',
     setupTitle: 'Set up for first use', setupDescription: 'Install the required tools once, then start downloading.',
     setupNote: 'Downloaded from the official yt-dlp GitHub releases',
     ytdlpDescription: 'Downloader · ~18 MB', ffmpegDescription: 'Video and audio conversion · ~150 MB',
@@ -232,24 +232,22 @@ function toast(message) {
 
 const pendingLogs = [];
 let logFrame = 0;
-let logTotal = 0;
 function log(line, cls) {
   pendingLogs.push([line, cls]);
   if (logFrame) return;
   logFrame = requestAnimationFrame(() => {
     const el = $('log');
+    el.classList.remove('hidden');
     const fragment = document.createDocumentFragment();
     for (const [text, type] of pendingLogs.splice(0)) {
       const row = document.createElement('div');
       row.className = type || (/ERROR|error:/i.test(text) ? 'err' : '');
       row.textContent = text;
       fragment.appendChild(row);
-      logTotal++;
     }
     el.appendChild(fragment);
     while (el.childElementCount > 300) el.firstElementChild.remove();
     el.scrollTop = el.scrollHeight;
-    $('logCount').textContent = logTotal;
     logFrame = 0;
   });
 }
@@ -284,7 +282,7 @@ function renderStatus() {
 function setFolder(value) {
   folder = value;
   $('folder').textContent = value;
-  $('folderBox').title = value;
+  $('folder').title = value;
 }
 
 async function refresh() {
@@ -444,41 +442,32 @@ $('openBtn').onclick = async () => {
 
 // ---------- progress ----------
 
-const jobs = { download: $('job-download'), convert: $('job-convert') };
-
 function resetJobs() {
-  for (const job of Object.values(jobs)) {
-    job.className = 'job hidden';
-    job.querySelector('.fill').style.transform = '';
-    for (const field of job.querySelectorAll('.job-label, .job-name, .job-speed, .job-eta, .job-item')) field.textContent = '';
-    job.querySelector('.job-pct').textContent = '';
-  }
+  $('phase').textContent = '';
+  $('fill').style.width = '0%';
+  $('pct').textContent = '0%';
+  $('speed').textContent = '';
+  $('eta').textContent = '';
+  $('progress').classList.add('hidden');
+  $('progress').classList.remove('show');
   $('result').classList.add('hidden');
 }
 
 function setJob(stage, { pct = 0, speed, eta, label, item, name }) {
-  const job = jobs[stage];
-  job.classList.remove('hidden', 'done', 'failed');
-  job.classList.add('running');
-  job.classList.toggle('indeterminate', !(pct > 0));
-  if (label) job.querySelector('.job-label').textContent = label;
-  if (name !== undefined) job.querySelector('.job-name').textContent = name;
-  job.querySelector('.fill').style.transform = pct > 0 ? `scaleX(${Math.min(pct, 100) / 100})` : '';
-  job.querySelector('.job-pct').textContent = pct > 0 ? pct.toFixed(1) + '%' : '';
+  $('progress').classList.remove('hidden');
+  $('progress').classList.add('show');
+  $('phase').textContent = [label, name, item ? tr('item') + item : ''].filter(Boolean).join(' · ');
+  $('fill').style.width = `${Math.min(Math.max(pct, 0), 100)}%`;
+  $('pct').textContent = pct > 0 ? pct.toFixed(1) + '%' : '';
   const known = (value) => value && !/^(Unknown|NA|N\/A)$/i.test(value);
-  job.querySelector('.job-speed').textContent = known(speed) ? speed : '';
-  job.querySelector('.job-eta').textContent = known(eta) ? tr('remaining') + eta : '';
-  job.querySelector('.job-item').textContent = item ? tr('item') + item : '';
+  $('speed').textContent = known(speed) ? speed : '';
+  $('eta').textContent = known(eta) ? tr('remaining') + eta : '';
 }
 
-function finishJobs(ok) {
-  for (const job of Object.values(jobs)) {
-    if (job.classList.contains('hidden')) continue;
-    job.classList.remove('running', 'indeterminate');
-    job.classList.add(ok ? 'done' : 'failed');
-    if (ok) job.querySelector('.job-pct').textContent = '100%';
-    job.querySelector('.job-speed').textContent = job.querySelector('.job-eta').textContent = '';
-  }
+function finishJobs(ok, cancelled = false) {
+  $('phase').textContent = tr(ok ? 'finished' : cancelled ? 'cancelled' : 'failed');
+  if (ok) { $('fill').style.width = '100%'; $('pct').textContent = '100%'; }
+  $('speed').textContent = $('eta').textContent = '';
 }
 
 function showResult(type, title, detail) {
@@ -519,11 +508,10 @@ $('goBtn').onclick = async () => {
   setRunning(true);
   resetJobs();
   $('progress').classList.remove('hidden');
+  $('progress').classList.add('show');
   requestAnimationFrame(() => $('progress').scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
   setJob('download', { label: tr('preparing') });
   $('log').replaceChildren();
-  logTotal = 0;
-  $('logCount').textContent = '0';
 
   const kind = picked('kind');
   const quality = kind === 'audio' ? picked('aq') : picked('vq');
@@ -540,7 +528,7 @@ $('goBtn').onclick = async () => {
       showResult('ok', names.length > 1 ? tr('savedMany', { n: names.length }) : tr('savedOne'), (names[0] || '') + more);
       log(tr('finished'), 'ok');
     } else if (code === -1) {
-      finishJobs(false);
+      finishJobs(false, true);
       showResult('error', tr('cancelled'), '');
     } else {
       finishJobs(false);

@@ -11,7 +11,8 @@
     "dist": "electron-builder --win",
     "test:language": "node test-language.js",
     "test:updater": "node test-updater.js",
-    "test:download-path": "node test-download-path.js"
+    "test:download-path": "node test-download-path.js",
+    "test:startup": "electron test-startup.js"
   },
   "build": {
     "appId": "com.tunarmz.videodownloader",

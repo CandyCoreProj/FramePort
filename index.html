@@ -86,6 +86,10 @@
     .compact-button:active, .primary:active { transform: translateY(1px); }
 
     .options-grid { display: grid; grid-template-columns: minmax(155px, .8fr) minmax(0, 2.5fr); gap: 10px; align-items: start; }
+    .output-options { grid-column: 1 / -1; }
+    .output-options .seg label { min-height: 58px; align-items: flex-start; padding-inline: 10px; text-align: left; }
+    .output-options .seg label strong { font-size: 12px; }
+    .output-options .seg label small { font-size: 9px; }
     .tabs {
       width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
       padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--field);
@@ -114,6 +118,8 @@
     }
     .seg .option-input:checked + label small { color: var(--accent); }
     .hint { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+    .url-row.invalid input { border-color: var(--error); box-shadow: 0 0 0 2px color-mix(in srgb, var(--error) 20%, transparent); }
+    .url-error { margin: -3px 0 0; color: var(--error); font-size: 11px; }
 
     .output-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(230px, 1fr); gap: 12px; align-items: end; padding-top: 10px; border-top: 1px solid var(--line); }
     .folder-block, .encoder-row { min-width: 0; }
@@ -161,6 +167,13 @@
     .final-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; }
     .progress-wrap { display: none; grid-column: 1 / -1; grid-row: 2; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
     .progress-wrap.show { display: block; }
+    .result { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+    .result.error { border-color: var(--error); }
+    .result-icon { width: 20px; height: 20px; flex: none; color: var(--ok); }
+    .result.error .result-icon { color: var(--error); }
+    .result-copy { min-width: 0; flex: 1; }
+    .result-title { font-size: 12px; font-weight: 750; }
+    .result-detail { overflow-wrap: anywhere; color: var(--muted); font-size: 11px; }
     .bar { height: 5px; overflow: hidden; border-radius: 99px; background: var(--line); }
     .fill { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .14s linear; }
     .phase { margin-bottom: 4px; font-size: 12px; font-weight: 700; }
@@ -221,13 +234,13 @@
     <img class="logo" src="build/icon.svg" alt="" aria-hidden="true">
     <div class="identity">
       <h1 data-i18n="appTitle">ดาวน์โหลดวิดีโอ</h1>
-      <div class="sub"><span class="dot" id="dot"></span><span id="ver" data-i18n="checking">กำลังตรวจสอบ…</span></div>
+      <div class="sub"><span class="dot" id="dot"></span><span id="ver" data-i18n="checking">กำลังตรวจสอบ…</span><span id="appVersion"></span></div>
     </div>
     <div class="spacer"></div>
     <div class="header-controls">
       <button class="compact-button" id="langBtn" type="button" aria-label="Switch language" data-i18n-title="languageNotice">EN</button>
       <button class="compact-button" id="themeBtn" type="button" aria-label="Toggle color theme" aria-pressed="false">Dark</button>
-      <button class="compact-button hidden" id="updateBtn" type="button" data-i18n="update" data-i18n-title="updateTitle">อัปเดต yt-dlp</button>
+    <button class="compact-button hidden" id="updateBtn" type="button" data-i18n-title="updateTitle"><span class="label-text" data-i18n="update">อัปเดต yt-dlp</span></button>
     </div>
   </header>
 
@@ -244,17 +257,19 @@
         <div class="bar"><div class="fill"></div></div>
       </div>
     </div>
-    <button class="primary" id="installBtn" data-i18n="install">ติดตั้งเครื่องมือ</button>
+    <button class="primary" id="installBtn"><span data-i18n="install">ติดตั้งเครื่องมือ</span></button>
   </section>
 
   <main class="panel hidden" id="main">
     <div class="kicker" data-i18n="appKicker">A simpler way to download</div>
     <div class="headline" data-i18n="headline">วางลิงก์ แล้วเลือกไฟล์</div>
     <label class="label url-label" for="url" data-i18n="urlLabel">ลิงก์วิดีโอ</label>
-    <div class="url-row">
-      <input type="text" id="url" data-i18n-placeholder="urlPlaceholder" placeholder="วางลิงก์ YouTube, TikTok, Facebook…" spellcheck="false" autocomplete="off">
-      <button class="compact-button" id="pasteBtn" type="button" data-i18n="paste">วางลิงก์</button>
-    </div>
+      <div class="url-row" id="urlField" aria-describedby="urlError">
+        <input type="text" id="url" data-i18n-placeholder="urlPlaceholder" placeholder="วางลิงก์ YouTube, TikTok, Facebook…" spellcheck="false" autocomplete="off">
+        <button class="compact-button hidden" id="clearBtn" type="button" data-i18n="clear">ล้าง</button>
+        <button class="compact-button" id="pasteBtn" type="button" data-i18n="paste">วางลิงก์</button>
+      </div>
+      <div class="url-error hidden" id="urlError" role="alert"></div>
 
     <div class="options-grid">
       <div class="format-block">
@@ -293,12 +308,23 @@
           <label for="a-wav">WAV<small data-i18n="uncompressed">ไม่บีบอัด ไฟล์ใหญ่</small></label>
         </div>
       </div>
+      <div class="output-options" id="outputOpts">
+        <div class="label" data-i18n="outputLabel">ไฟล์วิดีโอที่ได้</div>
+        <div class="seg seg3" role="radiogroup" aria-label="ไฟล์วิดีโอที่ได้" data-i18n-aria="outputLabel">
+          <input class="option-input" type="radio" name="out" id="out-h264" value="h264" checked>
+          <label for="out-h264"><strong>H.264</strong><small data-i18n="h264Tag">พร้อมตัดต่อ</small><small data-i18n="h264Desc">เปิดได้ใน Premiere, Resolve, CapCut และทุกเครื่องเล่น</small></label>
+          <input class="option-input" type="radio" name="out" id="out-hevc" value="hevc">
+          <label for="out-hevc"><strong>H.265</strong><small data-i18n="hevcTag">คุณภาพสูง</small><small data-i18n="hevcDesc">คงรายละเอียดภาพ เหมาะกับโปรแกรมรุ่นใหม่</small></label>
+          <input class="option-input" type="radio" name="out" id="out-original" value="original">
+          <label for="out-original"><strong data-i18n="originalTitle">ต้นฉบับ</strong><small data-i18n="originalTag">เร็วที่สุด</small><small data-i18n="originalDesc">ไม่แปลงไฟล์ คุณภาพต้นฉบับ</small></label>
+        </div>
+      </div>
     </div>
 
     <div class="output-grid">
       <div class="folder-block">
         <div class="label" data-i18n="saveTo">บันทึกที่</div>
-        <div class="folder-row">
+        <div class="folder-row" id="folderBox">
           <div class="folder" id="folder"></div>
           <button class="compact-button" id="pickBtn" type="button" data-i18n="choose">เปลี่ยน</button>
           <button class="compact-button" id="openBtn" type="button" data-i18n="open">เปิด</button>
@@ -349,9 +375,15 @@
         <div class="stats"><span><b id="pct">0%</b></span><span id="speed"></span><span id="eta"></span></div>
       </div>
       <div class="url-row">
-        <button class="primary" id="goBtn" type="button" data-i18n="start">เริ่มดาวน์โหลด</button>
+        <button class="primary" id="goBtn" type="button" disabled><span id="goText" data-i18n="start">เริ่มดาวน์โหลด</span></button>
         <button class="compact-button cancel hidden" id="cancelBtn" type="button" data-i18n="cancel">ยกเลิก</button>
       </div>
+    </div>
+
+    <div class="result hidden" id="result" role="status" aria-live="polite">
+      <svg class="result-icon" id="resultSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+      <div class="result-copy"><div class="result-title" id="resultTitle"></div><div class="result-detail" id="resultDetail"></div></div>
+      <button class="compact-button hidden" id="showBtn" type="button" data-i18n="showInFolder">แสดงในโฟลเดอร์</button>
     </div>
   </main>
 
