@@ -3,7 +3,7 @@ const picked = (name) => document.querySelector(`input[name=${name}]:checked`).v
 
 const words = {
   th: {
-    appTitle: 'FramePort', checking: 'กำลังตรวจสอบ…',
+    appTitle: 'FramePort', appKicker: 'ดาวน์โหลดและแปลงไฟล์ในที่เดียว', checking: 'กำลังตรวจสอบ…',
     notInstalled: 'ยังไม่ได้ติดตั้ง', ffmpegReady: 'ffmpeg พร้อม', noFfmpeg: 'ไม่มี ffmpeg',
     setupTitle: 'เริ่มใช้งานครั้งแรก', setupDescription: 'ติดตั้งส่วนที่จำเป็นครั้งเดียว แล้วเริ่มดาวน์โหลดได้ทันที',
     ytdlpDescription: 'ตัวดาวน์โหลด · ~18 MB', ffmpegDescription: 'แปลงวิดีโอและเสียง · ~150 MB',
@@ -15,8 +15,12 @@ const words = {
     audioFormat: 'ไฟล์เสียง', smallPlay: 'ไฟล์เล็ก เปิดได้ทุกที่',
     lossless: 'ไม่เสียคุณภาพ', uncompressed: 'ไม่บีบอัด ไฟล์ใหญ่',
     saveTo: 'บันทึกที่', choose: 'เปลี่ยน', open: 'เปิด',
-    encoderLabel: 'วิธีแปลงไฟล์', auto: 'อัตโนมัติ · ลองใช้ GPU ที่พร้อม',
-    hybrid: 'CPU ถอดรหัส + GPU เข้ารหัส', playlist: 'ดาวน์โหลดทั้งเพลย์ลิสต์',
+    encoderLabel: 'ตัวเข้ารหัสวิดีโอ', auto: 'อัตโนมัติ · ลองใช้ GPU ที่พร้อม',
+    encoderAutoDesc: 'ลองใช้ตัวเข้ารหัส GPU ที่รองรับก่อน', recommended: 'แนะนำ',
+    encoderNvidiaDesc: 'เข้ารหัสด้วยการ์ดจอ NVIDIA', encoderIntelDesc: 'กราฟิก Intel ในตัวหรือ Arc',
+    encoderAmdDesc: 'กราฟิก AMD ในตัวหรือ Radeon', encoderHybridDesc: 'แบ่งงานระหว่าง CPU และ GPU',
+    hybrid: 'CPU ถอดรหัส + GPU เข้ารหัส', hybridBadge: 'ผสม', encoderCpuDesc: 'เข้ารหัสด้วย CPU รองรับได้กว้าง',
+    playlist: 'ดาวน์โหลดทั้งเพลย์ลิสต์',
     start: 'เริ่มดาวน์โหลด', cancel: 'ยกเลิก', update: 'อัปเดต yt-dlp',
     updateTitle: 'อัปเดต yt-dlp', install: 'ติดตั้งเครื่องมือ',
     installRequired: 'ติดตั้ง yt-dlp และ ffmpeg ก่อนดาวน์โหลด',
@@ -33,7 +37,7 @@ const words = {
     details: 'รายละเอียดการทำงาน',
   },
   en: {
-    appTitle: 'FramePort', checking: 'Checking tools…',
+    appTitle: 'FramePort', appKicker: 'Downloads, ready when you are', checking: 'Checking tools…',
     notInstalled: 'Not installed', ffmpegReady: 'FFmpeg ready', noFfmpeg: 'FFmpeg missing',
     setupTitle: 'Set up for first use', setupDescription: 'Install the required tools once, then start downloading.',
     ytdlpDescription: 'Downloader · ~18 MB', ffmpegDescription: 'Video and audio conversion · ~150 MB',
@@ -45,8 +49,12 @@ const words = {
     audioFormat: 'Audio format', smallPlay: 'Small file · plays anywhere',
     lossless: 'Lossless', uncompressed: 'Uncompressed · large',
     saveTo: 'Save to', choose: 'Choose…', open: 'Open',
-    encoderLabel: 'Conversion mode', auto: 'Automatic · try available GPU',
-    hybrid: 'CPU decode + GPU encode', playlist: 'Download entire playlist',
+    encoderLabel: 'Video encoder', auto: 'Automatic · try available GPU',
+    encoderAutoDesc: 'Try a supported GPU encoder first', recommended: 'RECOMMENDED',
+    encoderNvidiaDesc: 'Encode with an NVIDIA graphics card', encoderIntelDesc: 'Intel integrated graphics or Arc',
+    encoderAmdDesc: 'AMD integrated graphics or Radeon', encoderHybridDesc: 'Split work between the CPU and GPU',
+    hybrid: 'CPU decode + GPU encode', hybridBadge: 'HYBRID', encoderCpuDesc: 'Software encode with broad compatibility',
+    playlist: 'Download entire playlist',
     start: 'Download', cancel: 'Cancel', update: 'Update yt-dlp',
     updateTitle: 'Update yt-dlp', install: 'Install tools',
     installRequired: 'Install yt-dlp and FFmpeg before downloading',
@@ -101,8 +109,78 @@ function applyLanguage() {
   $('updateBtn').textContent = tr('update');
   $('installBtn').textContent = tr('install');
   applyTheme();
+  syncEncoderMenu();
   renderStatus();
 }
+
+const encoderOptions = [...document.querySelectorAll('.encoder-option')];
+
+function syncEncoderMenu() {
+  const selected = encoderOptions.find((option) => option.dataset.value === $('encoder').value) || encoderOptions[0];
+  $('encoderValue').textContent = selected.querySelector('.encoder-option-title').textContent;
+  $('encoderDescription').textContent = selected.querySelector('.encoder-option-description').textContent;
+  for (const option of encoderOptions) {
+    const active = option === selected;
+    option.setAttribute('aria-selected', String(active));
+    option.querySelector('.encoder-check').textContent = active ? '✓' : '';
+  }
+}
+
+function closeEncoderMenu(returnFocus = false) {
+  $('encoderMenu').classList.add('hidden');
+  $('encoderRow').classList.remove('open');
+  $('encoderTrigger').setAttribute('aria-expanded', 'false');
+  if (returnFocus) $('encoderTrigger').focus();
+}
+
+function openEncoderMenu() {
+  $('encoderMenu').classList.remove('hidden');
+  $('encoderRow').classList.add('open');
+  $('encoderTrigger').setAttribute('aria-expanded', 'true');
+  (encoderOptions.find((option) => option.dataset.value === $('encoder').value) || encoderOptions[0]).focus();
+}
+
+function chooseEncoder(option) {
+  $('encoder').value = option.dataset.value;
+  syncEncoderMenu();
+  closeEncoderMenu(true);
+}
+
+$('encoderTrigger').addEventListener('click', () => {
+  if ($('encoderMenu').classList.contains('hidden')) openEncoderMenu();
+  else closeEncoderMenu();
+});
+
+$('encoderTrigger').addEventListener('keydown', (event) => {
+  if (!['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) return;
+  event.preventDefault();
+  openEncoderMenu();
+});
+
+for (const option of encoderOptions) {
+  option.addEventListener('click', () => chooseEncoder(option));
+  option.addEventListener('keydown', (event) => {
+    const index = encoderOptions.indexOf(option);
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeEncoderMenu(true);
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      chooseEncoder(option);
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? encoderOptions.length - 1 :
+        Math.max(0, Math.min(encoderOptions.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1)));
+      encoderOptions[next].focus();
+    } else if (event.key === 'Tab') {
+      closeEncoderMenu(true);
+    }
+  });
+}
+
+document.addEventListener('pointerdown', (event) => {
+  if (!$('encoderRow').contains(event.target)) closeEncoderMenu();
+});
 
 function toast(message) {
   $('toast').textContent = message;

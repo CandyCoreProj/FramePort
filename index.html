@@ -41,9 +41,9 @@
 
     .topbar {
       min-height: 45px; display: flex; align-items: center; gap: 10px;
-      margin-bottom: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--line);
+      margin-bottom: 12px; padding: 0 2px 9px; border-bottom: 1px solid var(--line);
     }
-    .logo { width: 38px; height: 38px; flex: none; display: block; border-radius: 12px; }
+    .logo { width: 38px; height: 38px; flex: none; display: block; border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius: 12px; box-shadow: 0 3px 8px rgba(28, 25, 23, .12); }
     .identity { min-width: 0; }
     h1 { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.01em; }
     .sub { display: flex; align-items: center; gap: 7px; margin-top: 2px; color: var(--muted); font-size: 11px; }
@@ -63,7 +63,9 @@
       padding: 14px; border: 1px solid var(--line); border-radius: var(--panel-radius);
       background: var(--surface); box-shadow: var(--panel-shadow);
     }
-    .headline { font-size: 16px; line-height: 1.2; font-weight: 700; letter-spacing: -.015em; }
+    .headline { font-size: 18px; line-height: 1.2; font-weight: 750; letter-spacing: -.02em; }
+    .kicker { display: flex; align-items: center; gap: 7px; margin-bottom: -6px; color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .kicker::before { width: 14px; height: 2px; content: ""; border-radius: 2px; background: var(--action); }
     .label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
     .url-label { margin-bottom: -5px; }
     .url-row { display: flex; gap: 7px; align-items: stretch; }
@@ -113,7 +115,7 @@
     .seg .option-input:checked + label small { color: var(--accent); }
     .hint { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.35; }
 
-    .output-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(220px, 1fr); gap: 12px; align-items: end; }
+    .output-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(230px, 1fr); gap: 12px; align-items: end; padding-top: 10px; border-top: 1px solid var(--line); }
     .folder-block, .encoder-row { min-width: 0; }
     .folder-row { display: flex; align-items: center; gap: 6px; }
     .folder {
@@ -122,10 +124,38 @@
       background: var(--field); color: var(--ink); font-size: 12px;
       text-overflow: ellipsis; white-space: nowrap; user-select: text;
     }
-    .encoder-row select {
-      width: 100%; min-height: 36px; padding: 5px 9px; border: 1px solid var(--field-line);
-      border-radius: var(--control-radius); background: var(--field); color: var(--ink); font-size: 12px;
+    .encoder-row { position: relative; }
+    .encoder-native { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .encoder-trigger {
+      width: 100%; min-height: 42px; display: flex; align-items: center; gap: 10px;
+      padding: 6px 11px; border: 1px solid var(--field-line); border-radius: 15px;
+      background: var(--field); color: var(--ink); text-align: left; white-space: normal;
+      transition: border-color .14s, background .14s, box-shadow .14s;
     }
+    .encoder-trigger:hover, .encoder-row.open .encoder-trigger { border-color: var(--accent); background: var(--surface); }
+    .encoder-copy { min-width: 0; flex: 1; }
+    .encoder-value { display: block; overflow: hidden; font-size: 12px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .encoder-description { display: block; overflow: hidden; margin-top: 1px; color: var(--muted); font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+    .encoder-chevron { width: 8px; height: 8px; flex: none; margin: -4px 2px 0 0; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg); transition: transform .14s; }
+    .encoder-row.open .encoder-chevron { margin-top: 4px; transform: rotate(225deg); }
+    .encoder-menu {
+      position: absolute; z-index: 5; top: calc(100% + 6px); right: 0; left: 0;
+      display: grid; gap: 3px; max-height: min(300px, 55vh); overflow-y: auto;
+      padding: 5px; border: 1px solid var(--line); border-radius: 15px;
+      background: var(--surface); box-shadow: 0 12px 30px rgba(28, 25, 23, .2);
+    }
+    .encoder-option {
+      width: 100%; min-height: 40px; display: flex; align-items: center; gap: 8px;
+      padding: 6px 8px; border: 1px solid transparent; border-radius: 10px;
+      background: transparent; color: var(--ink); text-align: left; white-space: normal;
+    }
+    .encoder-option:hover, .encoder-option[aria-selected="true"] { border-color: var(--line); background: var(--accent-soft); }
+    .encoder-option-copy { min-width: 0; flex: 1; }
+    .encoder-option-title { display: block; font-size: 11px; font-weight: 750; line-height: 1.25; }
+    .encoder-option-description { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; line-height: 1.25; }
+    .encoder-badge { flex: none; padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .04em; }
+    .encoder-option[aria-selected="true"] .encoder-badge { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); color: var(--accent); }
+    .encoder-check { width: 15px; flex: none; color: var(--accent); font-size: 13px; font-weight: 800; text-align: center; }
     .check { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; color: var(--ink); font-size: 12px; cursor: pointer; }
     .check input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); }
     .final-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; }
@@ -218,6 +248,7 @@
   </section>
 
   <main class="panel hidden" id="main">
+    <div class="kicker" data-i18n="appKicker">A simpler way to download</div>
     <div class="headline" data-i18n="headline">วางลิงก์ แล้วเลือกไฟล์</div>
     <label class="label url-label" for="url" data-i18n="urlLabel">ลิงก์วิดีโอ</label>
     <div class="url-row">
@@ -274,8 +305,8 @@
         </div>
       </div>
       <div class="encoder-row" id="encoderRow">
-        <label class="label" for="encoder" data-i18n="encoderLabel">วิธีแปลงไฟล์</label>
-        <select id="encoder">
+        <div class="label" id="encoderLabel" data-i18n="encoderLabel">วิธีแปลงไฟล์</div>
+        <select id="encoder" class="encoder-native" tabindex="-1" aria-hidden="true">
           <option value="auto" data-i18n="auto">อัตโนมัติ · ใช้ GPU ที่พร้อม</option>
           <option value="nvenc">NVIDIA · CUDA / NVENC</option>
           <option value="qsv">Intel · Quick Sync (iGPU / Arc)</option>
@@ -283,6 +314,30 @@
           <option value="hybrid" data-i18n="hybrid">CPU ถอดรหัส + GPU เข้ารหัส</option>
           <option value="cpu">CPU · x264</option>
         </select>
+        <button class="encoder-trigger" id="encoderTrigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="encoderMenu" aria-labelledby="encoderLabel encoderValue">
+          <span class="encoder-copy"><span class="encoder-value" id="encoderValue"></span><span class="encoder-description" id="encoderDescription"></span></span>
+          <span class="encoder-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="encoder-menu hidden" id="encoderMenu" role="listbox" aria-labelledby="encoderLabel">
+          <div class="encoder-option" id="encoder-auto" role="option" tabindex="-1" data-value="auto" aria-selected="true">
+            <span class="encoder-check" aria-hidden="true">✓</span><span class="encoder-option-copy"><span class="encoder-option-title" data-i18n="auto">อัตโนมัติ · ใช้ GPU ที่พร้อม</span><span class="encoder-option-description" data-i18n="encoderAutoDesc">ลองใช้ตัวเข้ารหัส GPU ที่รองรับก่อน</span></span><span class="encoder-badge" data-i18n="recommended">แนะนำ</span>
+          </div>
+          <div class="encoder-option" id="encoder-nvenc" role="option" tabindex="-1" data-value="nvenc" aria-selected="false">
+            <span class="encoder-check" aria-hidden="true"></span><span class="encoder-option-copy"><span class="encoder-option-title">NVIDIA · CUDA / NVENC</span><span class="encoder-option-description" data-i18n="encoderNvidiaDesc">เข้ารหัสด้วยการ์ดจอ NVIDIA</span></span><span class="encoder-badge">GPU</span>
+          </div>
+          <div class="encoder-option" id="encoder-qsv" role="option" tabindex="-1" data-value="qsv" aria-selected="false">
+            <span class="encoder-check" aria-hidden="true"></span><span class="encoder-option-copy"><span class="encoder-option-title">Intel · Quick Sync</span><span class="encoder-option-description" data-i18n="encoderIntelDesc">กราฟิก Intel ในตัวหรือ Arc</span></span><span class="encoder-badge">iGPU</span>
+          </div>
+          <div class="encoder-option" id="encoder-amf" role="option" tabindex="-1" data-value="amf" aria-selected="false">
+            <span class="encoder-check" aria-hidden="true"></span><span class="encoder-option-copy"><span class="encoder-option-title">AMD · AMF</span><span class="encoder-option-description" data-i18n="encoderAmdDesc">กราฟิก AMD ในตัวหรือ Radeon</span></span><span class="encoder-badge">GPU</span>
+          </div>
+          <div class="encoder-option" id="encoder-hybrid" role="option" tabindex="-1" data-value="hybrid" aria-selected="false">
+            <span class="encoder-check" aria-hidden="true"></span><span class="encoder-option-copy"><span class="encoder-option-title" data-i18n="hybrid">CPU ถอดรหัส + GPU เข้ารหัส</span><span class="encoder-option-description" data-i18n="encoderHybridDesc">แบ่งงานระหว่าง CPU และ GPU</span></span><span class="encoder-badge" data-i18n="hybridBadge">ผสม</span>
+          </div>
+          <div class="encoder-option" id="encoder-cpu" role="option" tabindex="-1" data-value="cpu" aria-selected="false">
+            <span class="encoder-check" aria-hidden="true"></span><span class="encoder-option-copy"><span class="encoder-option-title">CPU · x264</span><span class="encoder-option-description" data-i18n="encoderCpuDesc">เข้ารหัสด้วย CPU รองรับได้กว้าง</span></span><span class="encoder-badge">CPU</span>
+          </div>
+        </div>
       </div>
     </div>
 
