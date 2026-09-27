@@ -12,6 +12,7 @@
     "test:language": "node test-language.js",
     "test:updater": "node test-updater.js",
     "test:download-path": "node test-download-path.js",
+    "test:download-quality": "electron test-download-quality.js",
     "test:startup": "electron test-startup.js"
   },
   "build": {

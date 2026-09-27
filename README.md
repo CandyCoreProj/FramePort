@@ -29,12 +29,12 @@ FramePort ดาวน์โหลดเครื่องมือเหล่�
 
 - ดาวน์โหลดวิดีโอเป็น MP4 หรือเลือกดาวน์โหลดเฉพาะเสียงเป็น MP3, FLAC หรือ WAV
 - เลือกความละเอียด Best, 4K, 2K, 1080p, 720p หรือ 480p ตามไฟล์ต้นทาง
-- แปลงวิดีโอเป็น H.264/AAC เพื่อให้เหมาะกับการเล่นและตัดต่อ
+- เลือก H.264 หรือ H.265 เพื่อแปลงวิดีโอด้วยค่าคุณภาพสูง หรือเลือก “ต้นฉบับ” เพื่อเก็บภาพโดยไม่เข้ารหัสใหม่
 - เลือกการเข้ารหัสอัตโนมัติ, CPU x264 หรือโหมด CPU ถอดรหัสร่วมกับ GPU เข้ารหัส
 - รองรับ NVIDIA NVENC/CUDA, Intel Quick Sync และ AMD AMF เมื่ออุปกรณ์และไดรเวอร์รองรับ
 - สลับใช้ CPU ได้เมื่อ GPU encoder ใช้ไม่ได้
 - ดาวน์โหลดทั้งเพลย์ลิสต์ได้เมื่อเลือกตัวเลือกนี้
-- ใช้ชื่อคลิปเป็นชื่อไฟล์ และเพิ่ม `(Version 2)`, `(Version 3)` เมื่อมีไฟล์ชื่อเดิมอยู่แล้ว
+- ใช้ชื่อคลิปเป็นชื่อไฟล์ หากมีชื่อเดิมอยู่แล้วจะเพิ่มเลขท้ายชื่อ เช่น `ชื่อคลิป 2.mp4`, `ชื่อคลิป 3.mp4` ในโฟลเดอร์เดิม
 - ใช้งานหน้าจอได้ทั้งภาษาไทยและภาษาอังกฤษ พร้อมธีมสว่างและมืด
 - ตั้งภาษาเริ่มต้นตามประเทศของ IP เป็นไทยหรืออังกฤษ และจำภาษาที่ผู้ใช้เลือกเอง
 
@@ -111,12 +111,12 @@ These tools are downloaded when needed instead of being bundled into the main in
 
 - Download video as MP4 or audio as MP3, FLAC, or WAV.
 - Choose Best, 4K, 2K, 1080p, 720p, or 480p when available from the source.
-- Convert video to H.264/AAC for broad playback and editing compatibility.
+- Convert to high-quality H.264 or H.265, or choose Original to keep the video without re-encoding.
 - Choose automatic encoding, CPU x264, or CPU decoding with GPU encoding.
 - Use NVIDIA NVENC/CUDA, Intel Quick Sync, or AMD AMF when supported by the device and drivers.
 - Fall back to CPU encoding when a GPU encoder is unavailable.
 - Download an entire playlist when enabled.
-- Keep the clip title as the filename, without extra suffixes.
+- Keep the clip title as the filename; duplicates become `Clip 2.mp4`, `Clip 3.mp4` in the same folder.
 - Use the app in Thai or English, with light and dark themes.
 - Default to Thai or English based on the IP country, and remember a language chosen manually.
 
@@ -148,7 +148,7 @@ npm run dist
 
 The generated files are saved to `dist/`. This folder is ignored by Git so large installers stay out of the source history.
 
-Run the focused checks with `npm run test:language`, `npm run test:updater`, and `npm run test:download-path`.
+Run the focused checks with `npm run test:language`, `npm run test:updater`, `npm run test:download-path`, and `npm run test:download-quality` (the last check uses locally installed FramePort tools).
 
 ### Project structure
 

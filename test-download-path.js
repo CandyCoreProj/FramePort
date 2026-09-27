@@ -23,7 +23,7 @@ try {
     reserved,
   });
   assert.equal(second.version, 2, 'a second same-title download becomes another version');
-  assert.equal(second.path, path.join(folder, 'Clip (Version 2).webm'));
+  assert.equal(second.path, path.join(folder, 'Clip 2.webm'));
 
   fs.writeFileSync(path.join(folder, 'Movie.mp4'), 'existing converted file');
   const convertedCollision = reserveVersionedPath({
@@ -32,6 +32,7 @@ try {
     finalExtension: '.mp4',
   });
   assert.equal(convertedCollision.version, 2, 'reserve the converted extension too');
+  assert.equal(convertedCollision.path, path.join(folder, 'Movie 2.webm'));
 } finally {
   fs.rmSync(folder, { recursive: true, force: true });
 }

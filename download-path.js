@@ -11,13 +11,13 @@ function reserveVersionedPath({ folder, downloadedPath, finalExtension, reserved
   const title = path.basename(downloadedPath, sourceExtension);
 
   for (let version = 1; ; version++) {
-    const suffix = version === 1 ? '' : ` (Version ${version})`;
+    const suffix = version === 1 ? '' : ` ${version}`;
     const destination = path.join(folder, `${title}${suffix}${sourceExtension}`);
     const finalPath = path.join(folder, `${title}${suffix}${finalExtension}`);
     const keys = [key(destination), key(finalPath)];
     if (keys.some((item) => reserved.has(item)) || fs.existsSync(destination) || fs.existsSync(finalPath)) continue;
     keys.forEach((item) => reserved.add(item));
-    return { path: destination, version };
+    return { path: destination, finalPath, version };
   }
 }
 

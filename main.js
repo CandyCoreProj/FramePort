@@ -202,18 +202,16 @@ ipcMain.handle('set-theme', (_e, theme) => {
 
 const ffBin = (name, ff) => (ff === 'local' ? local(name) : name);
 
-// บิตเรตที่ codec ต้องใช้เทียบกับ H.264 เพื่อได้คุณภาพใกล้กัน
 const TARGETS = {
   h264: { name: 'H.264', profile: 'high', extra: [] },
   hevc: { name: 'H.265', profile: 'main', extra: ['-tag:v', 'hvc1'] },
 };
 const EIGHT_BIT = ['yuv420p', 'yuvj420p'];
-const compatibleVideo = (stream, target) => stream.codec_name === target && EIGHT_BIT.includes(stream.pix_fmt);
-// ค่าที่เลือกจากการวัดจริง: NVENC p2 + AQ เร็วกว่า p4 lookahead ~2 เท่า ขนาด/คุณภาพเท่ากัน
+// ใช้ค่าคุณภาพสูงเพื่อเก็บรายละเอียดของต้นฉบับ แม้ไฟล์ที่ได้จะใหญ่ขึ้น
 const ENCODERS = [
   {
     id: 'nvenc', name: 'NVIDIA NVENC', decode: 'cuda', format: 'yuv420p',
-    codec: { h264: 'h264_nvenc', hevc: 'hevc_nvenc' }, quality: { h264: 18, hevc: 20 },
+    codec: { h264: 'h264_nvenc', hevc: 'hevc_nvenc' }, quality: { h264: 14, hevc: 16 },
     variants: [
       (q) => ['-preset', 'p2', '-rc', 'vbr', '-cq', q, '-b:v', 0, '-spatial-aq', 1, '-bf', 3],
       (q) => ['-preset', 'p2', '-rc', 'vbr', '-cq', q, '-b:v', 0],
@@ -221,20 +219,20 @@ const ENCODERS = [
   },
   {
     id: 'qsv', name: 'Intel Quick Sync', decode: 'qsv', format: 'nv12',
-    codec: { h264: 'h264_qsv', hevc: 'hevc_qsv' }, quality: { h264: 18, hevc: 20 },
+    codec: { h264: 'h264_qsv', hevc: 'hevc_qsv' }, quality: { h264: 14, hevc: 16 },
     variants: [(q) => ['-preset', 'veryfast', '-async_depth', 8, '-global_quality', q]],
   },
   {
     // ไม่ใช้ถอดรหัสด้วย GPU ของ AMD: ทดสอบแล้วเฟรมหายบางส่วน ทำให้ภาพกับเสียงเหลื่อมกัน
     id: 'amf', name: 'AMD AMF', format: 'yuv420p',
-    codec: { h264: 'h264_amf', hevc: 'hevc_amf' }, quality: { h264: 18, hevc: 20 },
+    codec: { h264: 'h264_amf', hevc: 'hevc_amf' }, quality: { h264: 14, hevc: 16 },
     variants: [(q, target) => ['-quality', 'balanced', '-rc', 'cqp', '-qp_i', q, '-qp_p', q + 2,
       ...(target === 'h264' ? ['-qp_b', q + 4] : [])]],
   },
 ];
 const CPU = {
   id: 'cpu', name: 'CPU', format: 'yuv420p',
-  codec: { h264: 'libx264', hevc: 'libx265' }, quality: { h264: 18, hevc: 20 },
+  codec: { h264: 'libx264', hevc: 'libx265' }, quality: { h264: 14, hevc: 16 },
   variants: [(q, target) => ['-preset', 'veryfast', '-crf', q,
     ...(target === 'hevc' ? ['-x265-params', 'log-level=error'] : [])]],
 };
@@ -295,7 +293,7 @@ function run(bin, args, onLine) {
   return new Promise((resolve) => {
     const child = spawn(bin, args.map(String), {
       windowsHide: true,
-      env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' },
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1', ELECTRON_RUN_AS_NODE: '1' },
     });
     procs.add(child);
     lowerPriority(child);
@@ -326,16 +324,13 @@ function clock(secs) {
 }
 
 function encode({ file, tmp, info, enc, variant, target, ff, hardwareDecode, language, name }) {
-  const copyVideo = compatibleVideo(info.v, target);
   const args = [
     '-hide_banner', '-v', 'error', '-y', '-progress', 'pipe:1', '-nostats',
     ...(hardwareDecode ? ['-hwaccel', enc.decode, '-hwaccel_output_format', enc.decode] : []),
     '-i', file, '-map', '0:v:0', '-map', '0:a:0?', '-map_metadata', '0',
-    ...(copyVideo ? ['-c:v', 'copy'] : [
-      '-c:v', enc.codec[target], ...enc.variants[variant](enc.quality[target], target),
-      ...(hardwareDecode ? [] : ['-pix_fmt', enc.format]),
-      '-profile:v', TARGETS[target].profile,
-    ]),
+    '-c:v', enc.codec[target], ...enc.variants[variant](enc.quality[target], target),
+    ...(hardwareDecode ? [] : ['-pix_fmt', enc.format]),
+    '-profile:v', TARGETS[target].profile,
     ...TARGETS[target].extra,
     // ไฟล์ในเครื่องไม่ต้องใช้ +faststart ซึ่งต้องเขียนไฟล์ทั้งไฟล์ซ้ำอีกรอบ
     ...(info.a?.codec_name === 'aac' ? ['-c:a', 'copy'] : ['-c:a', 'aac', '-b:a', '192k']),
@@ -343,10 +338,8 @@ function encode({ file, tmp, info, enc, variant, target, ff, hardwareDecode, lan
   ];
   const device = enc.id === 'cpu' ? `CPU ${enc.codec[target].replace('lib', '')}` : enc.name;
   const decodeLabel = hardwareDecode ? say(language, ' + ถอดรหัสด้วย GPU', ' + GPU decode') : '';
-  const label = copyVideo
-    ? say(language, 'กำลังแปลงเสียงเป็น AAC', 'Converting audio to AAC')
-    : say(language, `กำลังแปลงเป็น ${TARGETS[target].name} · ${device}${decodeLabel}`,
-      `Converting to ${TARGETS[target].name} · ${device}${decodeLabel}`);
+  const label = say(language, `กำลังแปลงเป็น ${TARGETS[target].name} · ${device}${decodeLabel}`,
+    `Converting to ${TARGETS[target].name} · ${device}${decodeLabel}`);
   send('progress', { stage: 'convert', pct: 0, label, name });
   const started = Date.now();
   let speed = '';
@@ -374,12 +367,9 @@ async function convert(file, ff, { encoder, target, language }) {
   send('progress', { stage: 'convert', pct: 0, label: say(language, 'กำลังตรวจสอบไฟล์', 'Checking file'), name });
   const info = await probe(file, ff);
   if (cancelled) return { code: -1, file };
-  if (!info.v) return { code: 0, file };
-  const videoOk = compatibleVideo(info.v, target);
-  const audioOk = !info.a || info.a.codec_name === 'aac';
-  if (videoOk && audioOk) {
-    send('progress', { stage: 'convert', pct: 100, label: say(language, 'ไฟล์พร้อมใช้แล้ว ไม่ต้องแปลง', 'Already compatible'), name });
-    return { code: 0, file };
+  if (!info.v) {
+    send('log', say(language, 'ไฟล์นี้ไม่มีวิดีโอให้แปลง', 'This file has no video stream to convert'));
+    return { code: 1, file };
   }
 
   send('log', say(language,
@@ -389,34 +379,36 @@ async function convert(file, ff, { encoder, target, language }) {
   const tmp = base + '.frameport-part.mp4';
   const job = { file, tmp, info, target, ff, language, name };
   let code = 1;
-  if (videoOk) {
-    code = await encode({ ...job, enc: CPU, variant: 0, hardwareDecode: false });
-  } else {
-    for (const enc of encoderOrder(encoder)) {
-      if (cancelled) break;
-      const variant = await encoderVariant(enc, target, ff);
-      if (variant < 0) {
-        send('log', say(language, `${enc.name} ใช้ไม่ได้บนเครื่องนี้`, `${enc.name} is unavailable`));
-        continue;
-      }
-      for (const hardwareDecode of decodeOptions(enc, encoder, info)) {
-        if (cancelled) break;
-        code = await encode({ ...job, enc, variant, hardwareDecode });
-        if (code === 0 || cancelled) break;
-        const method = hardwareDecode ? say(language, ' ถอดรหัสด้วย GPU', ' with GPU decode') : '';
-        send('log', say(language,
-          `${enc.name}${method} ไม่สำเร็จ กำลังลองวิธีถัดไป`,
-          `${enc.name}${method} failed; trying the next option`));
-      }
-      if (code === 0) break;
+  for (const enc of encoderOrder(encoder)) {
+    if (cancelled) break;
+    const variant = await encoderVariant(enc, target, ff);
+    if (variant < 0) {
+      send('log', say(language, `${enc.name} ใช้ไม่ได้บนเครื่องนี้`, `${enc.name} is unavailable`));
+      continue;
     }
+    for (const hardwareDecode of decodeOptions(enc, encoder, info)) {
+      if (cancelled) break;
+      code = await encode({ ...job, enc, variant, hardwareDecode });
+      if (code === 0 || cancelled) break;
+      const method = hardwareDecode ? say(language, ' ถอดรหัสด้วย GPU', ' with GPU decode') : '';
+      send('log', say(language,
+        `${enc.name}${method} ไม่สำเร็จ กำลังลองวิธีถัดไป`,
+        `${enc.name}${method} failed; trying the next option`));
+    }
+    if (code === 0) break;
   }
   if (code === 0 && !cancelled) {
-    let out = base + '.mp4';
-    if (out !== file && fs.existsSync(out)) out = base + ' (converted).mp4';
-    fs.rmSync(file);
-    fs.renameSync(tmp, out);
-    return { code: 0, file: out };
+    const encoded = await probe(tmp, ff);
+    if (encoded.v?.codec_name !== target) {
+      throw new Error(say(language, 'ตรวจสอบไฟล์หลังแปลงไม่ผ่าน', 'Converted video failed verification'));
+    }
+    if (info.bitRate && encoded.bitRate) {
+      const before = (info.bitRate / 1e6).toFixed(1);
+      const after = (encoded.bitRate / 1e6).toFixed(1);
+      send('log', say(language, `บิตเรตต้นทาง ${before} → หลังแปลง ${after} Mb/s`,
+        `Bitrate: source ${before} → converted ${after} Mb/s`));
+    }
+    return { code: 0, file: tmp };
   }
   fs.rmSync(tmp, { force: true });
   return { code: cancelled ? -1 : code || 1, file };
@@ -455,6 +447,8 @@ ipcMain.handle('download', async (_e, options) => {
       '--newline',
       '--progress',
       '--concurrent-fragments', '8',
+      '--js-runtimes', `node:${process.execPath}`,
+      '--remote-components', 'ejs:github',
       '--progress-template',
       'download:[P]%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.playlist_index)s|%(info.n_entries)s',
       // ได้ชื่อไฟล์ทันทีที่แต่ละไฟล์เสร็จ เพื่อแปลงไฟล์ก่อนหน้าไปพร้อมกับดาวน์โหลดไฟล์ถัดไป
@@ -466,12 +460,11 @@ ipcMain.handle('download', async (_e, options) => {
     if (kind === 'audio') {
       args.push('-f', 'ba/b', '-x', '--audio-format', quality, '--audio-quality', '0', '--embed-metadata');
     } else {
-      // เรียงตาม: ความละเอียด (ไม่เกินที่เลือก) > fps > ไม่เอา HDR > codec ที่ไม่ต้องแปลง
+      // เลือกความละเอียดและ fps สูงสุดก่อน แล้วค่อยเลือกบิตเรตสูงสุดของฟอร์แมตที่เหลือ
       const res = quality === 'best' ? 'res' : `res:${quality}`;
-      const codec = target === 'h264' ? ',vcodec:h264' : '';
       args.push(
-        '-f', 'bv*+ba/b',
-        '-S', `${res},fps,hdr:sdr${codec},acodec:aac`,
+        '-f', 'bv+ba/b',
+        '-S', `${res},fps,hdr:sdr,br`,
         '--merge-output-format', 'mp4',
         '--remux-video', 'mp4',
       );
@@ -481,6 +474,7 @@ ipcMain.handle('download', async (_e, options) => {
     const files = [];
     const seen = new Set();
     const reservedNames = new Set();
+    const completed = [];
     let converting = Promise.resolve();
     let convertCode = 0;
     let lastError = '';
@@ -494,36 +488,24 @@ ipcMain.handle('download', async (_e, options) => {
         reserved: reservedNames,
       });
       if (reserved.version > 1) {
+        const savedName = kind === 'video' && target ? reserved.finalPath : reserved.path;
         send('log', say(language,
-          `มีไฟล์ชื่อนี้แล้ว บันทึกเป็นเวอร์ชัน ${reserved.version}: ${path.basename(reserved.path)}`,
-          `This clip already exists. Saved as version ${reserved.version}: ${path.basename(reserved.path)}`));
-      }
-      try {
-        fs.renameSync(file, reserved.path);
-      } catch (error) {
-        preserveTempFolder = true;
-        files.push(file);
-        send('log', say(language,
-          `จัดชื่อไฟล์ไม่สำเร็จ ไฟล์ยังอยู่ที่ ${file}: ${error.message}`,
-          `Could not organize the file; it remains at ${file}: ${error.message}`));
-        return;
-      }
-      file = reserved.path;
-      if (kind !== 'video' || !target) {
-        files.push(file);
-        return;
+          `มีไฟล์ชื่อนี้แล้ว บันทึกเป็นเวอร์ชัน ${reserved.version}: ${path.basename(savedName)}`,
+          `This clip already exists. Saved as version ${reserved.version}: ${path.basename(savedName)}`));
       }
       converting = converting.then(async () => {
-        if (cancelled || !fs.existsSync(file)) return;
+        let result = { code: cancelled ? -1 : 0, file };
         try {
-          const result = await convert(file, ff, { encoder, target, language });
-          files.push(result.file);
-          if (result.code !== 0) convertCode = result.code;
+          if (kind === 'video' && target && !cancelled) {
+            result = await convert(file, ff, { encoder, target, language });
+          }
         } catch (error) {
           send('log', error.message);
-          files.push(file);
-          convertCode = 1;
+          lastError = error.message;
+          result = { code: 1, file };
         }
+        if (result.code !== 0) convertCode = result.code;
+        completed.push({ source: file, file: result.file, reserved, converted: result.code === 0 && kind === 'video' && !!target });
       });
     };
 
@@ -545,7 +527,41 @@ ipcMain.handle('download', async (_e, options) => {
       }
     });
     await converting;
+    for (const entry of completed) {
+      let destination = entry.converted ? entry.reserved.finalPath : entry.reserved.path;
+      if (!fs.existsSync(entry.file)) {
+        lastError = say(language, `ไม่พบไฟล์ที่ดาวน์โหลด: ${entry.file}`, `Downloaded file not found: ${entry.file}`);
+        send('log', lastError);
+        if (fs.readdirSync(tempFolder).length) preserveTempFolder = true;
+        convertCode = 1;
+        continue;
+      }
+      try {
+        if (fs.existsSync(destination)) {
+          const next = reserveVersionedPath({
+            folder, downloadedPath: entry.source,
+            finalExtension: path.extname(entry.reserved.finalPath), reserved: reservedNames,
+          });
+          destination = entry.converted ? next.finalPath : next.path;
+        }
+        fs.renameSync(entry.file, destination);
+        files.push(destination);
+      } catch (error) {
+        preserveTempFolder = true;
+        files.push(entry.file);
+        convertCode = 1;
+        lastError = error.message;
+        send('log', say(language,
+          `จัดชื่อไฟล์ไม่สำเร็จ ไฟล์ยังอยู่ที่ ${entry.file}: ${error.message}`,
+          `Could not organize the file; it remains at ${entry.file}: ${error.message}`));
+      }
+    }
     if (code === 0) code = convertCode;
+    if (code === 0 && files.length === 0) {
+      code = 1;
+      lastError = say(language, 'ไม่มีไฟล์ที่ดาวน์โหลดสำเร็จ', 'No downloaded file was produced');
+      if (fs.readdirSync(tempFolder).length) preserveTempFolder = true;
+    }
     return { code: cancelled ? -1 : code, files, error: code === 0 ? '' : lastError };
   } finally {
     if (tempFolder && !preserveTempFolder) fs.rmSync(tempFolder, { recursive: true, force: true });
