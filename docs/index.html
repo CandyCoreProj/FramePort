@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F4EFE9">
+  <meta name="description" id="metaDescription" content="FramePort downloads video and audio, then converts files into formats ready to use. A simple Windows app in Thai and English.">
+  <meta property="og:title" content="FramePort | Download and convert with ease">
+  <meta property="og:description" content="A focused Windows app for video downloads and edit-ready conversion.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ArmZOfficial.github.io/FramePort/">
+  <link rel="icon" type="image/svg+xml" href="assets/frameport-icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>FramePort | ดาวน์โหลดและแปลงวิดีโอ</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1C1917;
+      --paper: #F4EFE9;
+      --surface: #FFFFFF;
+      --surface-soft: #EDE3D6;
+      --surface-alt: #EAE2D8;
+      --accent: #A8441A;
+      --apricot: #F2A054;
+      --apricot-hover: #E88D3A;
+      --muted: #5C554F;
+      --outline: #E0D6CA;
+      --radius-card: 32px;
+      --radius-pill: 999px;
+      --shadow: 0 8px 28px rgb(28 25 23 / 8%);
+      --display: "Urbanist", "Noto Sans Thai", "Segoe UI", sans-serif;
+      --body: "Noto Sans Thai", "Urbanist", "Segoe UI", sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-width: 320px; scroll-behavior: smooth; scroll-padding-top: 88px; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button { font: inherit; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    .skip-link {
+      position: absolute; z-index: 20; top: 8px; left: 8px; transform: translateY(-150%);
+      padding: 9px 14px; border-radius: var(--radius-pill); background: var(--ink); color: white;
+    }
+    .skip-link:focus { transform: translateY(0); }
+    .wrap { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
+    .site-header { position: sticky; z-index: 10; top: 0; background: rgb(244 239 233 / 94%); backdrop-filter: blur(14px); border-bottom: 1px solid rgb(224 214 202 / 75%); }
+    .nav { min-height: 72px; display: flex; align-items: center; gap: 30px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 700 21px/1 var(--display); letter-spacing: -.035em; }
+    .brand img { width: 38px; height: 38px; border-radius: 12px; }
+    .nav-links { display: flex; align-items: center; gap: 26px; margin-left: auto; }
+    .nav-links a { text-decoration: none; color: var(--muted); font: 600 15px/1.2 var(--display); transition: color .18s ease; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .language-toggle {
+      min-width: 48px; min-height: 44px; padding: 0 13px; border: 1px solid var(--outline);
+      border-radius: var(--radius-pill); background: var(--surface); color: var(--ink);
+      font: 700 13px/1 var(--display); cursor: pointer; transition: background .18s ease, border-color .18s ease;
+    }
+    .language-toggle:hover { background: var(--surface-soft); border-color: var(--accent); }
+    .button {
+      min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 0 22px; border: 1px solid transparent; border-radius: var(--radius-pill);
+      text-decoration: none; font: 700 15px/1.2 var(--body); cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary { background: var(--ink); color: white; }
+    .button-primary:hover { background: #332923; }
+    .button-accent { background: var(--apricot); color: #2A1405; }
+    .button-accent:hover { background: var(--apricot-hover); }
+    .button-soft { border-color: var(--outline); background: var(--surface); color: var(--ink); }
+    .button-soft:hover { border-color: var(--accent); }
+    .button svg { width: 18px; height: 18px; flex: none; }
+
+    main { overflow: hidden; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.03fr) minmax(360px, .97fr); align-items: center; gap: 58px; padding-block: 62px 88px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; margin: 0 0 18px; color: var(--accent); font: 700 13px/1.3 var(--display); letter-spacing: .12em; text-transform: uppercase; }
+    .eyebrow::before { width: 22px; height: 2px; content: ""; background: currentColor; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 640px; margin-bottom: 18px; font: 500 clamp(42px, 5.4vw, 68px)/1.08 var(--display); letter-spacing: -.055em; }
+    h1 span { display: block; }
+    h1 .highlight { color: var(--accent); }
+    .hero-copy { max-width: 550px; margin-bottom: 27px; color: var(--muted); font-size: 18px; line-height: 1.75; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero-note { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 25px; color: var(--muted); font: 600 13px/1.4 var(--display); }
+    .hero-note span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero-note svg { width: 16px; height: 16px; color: var(--accent); }
+
+    .hero-art {
+      position: relative; min-height: 440px; display: grid; place-items: center; isolation: isolate;
+      overflow: hidden; border: 1px solid #443329; border-radius: 38px; background: var(--ink);
+      box-shadow: 0 24px 60px rgb(28 25 23 / 16%);
+    }
+    .hero-art::before {
+      position: absolute; z-index: -1; inset: 0; content: "";
+      background: radial-gradient(ellipse at 56% 46%, rgb(168 68 26 / 44%), transparent 57%),
+        linear-gradient(135deg, rgb(242 160 84 / 10%), transparent 45%);
+    }
+    .art-grid { position: absolute; inset: 0; z-index: -1; opacity: .18; background-image: linear-gradient(rgb(244 239 233 / 10%) 1px, transparent 1px), linear-gradient(90deg, rgb(244 239 233 / 10%) 1px, transparent 1px); background-size: 34px 34px; mask-image: radial-gradient(ellipse at center, black 15%, transparent 82%); }
+    .art-orbit { position: absolute; width: min(70%, 330px); aspect-ratio: 1; border: 1px solid rgb(244 239 233 / 24%); border-radius: 50%; transform: rotate(-23deg) scaleY(.72); }
+    .art-orbit::before, .art-orbit::after { position: absolute; content: ""; border-radius: 50%; }
+    .art-orbit::before { inset: 20px; border: 1px dashed rgb(242 160 84 / 44%); }
+    .art-orbit::after { width: 10px; height: 10px; top: 18%; right: 13%; background: var(--apricot); box-shadow: 0 0 18px rgb(242 160 84 / 65%); }
+    .art-mark { position: relative; width: 150px; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid rgb(244 239 233 / 25%); border-radius: 38px; background: rgb(244 239 233 / 7%); box-shadow: 0 20px 54px rgb(0 0 0 / 24%); transform: rotate(-7deg); }
+    .art-mark img { width: 112px; height: 112px; border-radius: 27px; }
+    .format-chip { position: absolute; display: flex; align-items: center; gap: 9px; padding: 10px 14px; border: 1px solid rgb(244 239 233 / 18%); border-radius: 17px; background: rgb(244 239 233 / 10%); color: var(--paper); backdrop-filter: blur(8px); }
+    .format-chip strong { color: var(--apricot); font: 700 12px/1 var(--display); letter-spacing: .06em; }
+    .format-chip span { color: rgb(244 239 233 / 78%); font: 500 12px/1.2 var(--display); }
+    .chip-video { top: 17%; left: 8%; transform: rotate(-7deg); }
+    .chip-audio { right: 7%; bottom: 20%; transform: rotate(6deg); }
+    .chip-encode { left: 10%; bottom: 13%; transform: rotate(3deg); }
+    .art-caption { position: absolute; right: 26px; top: 25px; display: inline-flex; align-items: center; gap: 8px; color: rgb(244 239 233 / 72%); font: 600 11px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
+    .art-caption i { width: 7px; height: 7px; border-radius: 50%; background: #75C18D; box-shadow: 0 0 10px rgb(117 193 141 / 60%); }
+    .art-base { position: absolute; left: 50%; bottom: 34px; width: 50%; height: 1px; background: linear-gradient(90deg, transparent, rgb(242 160 84 / 60%), transparent); transform: translateX(-50%); }
+
+    .section { padding-block: 76px; }
+    .section-heading { max-width: 700px; margin: 0 auto 34px; text-align: center; }
+    .section-heading .eyebrow { justify-content: center; margin-bottom: 11px; }
+    h2 { margin-bottom: 12px; font: 500 clamp(32px, 4vw, 46px)/1.14 var(--display); letter-spacing: -.04em; }
+    .section-heading p { margin-bottom: 0; color: var(--muted); }
+    .features { padding-top: 0; }
+    .feature-grid { display: grid; grid-template-columns: 1.13fr .87fr; grid-template-rows: minmax(220px, auto) minmax(185px, auto); gap: 16px; }
+    .feature {
+      position: relative; min-width: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+      padding: 28px; border: 1px solid var(--outline); border-radius: var(--radius-card); background: var(--surface);
+    }
+    .feature h3 { max-width: 400px; margin-bottom: 8px; font: 600 24px/1.25 var(--display); letter-spacing: -.025em; }
+    .feature p { max-width: 460px; margin-bottom: 0; color: var(--muted); font-size: 15px; }
+    .feature-main { grid-row: span 2; background: var(--surface-soft); border-color: transparent; }
+    .feature-dark { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .feature-dark p { color: #D1C2B4; }
+    .feature-mark { display: inline-flex; width: 46px; height: 46px; align-items: center; justify-content: center; margin-bottom: 27px; border-radius: 16px; background: var(--surface); color: var(--accent); }
+    .feature-dark .feature-mark { background: #332921; color: var(--apricot); }
+    .feature-mark svg { width: 23px; height: 23px; }
+    .format-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 25px; }
+    .format-pill { min-height: 36px; display: inline-flex; align-items: center; padding: 0 13px; border: 1px solid rgb(168 68 26 / 19%); border-radius: var(--radius-pill); background: rgb(255 255 255 / 70%); color: var(--accent); font: 700 12px/1 var(--display); letter-spacing: .04em; }
+    .format-pill.warm { background: var(--apricot); border-color: var(--apricot); color: #2A1405; }
+    .feature-inline { display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+    .codec-stamp { width: 72px; height: 72px; flex: none; display: grid; place-items: center; border: 1px solid rgb(242 160 84 / 35%); border-radius: 50%; color: var(--apricot); font: 600 14px/1 var(--display); transform: rotate(-10deg); }
+
+    .steps-section { background: var(--surface); }
+    .steps-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--outline); border-bottom: 1px solid var(--outline); }
+    .step { position: relative; padding: 25px 26px 28px 0; }
+    .step + .step { padding-left: 27px; border-left: 1px solid var(--outline); }
+    .step-number { display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; margin-bottom: 17px; border-radius: 50%; background: var(--surface-soft); color: var(--accent); font: 700 14px/1 var(--display); }
+    .step h3 { margin-bottom: 7px; font: 600 20px/1.3 var(--display); }
+    .step p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .download { padding-block: 88px; }
+    .download-panel { position: relative; overflow: hidden; padding: 48px; border-radius: 38px; background: var(--ink); color: var(--paper); }
+    .download-panel::after { position: absolute; width: 380px; aspect-ratio: 1; right: -135px; top: -205px; content: ""; border: 1px solid rgb(242 160 84 / 29%); border-radius: 50%; box-shadow: 0 0 0 35px rgb(242 160 84 / 5%), 0 0 0 70px rgb(242 160 84 / 4%); pointer-events: none; }
+    .download-heading { position: relative; z-index: 1; max-width: 630px; margin-bottom: 30px; }
+    .download-heading .eyebrow { color: var(--apricot); }
+    .download-heading h2 { margin-bottom: 9px; }
+    .download-heading p { margin-bottom: 0; color: #D1C2B4; }
+    .download-options { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .download-option { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px; border: 1px solid rgb(244 239 233 / 17%); border-radius: 23px; background: rgb(244 239 233 / 7%); }
+    .download-option h3 { margin-bottom: 5px; font: 600 19px/1.25 var(--display); }
+    .download-option p { margin: 0; color: #D1C2B4; font-size: 13px; }
+    .download-option .button { flex: none; min-height: 46px; padding-inline: 17px; font-size: 14px; }
+    .download-footnote { position: relative; z-index: 1; margin: 18px 0 0; color: #D1C2B4; font-size: 12px; }
+    .download-footnote a { color: var(--apricot); text-underline-offset: 3px; }
+
+    .faq { padding-top: 8px; padding-bottom: 82px; }
+    .faq-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 70px; align-items: start; }
+    .faq-title .eyebrow { margin-bottom: 12px; }
+    .faq-title h2 { max-width: 360px; }
+    .faq-title p { max-width: 360px; color: var(--muted); }
+    .faq-list { border-top: 1px solid var(--outline); }
+    details { border-bottom: 1px solid var(--outline); }
+    summary { position: relative; min-height: 64px; display: flex; align-items: center; padding: 15px 35px 15px 0; font: 600 17px/1.4 var(--display); cursor: pointer; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { position: absolute; right: 2px; content: "+"; color: var(--accent); font: 400 26px/1 var(--display); }
+    details[open] summary::after { content: "−"; }
+    details p { max-width: 680px; margin: -1px 0 18px; padding-right: 24px; color: var(--muted); font-size: 14px; }
+
+    .site-footer { background: var(--ink); color: var(--paper); }
+    .footer-inner { min-height: 126px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .footer-brand { display: flex; align-items: center; gap: 11px; font: 700 19px/1 var(--display); }
+    .footer-brand img { width: 34px; height: 34px; border-radius: 11px; }
+    .footer-copy { margin: 6px 0 0 45px; color: #C8B9AC; font-size: 12px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 20px; }
+    .footer-links a { color: #D1C2B4; font: 600 13px/1.4 var(--display); text-underline-offset: 4px; }
+    .footer-links a:hover { color: var(--apricot); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 960px) {
+      .nav { gap: 20px; }
+      .nav-links { gap: 17px; }
+      .hero { grid-template-columns: 1fr 0.88fr; gap: 32px; padding-block: 54px 72px; }
+      .hero-art { min-height: 380px; }
+      .format-chip { padding: 9px 11px; }
+      .download-panel { padding: 38px; }
+      .faq-layout { gap: 42px; }
+    }
+    @media (max-width: 760px) {
+      .wrap { width: min(100% - 36px, 600px); }
+      .nav { min-height: 66px; gap: 12px; }
+      .brand { font-size: 19px; }
+      .brand img { width: 34px; height: 34px; }
+      .nav-links { display: none; }
+      .nav-actions { margin-left: auto; }
+      .nav-actions > .button { min-height: 44px; padding-inline: 16px; font-size: 14px; }
+      .hero { grid-template-columns: 1fr; gap: 36px; padding-block: 46px 60px; }
+      .hero-copy { max-width: 580px; font-size: 17px; }
+      .hero-art { min-height: 350px; }
+      .feature-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
+      .feature { padding: 23px; }
+      .feature-main { grid-row: auto; grid-column: span 2; min-height: 265px; }
+      .feature-dark, .feature-last { min-height: 210px; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .step, .step + .step { padding: 22px 0; border-left: 0; }
+      .step + .step { border-top: 1px solid var(--outline); }
+      .step-number { margin-bottom: 11px; }
+      .faq-layout { grid-template-columns: 1fr; gap: 18px; }
+      .faq-title h2 { max-width: none; }
+      .faq-title p { max-width: 520px; }
+    }
+    @media (max-width: 520px) {
+      .wrap { width: calc(100% - 32px); }
+      h1 { font-size: clamp(40px, 12vw, 54px); }
+      .hero { padding-top: 36px; }
+      .hero-art { min-height: 310px; border-radius: 29px; }
+      .art-mark { width: 128px; border-radius: 32px; }
+      .art-mark img { width: 96px; height: 96px; }
+      .chip-video { top: 13%; left: 5%; }
+      .chip-audio { right: 4%; bottom: 18%; }
+      .chip-encode { left: 5%; bottom: 10%; }
+      .format-chip { gap: 7px; padding: 9px 10px; }
+      .format-chip span { font-size: 11px; }
+      .art-caption { top: 19px; right: 18px; }
+      .section { padding-block: 58px; }
+      .feature-grid { grid-template-columns: 1fr; gap: 12px; }
+      .feature-main { grid-column: auto; min-height: 260px; }
+      .feature-dark, .feature-last { min-height: 190px; }
+      .download { padding-block: 58px; }
+      .download-panel { padding: 27px 20px; border-radius: 29px; }
+      .download-options { grid-template-columns: 1fr; }
+      .download-option { padding: 17px; }
+      .download-option .button { padding-inline: 14px; }
+      .faq { padding-top: 0; padding-bottom: 62px; }
+      .footer-inner { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 28px; }
+      .footer-links { padding-left: 45px; gap: 12px 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip">ข้ามไปเนื้อหาหลัก</a>
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="เมนูหลัก" data-i18n-aria="navLabel">
+      <a class="brand" href="#top" aria-label="FramePort home">
+        <img src="assets/frameport-icon.svg" alt="" width="38" height="38">
+        <span>FramePort</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features" data-i18n="navFeatures">ฟีเจอร์</a>
+        <a href="#how-it-works" data-i18n="navHow">วิธีใช้</a>
+        <a href="#faq" data-i18n="navFaq">คำถามที่พบบ่อย</a>
+      </div>
+      <div class="nav-actions">
+        <button class="language-toggle" id="languageToggle" type="button" aria-label="Switch language to English">EN</button>
+        <a class="button button-primary" href="#download" data-i18n="navDownload">ดาวน์โหลด</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" id="top" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow" data-i18n="heroEyebrow">เครื่องมือวิดีโอสำหรับ Windows</p>
+        <h1 id="hero-title"><span data-i18n="heroLineOne">โหลดคลิป</span><span class="highlight" data-i18n="heroLineTwo">แปลงไฟล์ พร้อมใช้</span></h1>
+        <p class="hero-copy" data-i18n="heroCopy">วางลิงก์ เลือกวิดีโอหรือเสียง แล้วบันทึกลงเครื่องคุณ FramePort รวมการดาวน์โหลดและแปลงไฟล์ไว้ในหน้าตาเรียบง่ายหน้าหนึ่ง</p>
+        <div class="hero-actions">
+          <a class="button button-accent" href="#download">
+            <span data-i18n="heroDownload">เลือกดาวน์โหลด</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 17v3h16v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="button button-soft" href="#how-it-works" data-i18n="heroHow">ดูวิธีใช้</a>
+        </div>
+        <div class="hero-note" aria-label="รายละเอียดโปรแกรม" data-i18n-aria="detailsAria">
+          <span><svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="noteWindows">Windows x64</span></span>
+          <span><svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="noteLanguages">ภาษาไทยและ English</span></span>
+        </div>
+      </div>
+      <div class="hero-art" role="img" aria-label="ไอคอน FramePort พร้อมรูปแบบวิดีโอและเสียง" data-i18n-aria="visualAria">
+        <div class="art-grid"></div>
+        <div class="art-orbit"></div>
+        <div class="art-mark"><img src="assets/frameport-icon.svg" alt="" width="112" height="112"></div>
+        <div class="format-chip chip-video"><strong>MP4</strong><span>Video</span></div>
+        <div class="format-chip chip-audio"><strong>MP3</strong><span>Audio</span></div>
+        <div class="format-chip chip-encode"><strong>H.264</strong><span data-i18n="artEncode">พร้อมตัดต่อ</span></div>
+        <div class="art-caption"><i></i><span data-i18n="artCaption">จัดการไฟล์ได้ง่าย</span></div>
+        <div class="art-base"></div>
+      </div>
+    </section>
+
+    <section class="section features wrap" id="features" aria-labelledby="features-title">
+      <div class="section-heading">
+        <p class="eyebrow" data-i18n="featuresEyebrow">ทำงานครบในที่เดียว</p>
+        <h2 id="features-title" data-i18n="featuresTitle">เครื่องมือที่จำเป็น โดยไม่ต้องตั้งค่าให้ยุ่งยาก</h2>
+        <p data-i18n="featuresIntro">เลือกสิ่งที่ต้องการ แล้วให้ FramePort จัดการขั้นตอนที่เหลือ</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature feature-main">
+          <div>
+            <span class="feature-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16v11H4zM9 6.5v11m6-11v11M4 10h5m6 0h5M4 14h5m6 0h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <h3 data-i18n="featureFormatsTitle">เลือกคุณภาพและรูปแบบได้ตามงาน</h3>
+            <p data-i18n="featureFormatsCopy">ดาวน์โหลดวิดีโอเป็น MP4 หรือเลือกบันทึกเฉพาะเสียง ปรับความละเอียดตามไฟล์ที่ต้องการ</p>
+          </div>
+          <div class="format-row" aria-label="รูปแบบไฟล์ที่รองรับ" data-i18n-aria="formatListAria">
+            <span class="format-pill warm">MP4</span><span class="format-pill">MP3</span><span class="format-pill">FLAC</span><span class="format-pill">WAV</span>
+          </div>
+        </article>
+        <article class="feature feature-dark">
+          <div>
+            <span class="feature-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M5.64 5.64l2.83 2.83m7.06 7.06 2.83 2.83m0-12.72-2.83 2.83m-7.06 7.06-2.83 2.83" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="1.7"/></svg></span>
+            <h3 data-i18n="featureHardwareTitle">ใช้ตัวเข้ารหัสที่เหมาะกับเครื่อง</h3>
+            <p data-i18n="featureHardwareCopy">ลองใช้ NVIDIA NVENC, Intel Quick Sync หรือ AMD AMF เมื่อพร้อมใช้งาน และสลับใช้ CPU ได้</p>
+          </div>
+          <div class="format-row"><span class="format-pill warm">NVENC</span><span class="format-pill">QSV</span><span class="format-pill">AMF</span><span class="format-pill">CPU</span></div>
+        </article>
+        <article class="feature feature-last">
+          <div class="feature-inline">
+            <div>
+              <span class="feature-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5.5h14v13H5zM8 3.5v4m8-4v4M5 9h14m-9 4 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <h3 data-i18n="featureNamesTitle">ชื่อไฟล์เป็นชื่อคลิป</h3>
+              <p data-i18n="featureNamesCopy">บันทึกด้วยชื่อคลิปตรง ๆ ไม่มีข้อความต่อท้ายที่ไม่จำเป็น</p>
+            </div>
+            <span class="codec-stamp" aria-hidden="true">.mp4</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section steps-section" id="how-it-works" aria-labelledby="steps-title">
+      <div class="wrap">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="stepsEyebrow">เริ่มได้ในไม่กี่ขั้น</p>
+          <h2 id="steps-title" data-i18n="stepsTitle">จากลิงก์ไปเป็นไฟล์ในเครื่อง</h2>
+        </div>
+        <div class="steps-grid">
+          <article class="step"><span class="step-number">1</span><h3 data-i18n="stepOneTitle">วางลิงก์</h3><p data-i18n="stepOneCopy">คัดลอกลิงก์วิดีโอแล้ววางใน FramePort</p></article>
+          <article class="step"><span class="step-number">2</span><h3 data-i18n="stepTwoTitle">เลือกรูปแบบ</h3><p data-i18n="stepTwoCopy">เลือกวิดีโอหรือเสียง คุณภาพ และโฟลเดอร์บันทึก</p></article>
+          <article class="step"><span class="step-number">3</span><h3 data-i18n="stepThreeTitle">เริ่มดาวน์โหลด</h3><p data-i18n="stepThreeCopy">ติดตามความคืบหน้า แล้วเปิดโฟลเดอร์ไฟล์ได้ทันที</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="download wrap" id="download" aria-labelledby="download-title">
+      <div class="download-panel">
+        <div class="download-heading">
+          <p class="eyebrow" data-i18n="downloadEyebrow">ดาวน์โหลด FramePort</p>
+          <h2 id="download-title" data-i18n="downloadTitle">เลือกแบบติดตั้งที่สะดวกกับคุณ</h2>
+          <p data-i18n="downloadIntro">ทั้งสองไฟล์รองรับ Windows x64 และดาวน์โหลดเครื่องมือแปลงไฟล์ที่จำเป็นเมื่อเปิดใช้ครั้งแรก</p>
+        </div>
+        <div class="download-options">
+          <article class="download-option">
+            <div><h3 data-i18n="setupTitle">Setup</h3><p data-i18n="setupCopy">ติดตั้งลงเครื่อง สร้างทางลัดให้พร้อมใช้</p></div>
+            <a class="button button-accent" href="https://github.com/ArmZOfficial/FramePort/releases/latest/download/FramePort-Setup.exe" data-i18n="setupButton">ดาวน์โหลด Setup</a>
+          </article>
+          <article class="download-option">
+            <div><h3 data-i18n="portableTitle">Portable</h3><p data-i18n="portableCopy">เปิดจากไฟล์ได้เลย ไม่ต้องติดตั้ง</p></div>
+            <a class="button button-soft" href="https://github.com/ArmZOfficial/FramePort/releases/latest/download/FramePort.exe" data-i18n="portableButton">ดาวน์โหลด Portable</a>
+          </article>
+        </div>
+        <p class="download-footnote"><span data-i18n="downloadNote">ต้องใช้อินเทอร์เน็ตเพื่อติดตั้ง yt-dlp และ FFmpeg ในการเปิดใช้ครั้งแรก</span> · <a href="https://github.com/ArmZOfficial/FramePort/releases" target="_blank" rel="noopener noreferrer" data-i18n="releaseLink">ดูทุกรุ่นบน GitHub</a></p>
+      </div>
+    </section>
+
+    <section class="section faq wrap" id="faq" aria-labelledby="faq-title">
+      <div class="faq-layout">
+        <div class="faq-title">
+          <p class="eyebrow" data-i18n="faqEyebrow">ก่อนเริ่มใช้งาน</p>
+          <h2 id="faq-title" data-i18n="faqTitle">คำถามที่พบบ่อย</h2>
+          <p data-i18n="faqIntro">ข้อมูลสั้น ๆ ที่ช่วยให้เริ่มต้นได้อย่างมั่นใจ</p>
+        </div>
+        <div class="faq-list">
+          <details><summary data-i18n="faqOneQuestion">ต้องใช้ Windows รุ่นไหน?</summary><p data-i18n="faqOneAnswer">FramePort รุ่นนี้สร้างมาสำหรับ Windows x64 ใช้ได้ทั้งแบบ Setup และ Portable</p></details>
+          <details><summary data-i18n="faqTwoQuestion">ทำไมเปิดครั้งแรกต้องดาวน์โหลดเครื่องมือเพิ่ม?</summary><p data-i18n="faqTwoAnswer">FramePort ติดตั้ง yt-dlp สำหรับดาวน์โหลดและ FFmpeg สำหรับแปลงไฟล์เมื่อเริ่มใช้งานครั้งแรก เพื่อไม่รวมเครื่องมือขนาดใหญ่ไว้ในตัวติดตั้งหลัก</p></details>
+          <details><summary data-i18n="faqThreeQuestion">ต้องมีการ์ดจอแยกหรือไม่?</summary><p data-i18n="faqThreeAnswer">ไม่จำเป็น FramePort ใช้ CPU ได้ และจะลองใช้ตัวเข้ารหัส GPU ที่รองรับเมื่อฮาร์ดแวร์กับไดรเวอร์พร้อม</p></details>
+          <details><summary data-i18n="faqFourQuestion">ดาวน์โหลดได้จากทุกเว็บไซต์หรือไม่?</summary><p data-i18n="faqFourAnswer">FramePort ใช้ yt-dlp และการรองรับขึ้นอยู่กับเว็บไซต์และรุ่นของ yt-dlp โปรดดาวน์โหลดเฉพาะเนื้อหาที่คุณมีสิทธิ์ใช้งาน</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner wrap">
+      <div>
+        <div class="footer-brand"><img src="assets/frameport-icon.svg" alt="" width="34" height="34"><span>FramePort</span></div>
+        <p class="footer-copy" data-i18n="footerCopy">เครื่องมือดาวน์โหลดและแปลงไฟล์สำหรับ Windows</p>
+      </div>
+      <nav class="footer-links" aria-label="เมนูท้ายเว็บ" data-i18n-aria="footerNavLabel">
+        <a href="https://github.com/ArmZOfficial/FramePort" target="_blank" rel="noopener noreferrer" data-i18n="footerSource">ซอร์สโค้ด</a>
+        <a href="https://github.com/ArmZOfficial/FramePort/issues" target="_blank" rel="noopener noreferrer" data-i18n="footerSupport">แจ้งปัญหา</a>
+      </nav>
+    </div>
+  </footer>
+  <div class="sr-only" id="languageStatus" aria-live="polite"></div>
+
+  <script>
+    const copy = {
+      th: {
+        skip: "ข้ามไปเนื้อหาหลัก", navFeatures: "ฟีเจอร์", navHow: "วิธีใช้", navFaq: "คำถามที่พบบ่อย", navDownload: "ดาวน์โหลด",
+        heroEyebrow: "เครื่องมือวิดีโอสำหรับ Windows", heroLineOne: "โหลดคลิป", heroLineTwo: "แปลงไฟล์ พร้อมใช้",
+        heroCopy: "วางลิงก์ เลือกวิดีโอหรือเสียง แล้วบันทึกลงเครื่องคุณ FramePort รวมการดาวน์โหลดและแปลงไฟล์ไว้ในหน้าตาเรียบง่ายหน้าหนึ่ง",
+        heroDownload: "เลือกดาวน์โหลด", heroHow: "ดูวิธีใช้", noteWindows: "Windows x64", noteLanguages: "ภาษาไทยและ English",
+        artEncode: "พร้อมตัดต่อ", artCaption: "จัดการไฟล์ได้ง่าย", featuresEyebrow: "ทำงานครบในที่เดียว",
+        featuresTitle: "เครื่องมือที่จำเป็น โดยไม่ต้องตั้งค่าให้ยุ่งยาก", featuresIntro: "เลือกสิ่งที่ต้องการ แล้วให้ FramePort จัดการขั้นตอนที่เหลือ",
+        featureFormatsTitle: "เลือกคุณภาพและรูปแบบได้ตามงาน", featureFormatsCopy: "ดาวน์โหลดวิดีโอเป็น MP4 หรือเลือกบันทึกเฉพาะเสียง ปรับความละเอียดตามไฟล์ที่ต้องการ",
+        featureHardwareTitle: "ใช้ตัวเข้ารหัสที่เหมาะกับเครื่อง", featureHardwareCopy: "ลองใช้ NVIDIA NVENC, Intel Quick Sync หรือ AMD AMF เมื่อพร้อมใช้งาน และสลับใช้ CPU ได้",
+        featureNamesTitle: "ชื่อไฟล์เป็นชื่อคลิป", featureNamesCopy: "บันทึกด้วยชื่อคลิปตรง ๆ ไม่มีข้อความต่อท้ายที่ไม่จำเป็น",
+        stepsEyebrow: "เริ่มได้ในไม่กี่ขั้น", stepsTitle: "จากลิงก์ไปเป็นไฟล์ในเครื่อง",
+        stepOneTitle: "วางลิงก์", stepOneCopy: "คัดลอกลิงก์วิดีโอแล้ววางใน FramePort",
+        stepTwoTitle: "เลือกรูปแบบ", stepTwoCopy: "เลือกวิดีโอหรือเสียง คุณภาพ และโฟลเดอร์บันทึก",
+        stepThreeTitle: "เริ่มดาวน์โหลด", stepThreeCopy: "ติดตามความคืบหน้า แล้วเปิดโฟลเดอร์ไฟล์ได้ทันที",
+        downloadEyebrow: "ดาวน์โหลด FramePort", downloadTitle: "เลือกแบบติดตั้งที่สะดวกกับคุณ",
+        downloadIntro: "ทั้งสองไฟล์รองรับ Windows x64 และดาวน์โหลดเครื่องมือแปลงไฟล์ที่จำเป็นเมื่อเปิดใช้ครั้งแรก",
+        setupTitle: "Setup", setupCopy: "ติดตั้งลงเครื่อง สร้างทางลัดให้พร้อมใช้", setupButton: "ดาวน์โหลด Setup",
+        portableTitle: "Portable", portableCopy: "เปิดจากไฟล์ได้เลย ไม่ต้องติดตั้ง", portableButton: "ดาวน์โหลด Portable",
+        downloadNote: "ต้องใช้อินเทอร์เน็ตเพื่อติดตั้ง yt-dlp และ FFmpeg ในการเปิดใช้ครั้งแรก", releaseLink: "ดูทุกรุ่นบน GitHub",
+        faqEyebrow: "ก่อนเริ่มใช้งาน", faqTitle: "คำถามที่พบบ่อย", faqIntro: "ข้อมูลสั้น ๆ ที่ช่วยให้เริ่มต้นได้อย่างมั่นใจ",
+        faqOneQuestion: "ต้องใช้ Windows รุ่นไหน?", faqOneAnswer: "FramePort รุ่นนี้สร้างมาสำหรับ Windows x64 ใช้ได้ทั้งแบบ Setup และ Portable",
+        faqTwoQuestion: "ทำไมเปิดครั้งแรกต้องดาวน์โหลดเครื่องมือเพิ่ม?", faqTwoAnswer: "FramePort ติดตั้ง yt-dlp สำหรับดาวน์โหลดและ FFmpeg สำหรับแปลงไฟล์เมื่อเริ่มใช้งานครั้งแรก เพื่อไม่รวมเครื่องมือขนาดใหญ่ไว้ในตัวติดตั้งหลัก",
+        faqThreeQuestion: "ต้องมีการ์ดจอแยกหรือไม่?", faqThreeAnswer: "ไม่จำเป็น FramePort ใช้ CPU ได้ และจะลองใช้ตัวเข้ารหัส GPU ที่รองรับเมื่อฮาร์ดแวร์กับไดรเวอร์พร้อม",
+        faqFourQuestion: "ดาวน์โหลดได้จากทุกเว็บไซต์หรือไม่?", faqFourAnswer: "FramePort ใช้ yt-dlp และการรองรับขึ้นอยู่กับเว็บไซต์และรุ่นของ yt-dlp โปรดดาวน์โหลดเฉพาะเนื้อหาที่คุณมีสิทธิ์ใช้งาน",
+        footerCopy: "เครื่องมือดาวน์โหลดและแปลงไฟล์สำหรับ Windows", footerSource: "ซอร์สโค้ด", footerSupport: "แจ้งปัญหา",
+        switchLanguage: "เปลี่ยนภาษาเป็นภาษาอังกฤษ", languageChanged: "เปลี่ยนภาษาเป็นภาษาไทยแล้ว",
+        navLabel: "เมนูหลัก", detailsAria: "รายละเอียดโปรแกรม", visualAria: "ไอคอน FramePort พร้อมรูปแบบวิดีโอและเสียง",
+        formatListAria: "รูปแบบไฟล์ที่รองรับ", footerNavLabel: "เมนูท้ายเว็บ",
+        metaDescription: "FramePort ดาวน์โหลดวิดีโอและเสียง พร้อมแปลงไฟล์ให้พร้อมใช้งาน โปรแกรม Windows ที่ใช้งานได้ทั้งภาษาไทยและอังกฤษ"
+      },
+      en: {
+        skip: "Skip to main content", navFeatures: "Features", navHow: "How it works", navFaq: "FAQ", navDownload: "Download",
+        heroEyebrow: "Video tools for Windows", heroLineOne: "Download clips.", heroLineTwo: "Convert. Get to work.",
+        heroCopy: "Paste a link, choose video or audio, and save it to your PC. FramePort brings downloading and file conversion together in one simple app.",
+        heroDownload: "Choose a download", heroHow: "How it works", noteWindows: "Windows x64", noteLanguages: "Thai and English",
+        artEncode: "Edit-ready", artCaption: "Made for your files", featuresEyebrow: "The useful parts, together",
+        featuresTitle: "The tools you need, without a complicated setup", featuresIntro: "Choose what you need and let FramePort handle the rest.",
+        featureFormatsTitle: "Choose a format for the job", featureFormatsCopy: "Download video as MP4 or save audio on its own. Pick the resolution that works for your file.",
+        featureHardwareTitle: "Use the encoder that fits your PC", featureHardwareCopy: "Try NVIDIA NVENC, Intel Quick Sync, or AMD AMF when available, with CPU encoding as a fallback.",
+        featureNamesTitle: "Keep the clip title", featureNamesCopy: "Files keep the clip's title, without unnecessary text added at the end.",
+        stepsEyebrow: "A few simple steps", stepsTitle: "From a link to a file on your PC",
+        stepOneTitle: "Paste a link", stepOneCopy: "Copy a video link and paste it into FramePort.",
+        stepTwoTitle: "Choose a format", stepTwoCopy: "Pick video or audio, quality, and where to save it.",
+        stepThreeTitle: "Start the download", stepThreeCopy: "Follow the progress, then open the folder when it is done.",
+        downloadEyebrow: "Get FramePort", downloadTitle: "Choose the version that suits you",
+        downloadIntro: "Both releases support Windows x64. Required conversion tools are downloaded when you first launch the app.",
+        setupTitle: "Setup", setupCopy: "Install on your PC and create shortcuts.", setupButton: "Download Setup",
+        portableTitle: "Portable", portableCopy: "Run the file directly, no installation needed.", portableButton: "Download Portable",
+        downloadNote: "An internet connection is needed to install yt-dlp and FFmpeg on first launch.", releaseLink: "Browse all releases on GitHub",
+        faqEyebrow: "Before you begin", faqTitle: "Frequently asked questions", faqIntro: "A few quick answers to help you get started.",
+        faqOneQuestion: "Which version of Windows do I need?", faqOneAnswer: "This release of FramePort is built for Windows x64. You can choose Setup or Portable.",
+        faqTwoQuestion: "Why does the app download tools on first launch?", faqTwoAnswer: "FramePort installs yt-dlp for downloading and FFmpeg for conversion when you first use it. This keeps those larger tools out of the main installer.",
+        faqThreeQuestion: "Do I need a dedicated graphics card?", faqThreeAnswer: "No. FramePort can use your CPU and will try a supported GPU encoder when your hardware and drivers are ready.",
+        faqFourQuestion: "Does it work with every website?", faqFourAnswer: "FramePort uses yt-dlp. Website support depends on the site and yt-dlp version. Only download content you have permission to use.",
+        footerCopy: "Video download and conversion for Windows", footerSource: "Source code", footerSupport: "Report an issue",
+        switchLanguage: "เปลี่ยนภาษาเป็นภาษาไทย", languageChanged: "Page language changed to English",
+        navLabel: "Main navigation", detailsAria: "App details", visualAria: "FramePort icon surrounded by video and audio format labels",
+        formatListAria: "Supported output formats", footerNavLabel: "Footer navigation",
+        metaDescription: "FramePort downloads video and audio, then converts files into formats ready to use. A simple Windows app in Thai and English."
+      }
+    };
+    const languageToggle = document.getElementById("languageToggle");
+    const languageStatus = document.getElementById("languageStatus");
+    let language = "th";
+    try { language = localStorage.getItem("frameport-language") === "en" ? "en" : "th"; } catch (_) {}
+    function setLanguage(next) {
+      language = next;
+      document.documentElement.lang = next;
+      document.title = next === "th" ? "FramePort | ดาวน์โหลดและแปลงวิดีโอ" : "FramePort | Download and convert video";
+      document.getElementById("metaDescription").content = copy[next].metaDescription;
+      document.querySelectorAll("[data-i18n]").forEach((element) => {
+        const value = copy[next][element.dataset.i18n];
+        if (value !== undefined) element.textContent = value;
+      });
+      document.querySelectorAll("[data-i18n-aria]").forEach((element) => {
+        const value = copy[next][element.dataset.i18nAria];
+        if (value !== undefined) element.setAttribute("aria-label", value);
+      });
+      languageToggle.textContent = next === "th" ? "EN" : "TH";
+      languageToggle.setAttribute("aria-label", copy[next].switchLanguage);
+      languageStatus.textContent = copy[next].languageChanged;
+      try { localStorage.setItem("frameport-language", next); } catch (_) {}
+    }
+    languageToggle.addEventListener("click", () => setLanguage(language === "th" ? "en" : "th"));
+    setLanguage(language);
+  </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "name": "frameport",
+  "productName": "FramePort",
+  "version": "1.6.0",
+  "description": "FramePort — reliable video downloads and edit-ready conversion",
+  "author": "tunarmz",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "icon": "electron build/make-icon.js",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.tunarmz.videodownloader",
+    "productName": "FramePort",
+    "electronLanguages": [
+      "en-US",
+      "th"
+    ],
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "renderer.js",
+      "build/icon.svg"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "artifactName": "FramePort-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "FramePort-Portable-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.15.3"
+  }
+}

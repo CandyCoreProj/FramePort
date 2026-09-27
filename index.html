@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>FramePort</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f4efe9; --surface: #fff; --field: #eae2d8;
+      --line: #e0d6ca; --field-line: #e0d6ca; --ink: #1c1917;
+      --muted: #5c554f; --accent: #a8441a; --accent-soft: #ede3d6;
+      --action: #f2a054; --action-hover: #e88d3a; --on-action: #2a1405;
+      --ok: #2f7d4f; --error: #b3261e;
+      --panel-radius: 20px; --control-radius: 999px;
+      --panel-shadow: 0 8px 24px rgba(28, 25, 23, .07);
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --page: #1c1917; --surface: #2a211d; --field: #332921;
+      --line: #493a30; --field-line: #66503e; --ink: #f4efe9;
+      --muted: #c8b9ac; --accent: #f2a054; --accent-soft: #463526;
+      --action: #f2a054; --action-hover: #e88d3a; --on-action: #2a1405;
+      --ok: #75c18d; --error: #ff9382;
+      --panel-shadow: 0 10px 28px rgba(12, 9, 7, .3);
+    }
+    * { box-sizing: border-box; }
+    html { min-width: 320px; min-height: 100%; }
+    body {
+      max-width: 980px; min-height: 100vh; margin: 0 auto; padding: 12px 22px 14px;
+      background: var(--page); color: var(--ink);
+      font: 14px/1.4 "Leelawadee UI", "Segoe UI Variable Text", "Noto Sans Thai", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; }
+    button { color: var(--ink); cursor: pointer; white-space: nowrap; }
+    button:disabled { opacity: .55; cursor: wait; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .hidden { display: none !important; }
+
+    .topbar {
+      min-height: 45px; display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--line);
+    }
+    .logo { width: 38px; height: 38px; flex: none; display: block; border-radius: 12px; }
+    .identity { min-width: 0; }
+    h1 { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.01em; }
+    .sub { display: flex; align-items: center; gap: 7px; margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--muted); }
+    .dot.ok { background: var(--ok); }
+    .dot.err { background: var(--error); }
+    .spacer { flex: 1; }
+    .header-controls { display: flex; align-items: center; gap: 6px; }
+    .header-controls button {
+      min-height: 32px; padding: 4px 9px; border: 1px solid var(--field-line);
+      border-radius: 999px; background: var(--surface); font-size: 12px;
+    }
+    #updateBtn { color: var(--accent); }
+
+    .panel {
+      display: flex; flex-direction: column; gap: 10px;
+      padding: 14px; border: 1px solid var(--line); border-radius: var(--panel-radius);
+      background: var(--surface); box-shadow: var(--panel-shadow);
+    }
+    .headline { font-size: 16px; line-height: 1.2; font-weight: 700; letter-spacing: -.015em; }
+    .label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .url-label { margin-bottom: -5px; }
+    .url-row { display: flex; gap: 7px; align-items: stretch; }
+    input[type="text"] {
+      width: 100%; min-width: 0; height: 40px; padding: 0 11px;
+      border: 1px solid var(--field-line); border-radius: var(--control-radius);
+      background: var(--field); color: var(--ink); font-size: 13px;
+      outline: none; user-select: text;
+    }
+    input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent); }
+    input::placeholder { color: var(--muted); }
+    .compact-button {
+      min-height: 36px; padding: 5px 11px; border: 1px solid var(--field-line);
+      border-radius: var(--control-radius); background: var(--field); font-size: 12px;
+      transition: background .14s, border-color .14s, transform .1s;
+    }
+    .compact-button:hover { border-color: var(--muted); background: var(--surface); }
+    .compact-button:active, .primary:active { transform: translateY(1px); }
+
+    .options-grid { display: grid; grid-template-columns: minmax(155px, .8fr) minmax(0, 2.5fr); gap: 10px; align-items: start; }
+    .tabs {
+      width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+      padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--field);
+    }
+    .option-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .tabs label {
+      padding: 7px 4px; border-radius: 999px; color: var(--muted);
+      text-align: center; font-size: 12px; line-height: 1.25; cursor: pointer;
+    }
+    .tabs .option-input:checked + label { background: var(--surface); color: var(--ink); }
+    .option-input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; position: relative; z-index: 1; }
+    .seg { display: grid; gap: 5px; }
+    .seg6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .seg3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .seg label {
+      min-width: 0; min-height: 44px; display: flex; flex-direction: column;
+      justify-content: center; padding: 5px 2px; border: 1px solid var(--line);
+      border-radius: 14px; background: var(--field); color: var(--ink);
+      text-align: center; font-size: 12px; line-height: 1.2; font-weight: 700; cursor: pointer;
+    }
+    .seg label:hover { border-color: var(--muted); }
+    .seg label small { margin-top: 2px; color: var(--muted); font-size: 10px; font-weight: 400; }
+    .seg .option-input:checked + label {
+      border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .seg .option-input:checked + label small { color: var(--accent); }
+    .hint { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+
+    .output-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(220px, 1fr); gap: 12px; align-items: end; }
+    .folder-block, .encoder-row { min-width: 0; }
+    .folder-row { display: flex; align-items: center; gap: 6px; }
+    .folder {
+      min-width: 0; min-height: 36px; flex: 1; overflow: hidden;
+      padding: 8px 10px; border: 1px solid var(--field-line); border-radius: var(--control-radius);
+      background: var(--field); color: var(--ink); font-size: 12px;
+      text-overflow: ellipsis; white-space: nowrap; user-select: text;
+    }
+    .encoder-row select {
+      width: 100%; min-height: 36px; padding: 5px 9px; border: 1px solid var(--field-line);
+      border-radius: var(--control-radius); background: var(--field); color: var(--ink); font-size: 12px;
+    }
+    .check { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; color: var(--ink); font-size: 12px; cursor: pointer; }
+    .check input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); }
+    .final-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; }
+    .progress-wrap { display: none; grid-column: 1 / -1; grid-row: 2; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+    .progress-wrap.show { display: block; }
+    .bar { height: 5px; overflow: hidden; border-radius: 99px; background: var(--line); }
+    .fill { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .14s linear; }
+    .phase { margin-bottom: 4px; font-size: 12px; font-weight: 700; }
+    .stats { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .stats b { color: var(--ink); }
+    .primary {
+      min-width: 150px; min-height: 38px; padding: 8px 14px; border: 0;
+      border-radius: 999px; background: var(--action); color: var(--on-action);
+      font-size: 13px; font-weight: 700; white-space: nowrap;
+    }
+    .primary:hover { background: var(--action-hover); }
+    .cancel { min-height: 38px; border-color: var(--error); color: var(--error); }
+
+    .setup { gap: 5px; padding: 9px; }
+    .setup h2 { margin: 0; font-size: 14px; }
+    .setup-description { margin: 0; color: var(--muted); font-size: 11px; }
+    .tools { display: flex; flex-direction: column; gap: 2px; }
+    .tool { display: flex; flex-direction: column; gap: 3px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+    .tool-head { display: flex; align-items: center; gap: 7px; font-size: 11px; }
+    .tool-head small, .tool-state { color: var(--muted); font-size: 9px; }
+    .tool-state { margin-left: auto; text-align: right; }
+    .tool .bar { height: 3px; display: none; }
+    .tool.busy .bar { display: block; }
+    .tool.done .tool-state { color: var(--ok); }
+    #installBtn { min-height: 32px; padding: 6px 12px; font-size: 12px; }
+    .log { max-height: 120px; overflow-y: auto; margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); color: var(--muted); font: 10px/1.5 Consolas, monospace; user-select: text; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .log .err { color: var(--error); }
+    .log .ok { color: var(--ok); }
+    .toast { position: fixed; z-index: 10; left: 50%; bottom: 12px; max-width: calc(100vw - 24px); padding: 8px 12px; border-radius: 12px; background: var(--ink); color: var(--page); font-size: 12px; opacity: 0; pointer-events: none; transform: translate(-50%, 8px); transition: opacity .16s, transform .16s; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 620px) {
+      body { padding: 10px 12px; }
+      .topbar { margin-bottom: 9px; }
+      .panel { gap: 8px; padding: 12px; }
+      .options-grid { grid-template-columns: minmax(128px, .75fr) minmax(0, 2fr); gap: 7px; }
+      .output-grid { grid-template-columns: minmax(0, 1.3fr) minmax(185px, 1fr); gap: 8px; }
+      .seg { gap: 3px; }
+      .seg label { font-size: 11px; }
+    }
+    @media (max-width: 460px) {
+      .topbar { gap: 7px; }
+      .header-controls { gap: 4px; }
+      .header-controls button { padding: 4px 7px; }
+      .options-grid, .output-grid { grid-template-columns: 1fr; }
+      .output-grid { gap: 6px; }
+      .seg6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .seg label small { display: none; }
+      .primary { min-width: 120px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <img class="logo" src="build/icon.svg" alt="" aria-hidden="true">
+    <div class="identity">
+      <h1 data-i18n="appTitle">ดาวน์โหลดวิดีโอ</h1>
+      <div class="sub"><span class="dot" id="dot"></span><span id="ver" data-i18n="checking">กำลังตรวจสอบ…</span></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="header-controls">
+      <button class="compact-button" id="langBtn" type="button" aria-label="Switch language">EN</button>
+      <button class="compact-button" id="themeBtn" type="button" aria-label="Toggle color theme" aria-pressed="false">Dark</button>
+      <button class="compact-button hidden" id="updateBtn" type="button" data-i18n="update" data-i18n-title="updateTitle">อัปเดต yt-dlp</button>
+    </div>
+  </header>
+
+  <section class="panel setup hidden" id="setup">
+    <h2 data-i18n="setupTitle">เตรียมเครื่องมือก่อนเริ่ม</h2>
+    <p class="setup-description" data-i18n="setupDescription">ติดตั้งส่วนที่จำเป็นครั้งเดียว แล้วเริ่มดาวน์โหลดได้ทันที</p>
+    <div class="tools">
+      <div class="tool" id="t-ytdlp">
+        <div class="tool-head"><span class="dot"></span><b>yt-dlp</b><small data-i18n="ytdlpDescription">ตัวดาวน์โหลด · ~18 MB</small><span class="tool-state"></span></div>
+        <div class="bar"><div class="fill"></div></div>
+      </div>
+      <div class="tool" id="t-ffmpeg">
+        <div class="tool-head"><span class="dot"></span><b>ffmpeg</b><small data-i18n="ffmpegDescription">แปลงวิดีโอและเสียง · ~150 MB</small><span class="tool-state"></span></div>
+        <div class="bar"><div class="fill"></div></div>
+      </div>
+    </div>
+    <button class="primary" id="installBtn" data-i18n="install">ติดตั้งเครื่องมือ</button>
+  </section>
+
+  <main class="panel hidden" id="main">
+    <div class="headline" data-i18n="headline">วางลิงก์ แล้วเลือกไฟล์</div>
+    <label class="label url-label" for="url" data-i18n="urlLabel">ลิงก์วิดีโอ</label>
+    <div class="url-row">
+      <input type="text" id="url" data-i18n-placeholder="urlPlaceholder" placeholder="วางลิงก์ YouTube, TikTok, Facebook…" spellcheck="false" autocomplete="off">
+      <button class="compact-button" id="pasteBtn" type="button" data-i18n="paste">วางลิงก์</button>
+    </div>
+
+    <div class="options-grid">
+      <div class="format-block">
+        <div class="label" id="kindLabel" data-i18n="format">รูปแบบไฟล์</div>
+        <div class="tabs" role="radiogroup" aria-labelledby="kindLabel">
+          <input class="option-input" type="radio" name="kind" id="k-video" value="video" checked>
+          <label for="k-video" data-i18n="video">วิดีโอ MP4</label>
+          <input class="option-input" type="radio" name="kind" id="k-audio" value="audio">
+          <label for="k-audio" data-i18n="audioOnly">เสียงอย่างเดียว</label>
+        </div>
+      </div>
+
+      <div id="videoOpts">
+        <div class="label" data-i18n="resolution">ความละเอียด</div>
+        <div class="seg seg6" role="radiogroup" aria-label="ความละเอียด" data-i18n-aria="resolution">
+          <input class="option-input" type="radio" name="vq" id="q-best" value="best" checked>
+          <label for="q-best"><span data-i18n="best">สูงสุด</span><small data-i18n="available">ที่มี</small></label>
+          <input class="option-input" type="radio" name="vq" id="q-2160" value="2160"><label for="q-2160">4K<small>2160p</small></label>
+          <input class="option-input" type="radio" name="vq" id="q-1440" value="1440"><label for="q-1440">2K<small>1440p</small></label>
+          <input class="option-input" type="radio" name="vq" id="q-1080" value="1080"><label for="q-1080">1080p<small>Full HD</small></label>
+          <input class="option-input" type="radio" name="vq" id="q-720" value="720"><label for="q-720">720p<small>HD</small></label>
+          <input class="option-input" type="radio" name="vq" id="q-480" value="480">
+          <label for="q-480">480p<small data-i18n="smallFile">ไฟล์เล็ก</small></label>
+        </div>
+        <div class="hint" data-i18n="videoHint">MP4 (H.264 + AAC) · แปลง VP9/AV1/HEVC ตามวิธีที่เลือก</div>
+      </div>
+
+      <div id="audioOpts" class="hidden">
+        <div class="label" data-i18n="audioFormat">ไฟล์เสียง</div>
+        <div class="seg seg3" role="radiogroup" aria-label="ไฟล์เสียง" data-i18n-aria="audioFormat">
+          <input class="option-input" type="radio" name="aq" id="a-mp3" value="mp3" checked>
+          <label for="a-mp3">MP3<small data-i18n="smallPlay">ไฟล์เล็ก เปิดได้ทุกที่</small></label>
+          <input class="option-input" type="radio" name="aq" id="a-flac" value="flac">
+          <label for="a-flac">FLAC<small data-i18n="lossless">ไม่เสียคุณภาพ</small></label>
+          <input class="option-input" type="radio" name="aq" id="a-wav" value="wav">
+          <label for="a-wav">WAV<small data-i18n="uncompressed">ไม่บีบอัด ไฟล์ใหญ่</small></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-grid">
+      <div class="folder-block">
+        <div class="label" data-i18n="saveTo">บันทึกที่</div>
+        <div class="folder-row">
+          <div class="folder" id="folder"></div>
+          <button class="compact-button" id="pickBtn" type="button" data-i18n="choose">เปลี่ยน</button>
+          <button class="compact-button" id="openBtn" type="button" data-i18n="open">เปิด</button>
+        </div>
+      </div>
+      <div class="encoder-row" id="encoderRow">
+        <label class="label" for="encoder" data-i18n="encoderLabel">วิธีแปลงไฟล์</label>
+        <select id="encoder">
+          <option value="auto" data-i18n="auto">อัตโนมัติ · ใช้ GPU ที่พร้อม</option>
+          <option value="nvenc">NVIDIA · CUDA / NVENC</option>
+          <option value="qsv">Intel · Quick Sync (iGPU / Arc)</option>
+          <option value="amf">AMD · AMF (iGPU / Radeon)</option>
+          <option value="hybrid" data-i18n="hybrid">CPU ถอดรหัส + GPU เข้ารหัส</option>
+          <option value="cpu">CPU · x264</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="final-row">
+      <label class="check"><input type="checkbox" id="playlist"><span data-i18n="playlist">ดาวน์โหลดทั้งเพลย์ลิสต์</span></label>
+      <div class="progress-wrap" id="progress" role="status" aria-live="polite">
+        <div class="phase" id="phase"></div>
+        <div class="bar"><div class="fill" id="fill"></div></div>
+        <div class="stats"><span><b id="pct">0%</b></span><span id="speed"></span><span id="eta"></span></div>
+      </div>
+      <div class="url-row">
+        <button class="primary" id="goBtn" type="button" data-i18n="start">เริ่มดาวน์โหลด</button>
+        <button class="compact-button cancel hidden" id="cancelBtn" type="button" data-i18n="cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="log hidden" id="log" role="log" aria-label="รายละเอียดการทำงาน" data-i18n-aria="details"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="renderer.js"></script>
+</body>
+</html>
