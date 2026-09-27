@@ -34,6 +34,8 @@ const words = {
     manualInstall: 'ติดตั้งเองจากแพ็กเกจ', installing: 'กำลังติดตั้ง…', extracting: 'กำลังแตกไฟล์…',
     installSuccess: 'ติดตั้งเรียบร้อย พร้อมใช้งาน', installFailed: 'ติดตั้งไม่สำเร็จ: ',
     updating: 'กำลังอัปเดต…', updated: 'อัปเดต yt-dlp แล้ว', updateFailed: 'อัปเดตไม่สำเร็จ: ',
+    appUpdateReady: 'รีสตาร์ตเพื่ออัปเดต', appUpdateAvailable: 'มีเวอร์ชันใหม่', appUpdateTitle: 'FramePort v{version} พร้อมใช้งาน',
+    appUpdateBusy: 'รอให้ดาวน์โหลดเสร็จก่อน แล้วค่อยรีสตาร์ตเพื่ออัปเดต',
     clipboardFailed: 'อ่านคลิปบอร์ดไม่ได้ วางลิงก์ด้วย Ctrl+V',
     urlRequired: 'วางลิงก์วิดีโอก่อน', urlInvalid: 'ลิงก์ต้องขึ้นต้นด้วย http:// หรือ https://',
     downloading: 'กำลังทำงาน…', starting: 'กำลังเริ่ม…', preparing: 'กำลังเตรียมดาวน์โหลด',
@@ -73,6 +75,8 @@ const words = {
     manualInstall: 'Install from package manager', installing: 'Installing…', extracting: 'Extracting…',
     installSuccess: 'Installation complete', installFailed: 'Installation failed: ',
     updating: 'Updating…', updated: 'yt-dlp updated', updateFailed: 'Update failed: ',
+    appUpdateReady: 'Restart to update', appUpdateAvailable: 'New version', appUpdateTitle: 'FramePort v{version} is available',
+    appUpdateBusy: 'Wait for the download to finish, then restart to update',
     clipboardFailed: 'Cannot read the clipboard. Paste with Ctrl+V.',
     urlRequired: 'Paste a video link first', urlInvalid: 'Links must start with http:// or https://',
     downloading: 'Working…', starting: 'Starting…', preparing: 'Preparing download',
@@ -122,6 +126,7 @@ function applyLanguage() {
   $('langBtn').setAttribute('aria-label', tr('switchLanguage'));
   if (running) $('goText').textContent = tr('downloading');
   applyTheme();
+  renderAppUpdate();
   renderDetected();
   syncEncoderMenu();
   renderStatus();
@@ -222,6 +227,26 @@ for (const option of encoderOptions) {
 document.addEventListener('pointerdown', (event) => {
   if (!$('encoderRow').contains(event.target)) closeEncoderMenu();
 });
+
+// ---------- app update ----------
+
+let appUpdate = null;
+
+function renderAppUpdate() {
+  const show = appUpdate?.state === 'ready' || appUpdate?.state === 'available';
+  $('appUpdateBtn').classList.toggle('hidden', !show);
+  if (!show) return;
+  $('appUpdateBtn').textContent = tr(appUpdate.state === 'ready' ? 'appUpdateReady' : 'appUpdateAvailable');
+  $('appUpdateBtn').title = tr('appUpdateTitle', { version: appUpdate.version });
+}
+
+api.onAppUpdate((update) => { appUpdate = update; renderAppUpdate(); });
+api.appUpdateState().then((update) => { appUpdate = update; renderAppUpdate(); }).catch(() => {});
+
+$('appUpdateBtn').onclick = () => {
+  if (running && appUpdate?.state === 'ready') return toast(tr('appUpdateBusy'));
+  api.installAppUpdate().catch(() => {});
+};
 
 // ---------- feedback ----------
 

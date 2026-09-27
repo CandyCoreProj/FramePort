@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const { updateYtdlp } = require('./ytdlp-updater');
 const { reserveVersionedPath } = require('./download-path');
+const { startAppUpdates } = require('./app-updater');
 
 const WIN = process.platform === 'win32';
 const EXE = WIN ? '.exe' : '';
@@ -85,7 +86,14 @@ function createWindow() {
   win.loadFile('index.html');
 }
 
-app.whenReady().then(createWindow);
+let appUpdates;
+app.whenReady().then(() => {
+  createWindow();
+  appUpdates = startAppUpdates(send);
+});
+
+ipcMain.handle('app-update-state', () => appUpdates?.state() ?? null);
+ipcMain.handle('install-app-update', () => appUpdates?.install() ?? 'unavailable');
 app.on('window-all-closed', async () => {
   await killProc();
   app.quit();
