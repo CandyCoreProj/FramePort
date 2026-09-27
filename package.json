@@ -3,7 +3,7 @@
   "productName": "FramePort",
   "version": "1.0.5",
   "description": "FramePort — reliable video downloads and edit-ready conversion",
-  "author": "tunarmz",
+  "author": "CandyCore",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
