@@ -9,10 +9,17 @@
   <meta property="og:description" content="A focused Windows app for video downloads and edit-ready conversion.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ArmZOfficial.github.io/FramePort/">
+  <meta property="og:image" content="https://ArmZOfficial.github.io/FramePort/assets/frameport-icon.png">
+  <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/svg+xml" href="assets/frameport-icon.svg">
+  <link rel="apple-touch-icon" href="assets/frameport-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- โหลดฟอนต์แบบไม่บล็อกการแสดงผล -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+  <script>document.documentElement.classList.add("js");</script>
   <title>FramePort | ดาวน์โหลดและแปลงวิดีโอ</title>
   <style>
     :root {
@@ -117,9 +124,9 @@
     .format-chip { position: absolute; display: flex; align-items: center; gap: 9px; padding: 10px 14px; border: 1px solid rgb(244 239 233 / 18%); border-radius: 17px; background: rgb(244 239 233 / 10%); color: var(--paper); backdrop-filter: blur(8px); }
     .format-chip strong { color: var(--apricot); font: 700 12px/1 var(--display); letter-spacing: .06em; }
     .format-chip span { color: rgb(244 239 233 / 78%); font: 500 12px/1.2 var(--display); }
-    .chip-video { top: 17%; left: 8%; transform: rotate(-7deg); }
-    .chip-audio { right: 7%; bottom: 20%; transform: rotate(6deg); }
-    .chip-encode { left: 10%; bottom: 13%; transform: rotate(3deg); }
+    .chip-video { top: 16%; left: 7%; transform: rotate(-7deg); }
+    .chip-audio { top: 31%; right: 6%; transform: rotate(6deg); }
+    .chip-encode { top: 50%; left: 5%; transform: rotate(3deg); }
     .art-caption { position: absolute; right: 26px; top: 25px; display: inline-flex; align-items: center; gap: 8px; color: rgb(244 239 233 / 72%); font: 600 11px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
     .art-caption i { width: 7px; height: 7px; border-radius: 50%; background: #75C18D; box-shadow: 0 0 10px rgb(117 193 141 / 60%); }
     .art-base { position: absolute; left: 50%; bottom: 34px; width: 50%; height: 1px; background: linear-gradient(90deg, transparent, rgb(242 160 84 / 60%), transparent); transform: translateX(-50%); }
@@ -196,6 +203,71 @@
     .footer-links a:hover { color: var(--apricot); }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
+    /* ---------- motion ---------- */
+    :root { --ease-out: cubic-bezier(.16, 1, .3, 1); }
+    .nav-links a { position: relative; }
+    .nav-links a::after { position: absolute; right: 0; bottom: -7px; left: 0; height: 2px; content: ""; border-radius: 2px; background: var(--accent); transform: scaleX(0); transition: transform .35s var(--ease-out); }
+    .nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+    .nav-links a.active { color: var(--ink); }
+    .button svg { transition: transform .25s var(--ease-out); }
+    .button:hover svg { transform: translateY(2px); }
+    .button-primary:hover, .button-accent:hover { box-shadow: 0 12px 26px -14px rgb(28 25 23 / 55%); }
+
+    /* hero entrance */
+    .js .hero-intro > * { opacity: 0; transform: translateY(12px); animation: rise .55s var(--ease-out) forwards; }
+    .js .hero-intro > :nth-child(2) { animation-delay: .05s; }
+    .js .hero-intro > :nth-child(3) { animation-delay: .1s; }
+    .js .hero-intro > :nth-child(4) { animation-delay: .15s; }
+    .js .hero-intro > :nth-child(5) { animation-delay: .2s; }
+    .js .hero-art { opacity: 0; transform: translateY(14px) scale(.99); animation: rise .7s .1s var(--ease-out) forwards; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+
+    /* hero art: orbit, floating chips, live progress demo */
+    .orbit-spin { position: absolute; inset: 0; border-radius: 50%; animation: orbit 28s linear infinite; }
+    .orbit-spin::before { position: absolute; top: -5px; left: calc(50% - 5px); width: 10px; height: 10px; content: ""; border-radius: 50%; background: var(--apricot); box-shadow: 0 0 18px rgb(242 160 84 / 75%); }
+    .art-orbit::after { display: none; }
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    .demo-job {
+      position: absolute; left: 50%; bottom: 26px; width: min(78%, 320px); padding: 12px 14px;
+      border: 1px solid rgb(244 239 233 / 16%); border-radius: 16px; background: rgb(28 25 23 / 72%);
+      color: var(--paper); backdrop-filter: blur(10px); transform: translateX(-50%);
+      box-shadow: 0 18px 40px -18px rgb(0 0 0 / 60%);
+    }
+    .demo-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font: 600 12px/1.2 var(--display); }
+    .demo-row span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .demo-row b { color: var(--apricot); font-variant-numeric: tabular-nums; }
+    .demo-meta { margin-top: 3px; color: rgb(244 239 233 / 62%); font: 500 11px/1.2 var(--display); }
+    .demo-bar { position: relative; height: 5px; margin-top: 9px; overflow: hidden; border-radius: 99px; background: rgb(244 239 233 / 14%); }
+    .demo-fill { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--apricot)); transform: scaleX(var(--p, 0)); transform-origin: left; transition: transform .25s linear; }
+    .demo-job.active:not(.done) .demo-bar::after { position: absolute; inset: 0; content: ""; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 35%), transparent); transform: translateX(-100%); animation: sheen 2.4s ease-in-out infinite; }
+    @keyframes sheen { to { transform: translateX(100%); } }
+    .demo-job.done .demo-fill { background: #75C18D; }
+
+    /* scroll reveal */
+    .js .reveal { opacity: 0; transform: translateY(12px); transition: opacity .36s var(--ease-out), transform .36s var(--ease-out); transition-delay: calc(var(--d, 0) * 55ms); }
+    .js .reveal.in { opacity: 1; transform: none; }
+    .js .reveal.settled { transition-delay: 0s; }
+    .js .feature.reveal.settled, .js .download-panel.reveal.settled { transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out), border-color .35s ease; }
+    .feature { transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out), border-color .35s ease; }
+    .feature:hover { transform: translateY(-4px); box-shadow: 0 22px 40px -26px rgb(28 25 23 / 45%); }
+    .feature-mark { transition: transform .45s var(--ease-out); }
+    .feature:hover .feature-mark { transform: rotate(-8deg) scale(1.06); }
+    .js .steps-grid { position: relative; border-top-color: transparent; }
+    .js .steps-grid::before { position: absolute; top: -1px; right: 0; left: 0; height: 2px; content: ""; background: linear-gradient(90deg, var(--accent), var(--apricot)); transform: scaleX(0); transform-origin: left; transition: transform 1.4s var(--ease-out) .2s; }
+    .js .steps-grid.in::before { transform: scaleX(1); }
+    .step-number { transition: background .5s ease, color .5s ease, transform .5s var(--ease-out); }
+    .js .steps-grid.in .step-number { background: var(--ink); color: var(--apricot); }
+    .step:hover .step-number { transform: scale(1.12); }
+    .js .download-panel.reveal.in::after { animation: ring-in .75s .12s var(--ease-out) both; }
+    @keyframes ring-in { from { transform: scale(.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .download-option { transition: background .3s ease, border-color .3s ease, transform .35s var(--ease-out); }
+    .download-option:hover { border-color: rgb(242 160 84 / 45%); background: rgb(244 239 233 / 10%); transform: translateY(-3px); }
+    summary::after { transition: transform .3s var(--ease-out); }
+    details[open] summary::after { content: "+"; transform: rotate(45deg); }
+    details[open] p { animation: open-faq .45s var(--ease-out); }
+    @keyframes open-faq { from { opacity: 0; transform: translateY(-6px); } }
+    summary:hover { color: var(--accent); }
+
     @media (max-width: 960px) {
       .nav { gap: 20px; }
       .nav-links { gap: 17px; }
@@ -235,9 +307,11 @@
       .hero-art { min-height: 310px; border-radius: 29px; }
       .art-mark { width: 128px; border-radius: 32px; }
       .art-mark img { width: 96px; height: 96px; }
-      .chip-video { top: 13%; left: 5%; }
-      .chip-audio { right: 4%; bottom: 18%; }
-      .chip-encode { left: 5%; bottom: 10%; }
+      .chip-video { top: 12%; left: 5%; }
+      .chip-audio { top: 28%; right: 4%; }
+      .chip-encode { top: 47%; left: 4%; }
+      .art-mark { top: -18px; }
+      .demo-job { bottom: 18px; padding: 10px 12px; }
       .format-chip { gap: 7px; padding: 9px 10px; }
       .format-chip span { font-size: 11px; }
       .art-caption { top: 19px; right: 18px; }
@@ -281,7 +355,7 @@
 
   <main id="main">
     <section class="hero wrap" id="top" aria-labelledby="hero-title">
-      <div>
+      <div class="hero-intro">
         <p class="eyebrow" data-i18n="heroEyebrow">เครื่องมือวิดีโอสำหรับ Windows</p>
         <h1 id="hero-title"><span data-i18n="heroLineOne">โหลดคลิป</span><span class="highlight" data-i18n="heroLineTwo">แปลงไฟล์ พร้อมใช้</span></h1>
         <p class="hero-copy" data-i18n="heroCopy">วางลิงก์ เลือกวิดีโอหรือเสียง แล้วบันทึกลงเครื่องคุณ FramePort รวมการดาวน์โหลดและแปลงไฟล์ไว้ในหน้าตาเรียบง่ายหน้าหนึ่ง</p>
@@ -299,34 +373,38 @@
       </div>
       <div class="hero-art" role="img" aria-label="ไอคอน FramePort พร้อมรูปแบบวิดีโอและเสียง" data-i18n-aria="visualAria">
         <div class="art-grid"></div>
-        <div class="art-orbit"></div>
+        <div class="art-orbit"><span class="orbit-spin"></span></div>
         <div class="art-mark"><img src="assets/frameport-icon.svg" alt="" width="112" height="112"></div>
         <div class="format-chip chip-video"><strong>MP4</strong><span>Video</span></div>
         <div class="format-chip chip-audio"><strong>MP3</strong><span>Audio</span></div>
         <div class="format-chip chip-encode"><strong>H.264</strong><span data-i18n="artEncode">พร้อมตัดต่อ</span></div>
         <div class="art-caption"><i></i><span data-i18n="artCaption">จัดการไฟล์ได้ง่าย</span></div>
-        <div class="art-base"></div>
+        <div class="demo-job" id="demoJob" aria-hidden="true">
+          <div class="demo-row"><span id="demoName">Travel vlog 4K.mp4</span><b id="demoPct">0%</b></div>
+          <div class="demo-meta" id="demoMeta">H.264 · NVIDIA NVENC</div>
+          <div class="demo-bar"><div class="demo-fill" id="demoFill"></div></div>
+        </div>
       </div>
     </section>
 
     <section class="section features wrap" id="features" aria-labelledby="features-title">
-      <div class="section-heading">
+      <div class="section-heading reveal">
         <p class="eyebrow" data-i18n="featuresEyebrow">ทำงานครบในที่เดียว</p>
         <h2 id="features-title" data-i18n="featuresTitle">เครื่องมือที่จำเป็น โดยไม่ต้องตั้งค่าให้ยุ่งยาก</h2>
         <p data-i18n="featuresIntro">เลือกสิ่งที่ต้องการ แล้วให้ FramePort จัดการขั้นตอนที่เหลือ</p>
       </div>
       <div class="feature-grid">
-        <article class="feature feature-main">
+        <article class="feature feature-main reveal">
           <div>
             <span class="feature-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16v11H4zM9 6.5v11m6-11v11M4 10h5m6 0h5M4 14h5m6 0h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <h3 data-i18n="featureFormatsTitle">เลือกคุณภาพและรูปแบบได้ตามงาน</h3>
             <p data-i18n="featureFormatsCopy">ดาวน์โหลดวิดีโอเป็น MP4 หรือเลือกบันทึกเฉพาะเสียง ปรับความละเอียดตามไฟล์ที่ต้องการ</p>
           </div>
           <div class="format-row" aria-label="รูปแบบไฟล์ที่รองรับ" data-i18n-aria="formatListAria">
-            <span class="format-pill warm">MP4</span><span class="format-pill">MP3</span><span class="format-pill">FLAC</span><span class="format-pill">WAV</span>
+            <span class="format-pill warm">MP4</span><span class="format-pill">H.265</span><span class="format-pill">MP3</span><span class="format-pill">FLAC</span><span class="format-pill">WAV</span>
           </div>
         </article>
-        <article class="feature feature-dark">
+        <article class="feature feature-dark reveal" style="--d:1">
           <div>
             <span class="feature-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M5.64 5.64l2.83 2.83m7.06 7.06 2.83 2.83m0-12.72-2.83 2.83m-7.06 7.06-2.83 2.83" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="1.7"/></svg></span>
             <h3 data-i18n="featureHardwareTitle">ใช้ตัวเข้ารหัสที่เหมาะกับเครื่อง</h3>
@@ -334,7 +412,7 @@
           </div>
           <div class="format-row"><span class="format-pill warm">NVENC</span><span class="format-pill">QSV</span><span class="format-pill">AMF</span><span class="format-pill">CPU</span></div>
         </article>
-        <article class="feature feature-last">
+        <article class="feature feature-last reveal" style="--d:2">
           <div class="feature-inline">
             <div>
               <span class="feature-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5.5h14v13H5zM8 3.5v4m8-4v4M5 9h14m-9 4 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -349,11 +427,11 @@
 
     <section class="section steps-section" id="how-it-works" aria-labelledby="steps-title">
       <div class="wrap">
-        <div class="section-heading">
+        <div class="section-heading reveal">
           <p class="eyebrow" data-i18n="stepsEyebrow">เริ่มได้ในไม่กี่ขั้น</p>
           <h2 id="steps-title" data-i18n="stepsTitle">จากลิงก์ไปเป็นไฟล์ในเครื่อง</h2>
         </div>
-        <div class="steps-grid">
+        <div class="steps-grid reveal">
           <article class="step"><span class="step-number">1</span><h3 data-i18n="stepOneTitle">วางลิงก์</h3><p data-i18n="stepOneCopy">คัดลอกลิงก์วิดีโอแล้ววางใน FramePort</p></article>
           <article class="step"><span class="step-number">2</span><h3 data-i18n="stepTwoTitle">เลือกรูปแบบ</h3><p data-i18n="stepTwoCopy">เลือกวิดีโอหรือเสียง คุณภาพ และโฟลเดอร์บันทึก</p></article>
           <article class="step"><span class="step-number">3</span><h3 data-i18n="stepThreeTitle">เริ่มดาวน์โหลด</h3><p data-i18n="stepThreeCopy">ติดตามความคืบหน้า แล้วเปิดโฟลเดอร์ไฟล์ได้ทันที</p></article>
@@ -362,7 +440,7 @@
     </section>
 
     <section class="download wrap" id="download" aria-labelledby="download-title">
-      <div class="download-panel">
+      <div class="download-panel reveal">
         <div class="download-heading">
           <p class="eyebrow" data-i18n="downloadEyebrow">ดาวน์โหลด FramePort</p>
           <h2 id="download-title" data-i18n="downloadTitle">เลือกแบบติดตั้งที่สะดวกกับคุณ</h2>
@@ -384,15 +462,16 @@
 
     <section class="section faq wrap" id="faq" aria-labelledby="faq-title">
       <div class="faq-layout">
-        <div class="faq-title">
+        <div class="faq-title reveal">
           <p class="eyebrow" data-i18n="faqEyebrow">ก่อนเริ่มใช้งาน</p>
           <h2 id="faq-title" data-i18n="faqTitle">คำถามที่พบบ่อย</h2>
           <p data-i18n="faqIntro">ข้อมูลสั้น ๆ ที่ช่วยให้เริ่มต้นได้อย่างมั่นใจ</p>
         </div>
-        <div class="faq-list">
+        <div class="faq-list reveal" style="--d:1">
           <details><summary data-i18n="faqOneQuestion">ต้องใช้ Windows รุ่นไหน?</summary><p data-i18n="faqOneAnswer">FramePort รุ่นนี้สร้างมาสำหรับ Windows x64 ใช้ได้ทั้งแบบ Setup และ Portable</p></details>
           <details><summary data-i18n="faqTwoQuestion">ทำไมเปิดครั้งแรกต้องดาวน์โหลดเครื่องมือเพิ่ม?</summary><p data-i18n="faqTwoAnswer">FramePort ติดตั้ง yt-dlp สำหรับดาวน์โหลดและ FFmpeg สำหรับแปลงไฟล์เมื่อเริ่มใช้งานครั้งแรก เพื่อไม่รวมเครื่องมือขนาดใหญ่ไว้ในตัวติดตั้งหลัก</p></details>
           <details><summary data-i18n="faqThreeQuestion">ต้องมีการ์ดจอแยกหรือไม่?</summary><p data-i18n="faqThreeAnswer">ไม่จำเป็น FramePort ใช้ CPU ได้ และจะลองใช้ตัวเข้ารหัส GPU ที่รองรับเมื่อฮาร์ดแวร์กับไดรเวอร์พร้อม</p></details>
+          <details><summary data-i18n="faqFiveQuestion">ไฟล์วิดีโอจะใหญ่ไหม?</summary><p data-i18n="faqFiveAnswer"></p></details>
           <details><summary data-i18n="faqFourQuestion">ดาวน์โหลดได้จากทุกเว็บไซต์หรือไม่?</summary><p data-i18n="faqFourAnswer">FramePort ใช้ yt-dlp และการรองรับขึ้นอยู่กับเว็บไซต์และรุ่นของ yt-dlp โปรดดาวน์โหลดเฉพาะเนื้อหาที่คุณมีสิทธิ์ใช้งาน</p></details>
         </div>
       </div>
@@ -424,9 +503,9 @@
         heroDownload: "เลือกดาวน์โหลด", heroHow: "ดูวิธีใช้", noteWindows: "Windows x64", noteLanguages: "ภาษาไทยและ English",
         artEncode: "พร้อมตัดต่อ", artCaption: "จัดการไฟล์ได้ง่าย", featuresEyebrow: "ทำงานครบในที่เดียว",
         featuresTitle: "เครื่องมือที่จำเป็น โดยไม่ต้องตั้งค่าให้ยุ่งยาก", featuresIntro: "เลือกสิ่งที่ต้องการ แล้วให้ FramePort จัดการขั้นตอนที่เหลือ",
-        featureFormatsTitle: "เลือกคุณภาพและรูปแบบได้ตามงาน", featureFormatsCopy: "ดาวน์โหลดวิดีโอเป็น MP4 หรือเลือกบันทึกเฉพาะเสียง ปรับความละเอียดตามไฟล์ที่ต้องการ",
-        featureHardwareTitle: "ใช้ตัวเข้ารหัสที่เหมาะกับเครื่อง", featureHardwareCopy: "ลองใช้ NVIDIA NVENC, Intel Quick Sync หรือ AMD AMF เมื่อพร้อมใช้งาน และสลับใช้ CPU ได้",
-        featureNamesTitle: "ชื่อไฟล์เป็นชื่อคลิป", featureNamesCopy: "บันทึกด้วยชื่อคลิปตรง ๆ ไม่มีข้อความต่อท้ายที่ไม่จำเป็น",
+        featureFormatsTitle: "เลือกคุณภาพและรูปแบบได้ตามงาน", featureFormatsCopy: "เลือก H.264 หรือ H.265 คุณภาพสูง เก็บวิดีโอต้นฉบับโดยไม่แปลง หรือบันทึกเฉพาะเสียงได้",
+        featureHardwareTitle: "ใช้ตัวเข้ารหัสที่เหมาะกับเครื่อง", featureHardwareCopy: "ตรวจหา NVIDIA NVENC, Intel Quick Sync และ AMD AMF ให้อัตโนมัติ แปลงไฟล์ไปพร้อมกับดาวน์โหลด และทำงานเบื้องหลังโดยไม่ทำให้เครื่องหน่วง",
+        featureNamesTitle: "ชื่อไฟล์ตรงกับชื่อคลิป", featureNamesCopy: "ใช้ชื่อคลิปตามเดิม หากมีไฟล์ชื่อนี้อยู่แล้วจะต่อท้ายเป็น Version 2, Version 3 ตามลำดับ",
         stepsEyebrow: "เริ่มได้ในไม่กี่ขั้น", stepsTitle: "จากลิงก์ไปเป็นไฟล์ในเครื่อง",
         stepOneTitle: "วางลิงก์", stepOneCopy: "คัดลอกลิงก์วิดีโอแล้ววางใน FramePort",
         stepTwoTitle: "เลือกรูปแบบ", stepTwoCopy: "เลือกวิดีโอหรือเสียง คุณภาพ และโฟลเดอร์บันทึก",
@@ -440,6 +519,7 @@
         faqOneQuestion: "ต้องใช้ Windows รุ่นไหน?", faqOneAnswer: "FramePort รุ่นนี้สร้างมาสำหรับ Windows x64 ใช้ได้ทั้งแบบ Setup และ Portable",
         faqTwoQuestion: "ทำไมเปิดครั้งแรกต้องดาวน์โหลดเครื่องมือเพิ่ม?", faqTwoAnswer: "FramePort ติดตั้ง yt-dlp สำหรับดาวน์โหลดและ FFmpeg สำหรับแปลงไฟล์เมื่อเริ่มใช้งานครั้งแรก เพื่อไม่รวมเครื่องมือขนาดใหญ่ไว้ในตัวติดตั้งหลัก",
         faqThreeQuestion: "ต้องมีการ์ดจอแยกหรือไม่?", faqThreeAnswer: "ไม่จำเป็น FramePort ใช้ CPU ได้ และจะลองใช้ตัวเข้ารหัส GPU ที่รองรับเมื่อฮาร์ดแวร์กับไดรเวอร์พร้อม",
+        faqFiveQuestion: "เลือกแบบไหนเพื่อให้ภาพชัด?", faqFiveAnswer: "H.264 และ H.265 ใช้ค่าคุณภาพสูงเพื่อรักษารายละเอียด ส่วน “ต้นฉบับ” จะไม่แปลงวิดีโอ หากดาวน์โหลดคลิปเดิมซ้ำ ไฟล์ใหม่จะใช้ชื่อ Version 2, Version 3 เพื่อไม่เขียนทับไฟล์เดิม",
         faqFourQuestion: "ดาวน์โหลดได้จากทุกเว็บไซต์หรือไม่?", faqFourAnswer: "FramePort ใช้ yt-dlp และการรองรับขึ้นอยู่กับเว็บไซต์และรุ่นของ yt-dlp โปรดดาวน์โหลดเฉพาะเนื้อหาที่คุณมีสิทธิ์ใช้งาน",
         footerCopy: "เครื่องมือดาวน์โหลดและแปลงไฟล์สำหรับ Windows", footerSource: "ซอร์สโค้ด", footerSupport: "แจ้งปัญหา",
         switchLanguage: "เปลี่ยนภาษาเป็นภาษาอังกฤษ", languageChanged: "เปลี่ยนภาษาเป็นภาษาไทยแล้ว",
@@ -455,9 +535,9 @@
         heroDownload: "Choose a download", heroHow: "How it works", noteWindows: "Windows x64", noteLanguages: "Thai and English",
         artEncode: "Edit-ready", artCaption: "Made for your files", featuresEyebrow: "The useful parts, together",
         featuresTitle: "The tools you need, without a complicated setup", featuresIntro: "Choose what you need and let FramePort handle the rest.",
-        featureFormatsTitle: "Choose a format for the job", featureFormatsCopy: "Download video as MP4 or save audio on its own. Pick the resolution that works for your file.",
-        featureHardwareTitle: "Use the encoder that fits your PC", featureHardwareCopy: "Try NVIDIA NVENC, Intel Quick Sync, or AMD AMF when available, with CPU encoding as a fallback.",
-        featureNamesTitle: "Keep the clip title", featureNamesCopy: "Files keep the clip's title, without unnecessary text added at the end.",
+        featureFormatsTitle: "Choose a format for the job", featureFormatsCopy: "Choose high-quality H.264 or H.265, keep the original video without conversion, or save audio only.",
+        featureHardwareTitle: "Use the encoder that fits your PC", featureHardwareCopy: "Detects NVIDIA NVENC, Intel Quick Sync and AMD AMF automatically, converts while the next file downloads, and runs at low priority so your PC stays responsive.",
+        featureNamesTitle: "Keep the clip title", featureNamesCopy: "Files use the clip title. If that name already exists, the next file is saved as Version 2, Version 3, and so on.",
         stepsEyebrow: "A few simple steps", stepsTitle: "From a link to a file on your PC",
         stepOneTitle: "Paste a link", stepOneCopy: "Copy a video link and paste it into FramePort.",
         stepTwoTitle: "Choose a format", stepTwoCopy: "Pick video or audio, quality, and where to save it.",
@@ -471,6 +551,7 @@
         faqOneQuestion: "Which version of Windows do I need?", faqOneAnswer: "This release of FramePort is built for Windows x64. You can choose Setup or Portable.",
         faqTwoQuestion: "Why does the app download tools on first launch?", faqTwoAnswer: "FramePort installs yt-dlp for downloading and FFmpeg for conversion when you first use it. This keeps those larger tools out of the main installer.",
         faqThreeQuestion: "Do I need a dedicated graphics card?", faqThreeAnswer: "No. FramePort can use your CPU and will try a supported GPU encoder when your hardware and drivers are ready.",
+        faqFiveQuestion: "Which option keeps the picture clear?", faqFiveAnswer: "H.264 and H.265 use high-quality settings to preserve detail. Original keeps the video without re-encoding. If you download the same clip again, the new file is saved as Version 2, Version 3, and so on, so existing files are not overwritten.",
         faqFourQuestion: "Does it work with every website?", faqFourAnswer: "FramePort uses yt-dlp. Website support depends on the site and yt-dlp version. Only download content you have permission to use.",
         footerCopy: "Video download and conversion for Windows", footerSource: "Source code", footerSupport: "Report an issue",
         switchLanguage: "Switch page language to Thai", languageChanged: "Page language changed to English",
@@ -519,9 +600,81 @@
       setLanguage(language === "th" ? "en" : "th", true);
     });
     setLanguage(language);
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // เผยเนื้อหาเมื่อเลื่อนถึง
+    const revealed = document.querySelectorAll(".reveal");
+    if ("IntersectionObserver" in window && !reducedMotion) {
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add("in");
+          entry.target.addEventListener("transitionend", () => entry.target.classList.add("settled"), { once: true });
+          observer.unobserve(entry.target);
+        }
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
+      revealed.forEach((element) => observer.observe(element));
+
+      // ไฮไลต์เมนูตามส่วนที่กำลังอ่าน
+      const links = [...document.querySelectorAll(".nav-links a")];
+      const spy = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          links.forEach((link) => link.classList.toggle("active", link.hash === "#" + entry.target.id));
+        }
+      }, { rootMargin: "-45% 0px -50% 0px" });
+      links.forEach((link) => { const target = document.querySelector(link.hash); if (target) spy.observe(target); });
+    } else {
+      revealed.forEach((element) => element.classList.add("in", "settled"));
+    }
+
+    // ตัวอย่างการทำงานบนภาพหลัก: ดาวน์โหลด แล้วแปลงไฟล์ วนซ้ำ
+    const demo = {
+      job: document.getElementById("demoJob"), name: document.getElementById("demoName"),
+      pct: document.getElementById("demoPct"), meta: document.getElementById("demoMeta"), fill: document.getElementById("demoFill"),
+    };
+    const demoSteps = [
+      { name: "Travel vlog 4K.mp4", th: "กำลังดาวน์โหลด · 42.8 MB/s", en: "Downloading · 42.8 MB/s", speed: 3.2 },
+      { name: "Travel vlog 4K.mp4", th: "H.264 · NVIDIA NVENC · 6.1×", en: "H.264 · NVIDIA NVENC · 6.1×", speed: 2.4 },
+      { name: "Travel vlog 4K.mp4", th: "เสร็จแล้ว · พร้อมตัดต่อ", en: "Complete · edit-ready", speed: 0 },
+    ];
+    let demoStep = 0, demoValue = 0, demoPause = 0;
+    function renderDemo() {
+      const step = demoSteps[demoStep];
+      demo.name.textContent = step.name;
+      demo.meta.textContent = step[language];
+      demo.pct.textContent = Math.round(demoValue) + "%";
+      demo.fill.style.setProperty("--p", demoValue / 100);
+      demo.job.classList.toggle("done", !step.speed);
+    }
+    languageToggle.addEventListener("click", renderDemo);
+    if (reducedMotion) {
+      demoStep = 1; demoValue = 64; renderDemo();
+    } else {
+      let visible = true;
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(([entry]) => {
+          visible = entry.isIntersecting;
+          demo.job.classList.toggle("active", visible);
+        }).observe(demo.job);
+      } else demo.job.classList.add("active");
+      setInterval(() => {
+        if (!visible || document.hidden) return;
+        const step = demoSteps[demoStep];
+        if (demoPause > 0) { demoPause--; return; }
+        if (step.speed && demoValue < 100) demoValue = Math.min(100, demoValue + step.speed * (1 + Math.random()));
+        else { demoStep = (demoStep + 1) % demoSteps.length; demoValue = demoSteps[demoStep].speed ? 0 : 100; demoPause = demoSteps[demoStep].speed ? 3 : 14; }
+        renderDemo();
+      }, 200);
+      renderDemo();
+    }
     if (!languageWasChosen) {
       window.framePortLanguage.detect().then((detected) => {
-        if (!languageWasChosen && detected !== language) setLanguage(detected);
+        if (!languageWasChosen && detected !== language) {
+          setLanguage(detected);
+          renderDemo();
+        }
       }).catch(() => {});
     }
   </script>

@@ -1,133 +1,167 @@
 const $ = (id) => document.getElementById(id);
 const picked = (name) => document.querySelector(`input[name=${name}]:checked`).value;
+const store = {
+  get: (key) => { try { return localStorage.getItem(key); } catch { return null; } },
+  set: (key, value) => { try { localStorage.setItem(key, value); } catch {} },
+};
 
 const words = {
   th: {
-    appTitle: 'FramePort', appKicker: 'ดาวน์โหลดและแปลงไฟล์ในที่เดียว', checking: 'กำลังตรวจสอบ…',
-    notInstalled: 'ยังไม่ได้ติดตั้ง', ffmpegReady: 'ffmpeg พร้อม', noFfmpeg: 'ไม่มี ffmpeg',
+    checking: 'กำลังตรวจสอบ…', notInstalled: 'ยังไม่ได้ติดตั้งเครื่องมือ', ready: 'พร้อมใช้งาน', missing: 'ยังไม่มี',
     setupTitle: 'เริ่มใช้งานครั้งแรก', setupDescription: 'ติดตั้งส่วนที่จำเป็นครั้งเดียว แล้วเริ่มดาวน์โหลดได้ทันที',
+    setupNote: 'ดาวน์โหลดจาก GitHub ทางการของ yt-dlp',
     ytdlpDescription: 'ตัวดาวน์โหลด · ~18 MB', ffmpegDescription: 'แปลงวิดีโอและเสียง · ~150 MB',
-    headline: 'วางลิงก์ แล้วเลือกไฟล์', urlLabel: 'ลิงก์วิดีโอ',
-    urlPlaceholder: 'วางลิงก์ YouTube, TikTok, Facebook…', paste: 'วางลิงก์',
-    format: 'รูปแบบไฟล์', video: 'วิดีโอ MP4', audioOnly: 'เสียงอย่างเดียว',
+    headline: 'วางลิงก์ แล้วเลือกไฟล์', subhead: 'รองรับ YouTube, TikTok, Facebook, X และอีกหลายเว็บไซต์',
+    urlLabel: 'ลิงก์วิดีโอ', urlPlaceholder: 'วางลิงก์วิดีโอ เช่น https://youtu.be/…', paste: 'วางลิงก์', clear: 'ล้างลิงก์',
+    format: 'รูปแบบไฟล์', video: 'วิดีโอ', audioOnly: 'เสียง',
     resolution: 'ความละเอียด', best: 'สูงสุด', available: 'ที่มี', smallFile: 'ไฟล์เล็ก',
-    videoHint: 'MP4 (H.264 + AAC) · แปลง VP9/AV1/HEVC ตามวิธีที่เลือก',
-    audioFormat: 'ไฟล์เสียง', smallPlay: 'ไฟล์เล็ก เปิดได้ทุกที่',
-    lossless: 'ไม่เสียคุณภาพ', uncompressed: 'ไม่บีบอัด ไฟล์ใหญ่',
-    saveTo: 'บันทึกที่', choose: 'เปลี่ยน', open: 'เปิด',
-    encoderLabel: 'ตัวเข้ารหัสวิดีโอ', auto: 'อัตโนมัติ · ลองใช้ GPU ที่พร้อม',
-    encoderAutoDesc: 'ลองใช้ตัวเข้ารหัส GPU ที่รองรับก่อน', recommended: 'แนะนำ',
-    encoderNvidiaDesc: 'เข้ารหัสด้วยการ์ดจอ NVIDIA', encoderIntelDesc: 'กราฟิก Intel ในตัวหรือ Arc',
+    audioFormat: 'ไฟล์เสียง', smallPlay: 'เปิดได้ทุกที่', lossless: 'ไม่เสียคุณภาพ', uncompressed: 'ไม่บีบอัด',
+    outputLabel: 'ไฟล์วิดีโอที่ได้',
+    h264Tag: 'พร้อมตัดต่อ', h264Desc: 'เปิดได้ใน Premiere, Resolve, CapCut และทุกเครื่องเล่น',
+    hevcTag: 'คุณภาพสูง', hevcDesc: 'คงรายละเอียดภาพ เหมาะกับโปรแกรมรุ่นใหม่',
+    originalTitle: 'ต้นฉบับ', originalTag: 'เร็วที่สุด', originalDesc: 'ไม่แปลงไฟล์ คุณภาพต้นฉบับ (AV1/VP9)',
+    saveTo: 'บันทึกที่', choose: 'เปลี่ยน', open: 'เปิดโฟลเดอร์',
+    encoderLabel: 'ตัวเข้ารหัสวิดีโอ', auto: 'อัตโนมัติ', recommended: 'แนะนำ',
+    encoderAutoDesc: 'เลือก GPU ที่เร็วที่สุดในเครื่องให้เอง', autoUsing: 'ใช้ ',
+    encoderNvidiaDesc: 'การ์ดจอ NVIDIA GeForce / RTX', encoderIntelDesc: 'กราฟิก Intel ในตัวหรือ Arc',
     encoderAmdDesc: 'กราฟิก AMD ในตัวหรือ Radeon', encoderHybridDesc: 'แบ่งงานระหว่าง CPU และ GPU',
-    hybrid: 'CPU ถอดรหัส + GPU เข้ารหัส', hybridBadge: 'ผสม', encoderCpuDesc: 'เข้ารหัสด้วย CPU รองรับได้กว้าง',
+    hybrid: 'CPU ถอดรหัส + GPU เข้ารหัส', hybridBadge: 'ผสม', encoderCpuDesc: 'x264 / x265 ใช้ได้ทุกเครื่อง',
+    detected: 'พบในเครื่อง', notDetected: 'ไม่พบ',
     playlist: 'ดาวน์โหลดทั้งเพลย์ลิสต์',
-    start: 'เริ่มดาวน์โหลด', cancel: 'ยกเลิก', update: 'อัปเดต yt-dlp',
-    updateTitle: 'อัปเดต yt-dlp', install: 'ติดตั้งเครื่องมือ',
-    installRequired: 'ติดตั้ง yt-dlp และ ffmpeg ก่อนดาวน์โหลด',
-    ready: 'พร้อมใช้งาน', missing: 'ยังไม่มี', manualInstall: 'ติดตั้งเองจากแพ็กเกจ',
-    installing: 'กำลังติดตั้ง…', extracting: 'กำลังแตกไฟล์…',
+    start: 'เริ่มดาวน์โหลด', cancel: 'ยกเลิก', update: 'อัปเดต yt-dlp', updateTitle: 'อัปเดต yt-dlp เป็นรุ่นล่าสุด',
+    install: 'ติดตั้งเครื่องมือ', installRequired: 'ติดตั้ง yt-dlp และ FFmpeg ก่อนดาวน์โหลด',
+    manualInstall: 'ติดตั้งเองจากแพ็กเกจ', installing: 'กำลังติดตั้ง…', extracting: 'กำลังแตกไฟล์…',
     installSuccess: 'ติดตั้งเรียบร้อย พร้อมใช้งาน', installFailed: 'ติดตั้งไม่สำเร็จ: ',
-    updating: 'กำลังอัปเดต…', updateFailed: 'อัปเดตไม่สำเร็จ: ',
+    updating: 'กำลังอัปเดต…', updated: 'อัปเดต yt-dlp แล้ว', updateFailed: 'อัปเดตไม่สำเร็จ: ',
     clipboardFailed: 'อ่านคลิปบอร์ดไม่ได้ วางลิงก์ด้วย Ctrl+V',
-    urlRequired: 'วางลิงก์ก่อนนะ', downloading: 'กำลังดาวน์โหลด…',
-    starting: 'กำลังเริ่ม…', finished: 'เสร็จแล้ว ✓', cancelled: 'ยกเลิกแล้ว',
-    failed: 'ไม่สำเร็จ', failedDetail: 'ดาวน์โหลดไม่สำเร็จ ดูรายละเอียดด้านล่าง',
-    remaining: 'เหลือ ', switchLanguage: 'เปลี่ยนภาษา',
+    urlRequired: 'วางลิงก์วิดีโอก่อน', urlInvalid: 'ลิงก์ต้องขึ้นต้นด้วย http:// หรือ https://',
+    downloading: 'กำลังทำงาน…', starting: 'กำลังเริ่ม…', preparing: 'กำลังเตรียมดาวน์โหลด',
+    finished: 'เสร็จแล้ว', savedOne: 'บันทึกไฟล์แล้ว', savedMany: 'บันทึกแล้ว {n} ไฟล์', andMore: ' และอีก {n} ไฟล์',
+    cancelled: 'ยกเลิกแล้ว', failed: 'ดาวน์โหลดไม่สำเร็จ', failedHint: 'ตรวจลิงก์ หรือลองอัปเดต yt-dlp แล้วลองใหม่',
+    remaining: 'เหลือ ', item: 'ไฟล์ ', switchLanguage: 'เปลี่ยนภาษา', folderMissing: 'ไม่พบโฟลเดอร์นี้',
     languageNotice: 'ตั้งภาษาเริ่มต้นจากประเทศ IP โดยประมาณผ่าน ipwho.is ไม่ใช้ GPS',
-    toggleTheme: 'สลับธีมสี', darkTheme: 'มืด', lightTheme: 'สว่าง',
-    details: 'รายละเอียดการทำงาน',
+    toggleTheme: 'สลับธีมสว่าง/มืด', details: 'รายละเอียดการทำงาน', showInFolder: 'แสดงในโฟลเดอร์',
+    trustLocal: 'ทำงานในเครื่องคุณ ไม่ต้องสมัครบัญชี', trustTools: 'ใช้ yt-dlp และ FFmpeg โอเพนซอร์ส',
+    trustFiles: 'ไฟล์บันทึกตรงลงโฟลเดอร์ที่คุณเลือก',
   },
   en: {
-    appTitle: 'FramePort', appKicker: 'Downloads, ready when you are', checking: 'Checking tools…',
-    notInstalled: 'Not installed', ffmpegReady: 'FFmpeg ready', noFfmpeg: 'FFmpeg missing',
+    checking: 'Checking tools…', notInstalled: 'Tools not installed', ready: 'Ready', missing: 'Missing',
     setupTitle: 'Set up for first use', setupDescription: 'Install the required tools once, then start downloading.',
+    setupNote: 'Downloaded from the official yt-dlp GitHub releases',
     ytdlpDescription: 'Downloader · ~18 MB', ffmpegDescription: 'Video and audio conversion · ~150 MB',
-    headline: 'Paste a link and choose a format', urlLabel: 'Video link',
-    urlPlaceholder: 'Paste a YouTube, TikTok, or Facebook link…', paste: 'Paste',
-    format: 'Format', video: 'MP4 video', audioOnly: 'Audio only',
-    resolution: 'Resolution', best: 'Best', available: 'available', smallFile: 'Smaller file',
-    videoHint: 'MP4 (H.264 + AAC) · VP9/AV1/HEVC sources are converted using the selected mode',
-    audioFormat: 'Audio format', smallPlay: 'Small file · plays anywhere',
-    lossless: 'Lossless', uncompressed: 'Uncompressed · large',
-    saveTo: 'Save to', choose: 'Choose…', open: 'Open',
-    encoderLabel: 'Video encoder', auto: 'Automatic · try available GPU',
-    encoderAutoDesc: 'Try a supported GPU encoder first', recommended: 'RECOMMENDED',
-    encoderNvidiaDesc: 'Encode with an NVIDIA graphics card', encoderIntelDesc: 'Intel integrated graphics or Arc',
+    headline: 'Paste a link and choose a format', subhead: 'Works with YouTube, TikTok, Facebook, X and many more sites',
+    urlLabel: 'Video link', urlPlaceholder: 'Paste a video link, e.g. https://youtu.be/…', paste: 'Paste', clear: 'Clear link',
+    format: 'Format', video: 'Video', audioOnly: 'Audio',
+    resolution: 'Resolution', best: 'Best', available: 'available', smallFile: 'Smaller',
+    audioFormat: 'Audio format', smallPlay: 'Plays anywhere', lossless: 'Lossless', uncompressed: 'Uncompressed',
+    outputLabel: 'Video output',
+    h264Tag: 'Edit-ready', h264Desc: 'Opens in Premiere, Resolve, CapCut and every player',
+    hevcTag: 'High quality', hevcDesc: 'Preserves picture detail for modern apps',
+    originalTitle: 'Original', originalTag: 'Fastest', originalDesc: 'No conversion, original quality (AV1/VP9)',
+    saveTo: 'Save to', choose: 'Change', open: 'Open folder',
+    encoderLabel: 'Video encoder', auto: 'Automatic', recommended: 'Recommended',
+    encoderAutoDesc: 'Picks the fastest GPU in this PC', autoUsing: 'Using ',
+    encoderNvidiaDesc: 'NVIDIA GeForce / RTX graphics', encoderIntelDesc: 'Intel integrated graphics or Arc',
     encoderAmdDesc: 'AMD integrated graphics or Radeon', encoderHybridDesc: 'Split work between the CPU and GPU',
-    hybrid: 'CPU decode + GPU encode', hybridBadge: 'HYBRID', encoderCpuDesc: 'Software encode with broad compatibility',
+    hybrid: 'CPU decode + GPU encode', hybridBadge: 'Hybrid', encoderCpuDesc: 'x264 / x265, works on any PC',
+    detected: 'Detected', notDetected: 'Not found',
     playlist: 'Download entire playlist',
-    start: 'Download', cancel: 'Cancel', update: 'Update yt-dlp',
-    updateTitle: 'Update yt-dlp', install: 'Install tools',
-    installRequired: 'Install yt-dlp and FFmpeg before downloading',
-    ready: 'Ready', missing: 'Missing', manualInstall: 'Install from package manager',
-    installing: 'Installing…', extracting: 'Extracting…',
+    start: 'Download', cancel: 'Cancel', update: 'Update yt-dlp', updateTitle: 'Update yt-dlp to the latest version',
+    install: 'Install tools', installRequired: 'Install yt-dlp and FFmpeg before downloading',
+    manualInstall: 'Install from package manager', installing: 'Installing…', extracting: 'Extracting…',
     installSuccess: 'Installation complete', installFailed: 'Installation failed: ',
-    updating: 'Updating…', updateFailed: 'Update failed: ',
-    clipboardFailed: 'Cannot read clipboard. Paste with Ctrl+V.',
-    urlRequired: 'Paste a link first', downloading: 'Downloading…',
-    starting: 'Starting…', finished: 'Complete ✓', cancelled: 'Cancelled',
-    failed: 'Failed', failedDetail: 'Download failed. See details below.',
-    remaining: 'Remaining ', switchLanguage: 'Switch language',
+    updating: 'Updating…', updated: 'yt-dlp updated', updateFailed: 'Update failed: ',
+    clipboardFailed: 'Cannot read the clipboard. Paste with Ctrl+V.',
+    urlRequired: 'Paste a video link first', urlInvalid: 'Links must start with http:// or https://',
+    downloading: 'Working…', starting: 'Starting…', preparing: 'Preparing download',
+    finished: 'Complete', savedOne: 'File saved', savedMany: '{n} files saved', andMore: ' and {n} more',
+    cancelled: 'Cancelled', failed: 'Download failed', failedHint: 'Check the link, or update yt-dlp and try again.',
+    remaining: 'ETA ', item: 'Item ', switchLanguage: 'Switch language', folderMissing: 'This folder no longer exists',
     languageNotice: 'Default language uses your estimated IP country via ipwho.is. No GPS location is requested.',
-    toggleTheme: 'Toggle color theme', darkTheme: 'Dark', lightTheme: 'Light',
-    details: 'Activity details',
+    toggleTheme: 'Toggle light/dark theme', details: 'Activity details', showInFolder: 'Show in folder',
+    trustLocal: 'Runs on your PC, no account needed', trustTools: 'Built on open-source yt-dlp and FFmpeg',
+    trustFiles: 'Files save straight to the folder you choose',
   },
 };
 
-const savedLanguage = localStorage.getItem('language');
+const savedLanguage = store.get('language');
 let languageWasChosen = savedLanguage === 'th' || savedLanguage === 'en';
 let lang = languageWasChosen ? savedLanguage : window.framePortLanguage.fallback();
-let theme = localStorage.getItem('theme') ||
+let theme = store.get('theme') ||
   (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-let folder = localStorage.getItem('folder');
+let folder = store.get('folder');
 let toolStatus = {};
+let detected = null;
+let lastFiles = [];
+let running = false;
 
-function tr(key) {
-  return words[lang][key] ?? words.th[key] ?? key;
-}
+const tr = (key, vars = {}) =>
+  (words[lang][key] ?? words.th[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+const cleanError = (error) => String(error?.message || error)
+  .replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+
+// ---------- theme + language ----------
 
 function applyTheme() {
   document.documentElement.dataset.theme = theme;
-  const dark = theme === 'dark';
-  $('themeBtn').textContent = tr(dark ? 'lightTheme' : 'darkTheme');
-  $('themeBtn').setAttribute('aria-pressed', String(dark));
+  $('themeBtn').setAttribute('aria-pressed', String(theme === 'dark'));
   $('themeBtn').setAttribute('aria-label', tr('toggleTheme'));
+  $('themeBtn').title = tr('toggleTheme');
+  api.setTheme(theme).catch(() => {});
 }
 
 function applyLanguage() {
   document.documentElement.lang = lang;
-  for (const el of document.querySelectorAll('[data-i18n]')) {
-    el.textContent = tr(el.dataset.i18n);
-  }
-  for (const el of document.querySelectorAll('[data-i18n-placeholder]')) {
-    el.placeholder = tr(el.dataset.i18nPlaceholder);
-  }
-  for (const el of document.querySelectorAll('[data-i18n-title]')) {
-    el.title = tr(el.dataset.i18nTitle);
-  }
-  for (const el of document.querySelectorAll('[data-i18n-aria]')) {
-    el.setAttribute('aria-label', tr(el.dataset.i18nAria));
-  }
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = tr(el.dataset.i18n);
+  for (const el of document.querySelectorAll('[data-i18n-placeholder]')) el.placeholder = tr(el.dataset.i18nPlaceholder);
+  for (const el of document.querySelectorAll('[data-i18n-title]')) el.title = tr(el.dataset.i18nTitle);
+  for (const el of document.querySelectorAll('[data-i18n-aria]')) el.setAttribute('aria-label', tr(el.dataset.i18nAria));
   $('langBtn').textContent = lang === 'th' ? 'EN' : 'ไทย';
   $('langBtn').setAttribute('aria-label', tr('switchLanguage'));
-  $('updateBtn').textContent = tr('update');
-  $('installBtn').textContent = tr('install');
+  if (running) $('goText').textContent = tr('downloading');
   applyTheme();
+  renderDetected();
   syncEncoderMenu();
   renderStatus();
 }
 
+$('langBtn').onclick = () => {
+  lang = lang === 'th' ? 'en' : 'th';
+  languageWasChosen = true;
+  store.set('language', lang);
+  applyLanguage();
+};
+
+$('themeBtn').onclick = () => {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  store.set('theme', theme);
+  applyTheme();
+};
+
+// ---------- encoder menu ----------
+
 const encoderOptions = [...document.querySelectorAll('.encoder-option')];
+const encoderNames = { nvenc: 'NVIDIA NVENC', qsv: 'Intel Quick Sync', amf: 'AMD AMF' };
+
+function renderDetected() {
+  for (const badge of document.querySelectorAll('[data-detect]')) {
+    if (!detected) continue;
+    const found = !!detected[badge.dataset.detect];
+    badge.textContent = tr(found ? 'detected' : 'notDetected');
+    badge.classList.toggle('found', found);
+  }
+}
 
 function syncEncoderMenu() {
   const selected = encoderOptions.find((option) => option.dataset.value === $('encoder').value) || encoderOptions[0];
   $('encoderValue').textContent = selected.querySelector('.encoder-option-title').textContent;
-  $('encoderDescription').textContent = selected.querySelector('.encoder-option-description').textContent;
-  for (const option of encoderOptions) {
-    const active = option === selected;
-    option.setAttribute('aria-selected', String(active));
-    option.querySelector('.encoder-check').textContent = active ? '✓' : '';
+  let description = selected.querySelector('.encoder-option-description').textContent;
+  if (selected.dataset.value === 'auto' && detected) {
+    const best = ['nvenc', 'qsv', 'amf'].find((id) => detected[id]);
+    description = tr('autoUsing') + (best ? encoderNames[best] : 'CPU');
   }
+  $('encoderDescription').textContent = description;
+  for (const option of encoderOptions) option.setAttribute('aria-selected', String(option === selected));
 }
 
 function closeEncoderMenu(returnFocus = false) {
@@ -146,6 +180,7 @@ function openEncoderMenu() {
 
 function chooseEncoder(option) {
   $('encoder').value = option.dataset.value;
+  store.set('encoder', option.dataset.value);
   syncEncoderMenu();
   closeEncoderMenu(true);
 }
@@ -171,7 +206,7 @@ for (const option of encoderOptions) {
     } else if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       chooseEncoder(option);
-    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
+    } else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
       event.preventDefault();
       const next = event.key === 'Home' ? 0 : event.key === 'End' ? encoderOptions.length - 1 :
         Math.max(0, Math.min(encoderOptions.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1)));
@@ -186,240 +221,358 @@ document.addEventListener('pointerdown', (event) => {
   if (!$('encoderRow').contains(event.target)) closeEncoderMenu();
 });
 
+// ---------- feedback ----------
+
 function toast(message) {
   $('toast').textContent = message;
   $('toast').classList.add('show');
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => $('toast').classList.remove('show'), 2500);
+  toast.timer = setTimeout(() => $('toast').classList.remove('show'), 2800);
 }
 
+const pendingLogs = [];
+let logFrame = 0;
+let logTotal = 0;
 function log(line, cls) {
-  const el = $('log');
-  el.classList.remove('hidden');
-  const row = document.createElement('div');
-  if (cls) row.className = cls;
-  else if (/ERROR|error:/i.test(line)) row.className = 'err';
-  row.textContent = line;
-  el.appendChild(row);
-  while (el.childElementCount > 300) el.firstElementChild.remove();
-  el.scrollTop = el.scrollHeight;
+  pendingLogs.push([line, cls]);
+  if (logFrame) return;
+  logFrame = requestAnimationFrame(() => {
+    const el = $('log');
+    const fragment = document.createDocumentFragment();
+    for (const [text, type] of pendingLogs.splice(0)) {
+      const row = document.createElement('div');
+      row.className = type || (/ERROR|error:/i.test(text) ? 'err' : '');
+      row.textContent = text;
+      fragment.appendChild(row);
+      logTotal++;
+    }
+    el.appendChild(fragment);
+    while (el.childElementCount > 300) el.firstElementChild.remove();
+    el.scrollTop = el.scrollHeight;
+    $('logCount').textContent = logTotal;
+    logFrame = 0;
+  });
 }
+api.onLog((line) => log(line));
+
+// ---------- tools ----------
 
 function setTool(id, ok, message) {
   const tool = $(id);
   tool.classList.toggle('done', ok);
-  tool.querySelector('.dot').className = 'dot ' + (ok ? 'ok' : 'err');
-  tool.querySelector('.tool-state').textContent = message ?? (ok ? tr('ready') : tr('missing'));
+  tool.querySelector('.tool-state').textContent = message ?? (ok ? '✓ ' + tr('ready') : tr('missing'));
 }
 
 function renderStatus() {
   const ready = !!(toolStatus.version && toolStatus.ffmpeg);
-  $('dot').className = 'dot ' + (ready ? 'ok' : 'err');
-  $('ver').textContent = toolStatus.version
-    ? `yt-dlp ${toolStatus.version} · ${toolStatus.ffmpeg ? tr('ffmpegReady') : tr('noFfmpeg')}`
+  const checked = 'version' in toolStatus;
+  $('dot').className = 'dot ' + (!checked ? '' : ready ? 'ok' : 'err');
+  $('ver').textContent = !checked ? tr('checking') : toolStatus.version
+    ? `${ready ? tr('ready') : tr('missing') + ' FFmpeg'} · yt-dlp ${toolStatus.version}`
     : tr('notInstalled');
+  if (toolStatus.appVersion) $('appVersion').textContent = 'v' + toolStatus.appVersion;
   $('updateBtn').classList.toggle('hidden', !toolStatus.version);
-  $('setup').classList.toggle('hidden', ready);
+  $('setup').classList.toggle('hidden', !checked || ready);
   $('main').classList.remove('hidden');
-  $('goBtn').disabled = !ready;
+  $('goBtn').disabled = !ready || running;
   $('goBtn').title = ready ? '' : tr('installRequired');
   setTool('t-ytdlp', !!toolStatus.version);
   setTool('t-ffmpeg', !!toolStatus.ffmpeg,
-    !toolStatus.ffmpeg && !toolStatus.canInstallFfmpeg ? tr('manualInstall') : undefined);
+    !toolStatus.ffmpeg && toolStatus.canInstallFfmpeg === false ? tr('manualInstall') : undefined);
+}
+
+function setFolder(value) {
+  folder = value;
+  $('folder').textContent = value;
+  $('folderBox').title = value;
 }
 
 async function refresh() {
   toolStatus = await api.status();
-  if (!folder) folder = toolStatus.downloads;
-  $('folder').textContent = folder;
-  $('folder').title = folder;
+  if (!folder) setFolder(toolStatus.downloads);
   renderStatus();
+  if (toolStatus.ffmpeg && !detected) {
+    detected = await api.encoders().catch(() => ({}));
+    renderDetected();
+    syncEncoderMenu();
+  }
 }
-
-$('langBtn').onclick = () => {
-  lang = lang === 'th' ? 'en' : 'th';
-  languageWasChosen = true;
-  localStorage.setItem('language', lang);
-  applyLanguage();
-};
-
-$('themeBtn').onclick = () => {
-  theme = theme === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('theme', theme);
-  applyTheme();
-};
 
 api.onInstallProgress(({ tag, pct, extracting }) => {
   const tool = $('t-' + tag);
-  tool.querySelector('.fill').style.width = pct + '%';
+  tool.querySelector('.fill').style.transform = `scaleX(${pct / 100})`;
   tool.querySelector('.tool-state').textContent = extracting ? tr('extracting') : pct.toFixed(0) + '%';
 });
 
 async function install(tag, fn) {
   const tool = $('t-' + tag);
-  tool.classList.add('busy');
+  tool.classList.add('busy', 'running');
   try {
     await fn();
   } finally {
-    tool.classList.remove('busy');
+    tool.classList.remove('busy', 'running');
   }
 }
 
 $('installBtn').onclick = async () => {
   const button = $('installBtn');
+  const label = button.querySelector('span');
   const taskLanguage = lang;
   button.disabled = true;
-  button.textContent = tr('installing');
+  label.textContent = tr('installing');
   try {
     if (!toolStatus.version) await install('ytdlp', () => api.installYtdlp(taskLanguage));
     if (!toolStatus.ffmpeg) await install('ffmpeg', () => api.installFfmpeg(taskLanguage));
     toast(tr('installSuccess'));
   } catch (error) {
-    toast(tr('installFailed') + error.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
+    toast(tr('installFailed') + cleanError(error));
   } finally {
     await refresh().catch(() => {});
     button.disabled = false;
-    button.textContent = tr('install');
+    label.textContent = tr('install');
   }
 };
 
 $('updateBtn').onclick = async () => {
   const button = $('updateBtn');
+  const label = button.querySelector('.label-text');
   button.disabled = true;
-  button.textContent = tr('updating');
+  button.classList.add('spin');
+  label.textContent = tr('updating');
   try {
-    log(await api.updateYtdlp());
+    log(await api.updateYtdlp(lang));
     await refresh();
+    toast(tr('updated'));
   } catch (error) {
-    toast(tr('updateFailed') + error.message);
+    toast(tr('updateFailed') + cleanError(error));
   } finally {
     button.disabled = false;
-    button.textContent = tr('update');
+    button.classList.remove('spin');
+    label.textContent = tr('update');
   }
 };
 
-document.querySelectorAll('input[name="kind"]').forEach((radio) => {
-  radio.addEventListener('change', () => {
-    const audio = picked('kind') === 'audio';
-    $('videoOpts').classList.toggle('hidden', audio);
-    $('audioOpts').classList.toggle('hidden', !audio);
-    $('encoderRow').classList.toggle('hidden', audio);
-  });
+// ---------- options (remembered between sessions) ----------
+
+function syncKind() {
+  const audio = picked('kind') === 'audio';
+  $('videoOpts').classList.toggle('hidden', audio);
+  $('audioOpts').classList.toggle('hidden', !audio);
+  $('outputOpts').classList.toggle('hidden', audio);
+  $('encoderRow').classList.toggle('hidden', audio || picked('out') === 'original');
+}
+
+for (const name of ['kind', 'vq', 'aq', 'out']) {
+  const saved = store.get('opt-' + name);
+  const input = saved && document.querySelector(`input[name=${name}][value="${CSS.escape(saved)}"]`);
+  if (input) input.checked = true;
+  document.querySelectorAll(`input[name=${name}]`).forEach((radio) => radio.addEventListener('change', () => {
+    store.set('opt-' + name, radio.value);
+    syncKind();
+  }));
+}
+const savedEncoder = store.get('encoder');
+if (encoderOptions.some((option) => option.dataset.value === savedEncoder)) $('encoder').value = savedEncoder;
+$('playlist').checked = store.get('playlist') === '1';
+$('playlist').addEventListener('change', () => store.set('playlist', $('playlist').checked ? '1' : '0'));
+syncKind();
+
+// ---------- link field ----------
+
+function setUrl(value) {
+  $('url').value = value.trim();
+  $('clearBtn').classList.toggle('hidden', !$('url').value);
+  showUrlError('');
+}
+
+function showUrlError(message) {
+  $('urlError').textContent = message;
+  $('urlError').classList.toggle('hidden', !message);
+  $('urlField').classList.remove('invalid');
+  if (message) requestAnimationFrame(() => $('urlField').classList.add('invalid'));
+}
+
+$('url').addEventListener('input', () => setUrl($('url').value));
+$('url').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !$('goBtn').disabled) $('goBtn').click();
 });
+$('clearBtn').onclick = () => { setUrl(''); $('url').focus(); };
 
 $('pasteBtn').onclick = async () => {
   try {
-    $('url').value = (await navigator.clipboard.readText()).trim();
+    setUrl(await navigator.clipboard.readText());
     $('url').focus();
   } catch {
     toast(tr('clipboardFailed'));
   }
 };
 
+// วางลิงก์ได้จากทุกที่ในหน้าต่าง และลากลิงก์มาวางได้
+document.addEventListener('paste', (event) => {
+  if (event.target instanceof HTMLInputElement) return;
+  const text = event.clipboardData?.getData('text') || '';
+  if (!text.trim()) return;
+  event.preventDefault();
+  setUrl(text);
+  $('url').focus();
+});
+document.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  document.body.classList.add('dragging');
+});
+document.addEventListener('dragleave', (event) => {
+  if (!event.relatedTarget) document.body.classList.remove('dragging');
+});
+document.addEventListener('drop', (event) => {
+  event.preventDefault();
+  document.body.classList.remove('dragging');
+  const text = event.dataTransfer?.getData('text/uri-list') || event.dataTransfer?.getData('text') || '';
+  const link = text.split(/\r?\n/).find((line) => line && !line.startsWith('#'));
+  if (link) setUrl(link);
+});
+
 $('pickBtn').onclick = async () => {
   const selected = await api.pickFolder();
   if (!selected) return;
-  folder = selected;
-  localStorage.setItem('folder', selected);
-  $('folder').textContent = selected;
-  $('folder').title = selected;
+  setFolder(selected);
+  store.set('folder', selected);
 };
 
-$('openBtn').onclick = () => api.openFolder(folder);
+$('openBtn').onclick = async () => {
+  if (await api.openFolder(folder) === 'not-found') toast(tr('folderMissing'));
+};
 
-$('url').addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') $('goBtn').click();
-});
+// ---------- progress ----------
 
-api.onProgress(({ pct, speed, eta, label }) => {
-  if (label) $('phase').textContent = label;
-  $('fill').style.width = pct + '%';
-  $('pct').textContent = pct.toFixed(1) + '%';
-  $('speed').textContent = speed && speed !== 'Unknown' ? speed : '';
-  $('eta').textContent = eta && eta !== 'Unknown' ? tr('remaining') + eta : '';
-});
+const jobs = { download: $('job-download'), convert: $('job-convert') };
 
-const pendingLogs = [];
-let logFrame = 0;
-api.onLog((line) => {
-  pendingLogs.push(line);
-  if (logFrame) return;
-  logFrame = requestAnimationFrame(() => {
-    const el = $('log');
-    const fragment = document.createDocumentFragment();
-    for (const text of pendingLogs.splice(0)) {
-      const row = document.createElement('div');
-      if (/ERROR|error:/i.test(text)) row.className = 'err';
-      row.textContent = text;
-      fragment.appendChild(row);
-    }
-    el.classList.remove('hidden');
-    el.appendChild(fragment);
-    while (el.childElementCount > 300) el.firstElementChild.remove();
-    el.scrollTop = el.scrollHeight;
-    logFrame = 0;
-  });
-});
+function resetJobs() {
+  for (const job of Object.values(jobs)) {
+    job.className = 'job hidden';
+    job.querySelector('.fill').style.transform = '';
+    for (const field of job.querySelectorAll('.job-label, .job-name, .job-speed, .job-eta, .job-item')) field.textContent = '';
+    job.querySelector('.job-pct').textContent = '';
+  }
+  $('result').classList.add('hidden');
+}
+
+function setJob(stage, { pct = 0, speed, eta, label, item, name }) {
+  const job = jobs[stage];
+  job.classList.remove('hidden', 'done', 'failed');
+  job.classList.add('running');
+  job.classList.toggle('indeterminate', !(pct > 0));
+  if (label) job.querySelector('.job-label').textContent = label;
+  if (name !== undefined) job.querySelector('.job-name').textContent = name;
+  job.querySelector('.fill').style.transform = pct > 0 ? `scaleX(${Math.min(pct, 100) / 100})` : '';
+  job.querySelector('.job-pct').textContent = pct > 0 ? pct.toFixed(1) + '%' : '';
+  const known = (value) => value && !/^(Unknown|NA|N\/A)$/i.test(value);
+  job.querySelector('.job-speed').textContent = known(speed) ? speed : '';
+  job.querySelector('.job-eta').textContent = known(eta) ? tr('remaining') + eta : '';
+  job.querySelector('.job-item').textContent = item ? tr('item') + item : '';
+}
+
+function finishJobs(ok) {
+  for (const job of Object.values(jobs)) {
+    if (job.classList.contains('hidden')) continue;
+    job.classList.remove('running', 'indeterminate');
+    job.classList.add(ok ? 'done' : 'failed');
+    if (ok) job.querySelector('.job-pct').textContent = '100%';
+    job.querySelector('.job-speed').textContent = job.querySelector('.job-eta').textContent = '';
+  }
+}
+
+function showResult(type, title, detail) {
+  const result = $('result');
+  result.classList.remove('hidden', 'error');
+  result.classList.toggle('error', type === 'error');
+  $('resultSvg').innerHTML = type === 'error' ? '<path d="M12 7v6M12 16.5v.5"/>' : '<path d="m5 12.5 4.5 4.5L19 7.5"/>';
+  $('resultTitle').textContent = title;
+  $('resultDetail').textContent = detail;
+  $('showBtn').classList.toggle('hidden', type !== 'ok' || !lastFiles.length);
+  // เริ่มอนิเมชันใหม่ทุกครั้ง
+  result.style.animation = 'none';
+  void result.offsetWidth;
+  result.style.animation = '';
+  result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+api.onProgress((data) => setJob(data.stage || 'download', data));
+
+$('showBtn').onclick = () => api.showFile(lastFiles[lastFiles.length - 1]);
+
+function setRunning(value) {
+  running = value;
+  $('goBtn').classList.toggle('working', value);
+  $('goText').textContent = tr(value ? 'downloading' : 'start');
+  $('cancelBtn').classList.toggle('hidden', !value);
+  $('cancelBtn').disabled = false;
+  renderStatus();
+}
 
 $('goBtn').onclick = async () => {
   const url = $('url').value.trim();
-  if (!url) return toast(tr('urlRequired'));
+  if (!url) return showUrlError(tr('urlRequired'));
+  if (!/^https?:\/\/\S+$/i.test(url)) return showUrlError(tr('urlInvalid'));
+  showUrlError('');
 
-  const button = $('goBtn');
   const taskLanguage = lang;
-  button.disabled = true;
-  button.textContent = tr('downloading');
-  $('cancelBtn').classList.remove('hidden');
-  $('progress').classList.add('show');
-  $('fill').style.width = '0%';
-  $('pct').textContent = '0%';
-  $('speed').textContent = $('eta').textContent = '';
-  $('phase').textContent = tr('starting');
-  $('log').innerHTML = '';
+  setRunning(true);
+  resetJobs();
+  $('progress').classList.remove('hidden');
+  requestAnimationFrame(() => $('progress').scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+  setJob('download', { label: tr('preparing') });
+  $('log').replaceChildren();
+  logTotal = 0;
+  $('logCount').textContent = '0';
 
   const kind = picked('kind');
   const quality = kind === 'audio' ? picked('aq') : picked('vq');
   try {
-    const code = await api.download({
+    const { code, files, error } = await api.download({
       url, kind, quality, folder, playlist: $('playlist').checked,
-      encoder: $('encoder').value, language: taskLanguage,
+      encoder: $('encoder').value, output: picked('out'), language: taskLanguage,
     });
+    lastFiles = files || [];
+    const names = lastFiles.map((file) => file.split(/[\\/]/).pop());
     if (code === 0) {
-      $('fill').style.width = '100%';
-      $('pct').textContent = '100%';
-      $('phase').textContent = tr('finished');
+      finishJobs(true);
+      const more = names.length > 1 ? tr('andMore', { n: names.length - 1 }) : '';
+      showResult('ok', names.length > 1 ? tr('savedMany', { n: names.length }) : tr('savedOne'), (names[0] || '') + more);
       log(tr('finished'), 'ok');
-      toast(tr('finished'));
     } else if (code === -1) {
-      $('phase').textContent = tr('cancelled');
+      finishJobs(false);
+      showResult('error', tr('cancelled'), '');
     } else {
-      $('phase').textContent = tr('failed');
-      toast(tr('failedDetail'));
+      finishJobs(false);
+      showResult('error', tr('failed'), error || tr('failedHint'));
     }
   } catch (error) {
-    $('phase').textContent = tr('failed');
-    log(error.message, 'err');
+    finishJobs(false);
+    showResult('error', tr('failed'), cleanError(error));
+    log(cleanError(error), 'err');
   } finally {
-    button.disabled = false;
-    button.textContent = tr('start');
-    $('cancelBtn').classList.add('hidden');
+    setRunning(false);
   }
 };
 
 $('cancelBtn').onclick = () => {
+  $('cancelBtn').disabled = true;
   api.cancel();
-  toast(tr('cancelled'));
 };
 
+// ---------- start ----------
+
+if (folder) setFolder(folder);
 applyLanguage();
 if (!languageWasChosen) {
-  window.framePortLanguage.detect().then((detected) => {
-    if (languageWasChosen || detected === lang) return;
-    lang = detected;
+  window.framePortLanguage.detect().then((detectedLanguage) => {
+    if (languageWasChosen || detectedLanguage === lang) return;
+    lang = detectedLanguage;
     applyLanguage();
   }).catch(() => {});
 }
 refresh().catch((error) => {
-  $('ver').textContent = error.message;
-  $('dot').className = 'dot err';
+  toolStatus = { version: null, ffmpeg: false };
+  renderStatus();
+  $('ver').textContent = cleanError(error);
 });

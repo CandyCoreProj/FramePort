@@ -34,7 +34,7 @@ FramePort ดาวน์โหลดเครื่องมือเหล่�
 - รองรับ NVIDIA NVENC/CUDA, Intel Quick Sync และ AMD AMF เมื่ออุปกรณ์และไดรเวอร์รองรับ
 - สลับใช้ CPU ได้เมื่อ GPU encoder ใช้ไม่ได้
 - ดาวน์โหลดทั้งเพลย์ลิสต์ได้เมื่อเลือกตัวเลือกนี้
-- บันทึกไฟล์ด้วยชื่อคลิป โดยไม่เพิ่มข้อความต่อท้าย
+- ใช้ชื่อคลิปเป็นชื่อไฟล์ และเพิ่ม `(Version 2)`, `(Version 3)` เมื่อมีไฟล์ชื่อเดิมอยู่แล้ว
 - ใช้งานหน้าจอได้ทั้งภาษาไทยและภาษาอังกฤษ พร้อมธีมสว่างและมืด
 - ตั้งภาษาเริ่มต้นตามประเทศของ IP เป็นไทยหรืออังกฤษ และจำภาษาที่ผู้ใช้เลือกเอง
 
@@ -148,7 +148,7 @@ npm run dist
 
 The generated files are saved to `dist/`. This folder is ignored by Git so large installers stay out of the source history.
 
-Check automatic language selection with `npm run test:language`.
+Run the focused checks with `npm run test:language`, `npm run test:updater`, and `npm run test:download-path`.
 
 ### Project structure
 
