@@ -6,8 +6,13 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://ipwho.is; style-src 'self' 'unsafe-inline'">
   <title>FramePort</title>
   <style>
+    @font-face { font-family: "Anuphan"; font-weight: 100 700; font-display: swap; src: url(fonts/anuphan-thai-wght-normal.woff2) format("woff2"); unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+    @font-face { font-family: "Anuphan"; font-weight: 100 700; font-display: swap; src: url(fonts/anuphan-vietnamese-wght-normal.woff2) format("woff2"); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+    @font-face { font-family: "Anuphan"; font-weight: 100 700; font-display: swap; src: url(fonts/anuphan-latin-ext-wght-normal.woff2) format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+    @font-face { font-family: "Anuphan"; font-weight: 100 700; font-display: swap; src: url(fonts/anuphan-latin-wght-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
     :root {
       color-scheme: light;
+      --text-meta: 12px; --text-label: 13px; --text-control: 14px; --text-body: 15px;
       --page: #f4efe9; --surface: #fff; --field: #eae2d8;
       --line: #e0d6ca; --field-line: #e0d6ca; --ink: #1c1917;
       --muted: #5c554f; --accent: #a8441a; --accent-soft: #ede3d6;
@@ -30,7 +35,7 @@
     body {
       max-width: 980px; min-height: 100vh; margin: 0 auto; padding: 12px 22px 14px;
       background: var(--page); color: var(--ink);
-      font: 14px/1.4 "Leelawadee UI", "Segoe UI Variable Text", "Noto Sans Thai", "Segoe UI", sans-serif;
+      font: var(--text-body)/1.5 "Anuphan", "Leelawadee UI", "Segoe UI", sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     button, input, select { font: inherit; }
@@ -45,8 +50,8 @@
     }
     .logo { width: 38px; height: 38px; flex: none; display: block; border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius: 12px; box-shadow: 0 3px 8px rgba(28, 25, 23, .12); }
     .identity { min-width: 0; }
-    h1 { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.01em; }
-    .sub { display: flex; align-items: center; gap: 7px; margin-top: 2px; color: var(--muted); font-size: 11px; }
+    h1 { margin: 0; font-size: 17px; line-height: 1.3; font-weight: 600; }
+    .sub { display: flex; align-items: center; gap: 7px; margin-top: 1px; color: var(--muted); font-size: var(--text-meta); }
     .dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--muted); }
     .dot.ok { background: var(--ok); }
     .dot.err { background: var(--error); }
@@ -54,7 +59,7 @@
     .header-controls { display: flex; align-items: center; gap: 6px; }
     .header-controls button {
       min-height: 32px; padding: 4px 9px; border: 1px solid var(--field-line);
-      border-radius: 999px; background: var(--surface); font-size: 12px;
+      border-radius: 999px; background: var(--surface); font-size: var(--text-label);
     }
     #updateBtn { color: var(--accent); }
     #themeBtn { width: 32px; padding: 0; display: grid; place-items: center; }
@@ -67,23 +72,21 @@
       padding: 14px; border: 1px solid var(--line); border-radius: var(--panel-radius);
       background: var(--surface); box-shadow: var(--panel-shadow);
     }
-    .headline { font-size: 18px; line-height: 1.2; font-weight: 750; letter-spacing: -.02em; }
-    .kicker { display: flex; align-items: center; gap: 7px; margin-bottom: -6px; color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-    .kicker::before { width: 14px; height: 2px; content: ""; border-radius: 2px; background: var(--action); }
-    .label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .headline { font-size: 22px; line-height: 1.3; font-weight: 600; }
+    .label { display: block; margin-bottom: 6px; color: var(--muted); font-size: var(--text-label); font-weight: 500; line-height: 1.35; }
     .url-label { margin-bottom: -5px; }
     .url-row { display: flex; gap: 7px; align-items: stretch; }
     input[type="text"] {
-      width: 100%; min-width: 0; height: 40px; padding: 0 11px;
+      width: 100%; min-width: 0; height: 42px; padding: 0 14px;
       border: 1px solid var(--field-line); border-radius: var(--control-radius);
-      background: var(--field); color: var(--ink); font-size: 13px;
+      background: var(--field); color: var(--ink); font-size: var(--text-body);
       outline: none; user-select: text;
     }
     input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent); }
     input::placeholder { color: var(--muted); }
     .compact-button {
-      min-height: 36px; padding: 5px 11px; border: 1px solid var(--field-line);
-      border-radius: var(--control-radius); background: var(--field); font-size: 12px;
+      min-height: 38px; padding: 5px 14px; border: 1px solid var(--field-line);
+      border-radius: var(--control-radius); background: var(--field); font-size: var(--text-control);
       transition: background .14s, border-color .14s, transform .1s;
     }
     .compact-button:hover { border-color: var(--muted); background: var(--surface); }
@@ -91,9 +94,9 @@
 
     .options-grid { display: grid; grid-template-columns: minmax(155px, .8fr) minmax(0, 2.5fr); gap: 10px; align-items: start; }
     .output-options { grid-column: 1 / -1; }
-    .output-options .seg label { min-height: 58px; align-items: flex-start; padding-inline: 10px; text-align: left; }
-    .output-options .seg label strong { font-size: 12px; }
-    .output-options .seg label small { font-size: 9px; }
+    .output-options .seg label { min-height: 64px; align-items: flex-start; padding: 8px 12px; text-align: left; }
+    .output-options .seg label strong { font-size: var(--text-control); font-weight: 600; }
+    .output-options .seg label small { font-size: var(--text-meta); }
     .tabs {
       width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
       padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--field);
@@ -101,7 +104,7 @@
     .option-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
     .tabs label {
       padding: 7px 4px; border-radius: 999px; color: var(--muted);
-      text-align: center; font-size: 12px; line-height: 1.25; cursor: pointer;
+      text-align: center; font-size: var(--text-control); line-height: 1.35; cursor: pointer;
     }
     .tabs .option-input:checked + label { background: var(--surface); color: var(--ink); }
     .option-input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; position: relative; z-index: 1; }
@@ -109,43 +112,43 @@
     .seg6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     .seg3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .seg label {
-      min-width: 0; min-height: 44px; display: flex; flex-direction: column;
+      min-width: 0; min-height: 50px; display: flex; flex-direction: column;
       justify-content: center; padding: 5px 2px; border: 1px solid var(--line);
       border-radius: 14px; background: var(--field); color: var(--ink);
-      text-align: center; font-size: 12px; line-height: 1.2; font-weight: 700; cursor: pointer;
+      text-align: center; font-size: var(--text-control); line-height: 1.3; font-weight: 600; cursor: pointer;
     }
     .seg label:hover { border-color: var(--muted); }
-    .seg label small { margin-top: 2px; color: var(--muted); font-size: 10px; font-weight: 400; }
+    .seg label small { margin-top: 1px; color: var(--muted); font-size: var(--text-meta); font-weight: 400; line-height: 1.35; }
     .seg .option-input:checked + label {
       border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
       box-shadow: inset 0 0 0 1px var(--accent);
     }
     .seg .option-input:checked + label small { color: var(--accent); }
-    .hint { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+    .hint { margin-top: 6px; color: var(--muted); font-size: var(--text-meta); line-height: 1.45; }
     .url-row.invalid input { border-color: var(--error); box-shadow: 0 0 0 2px color-mix(in srgb, var(--error) 20%, transparent); }
-    .url-error { margin: -3px 0 0; color: var(--error); font-size: 11px; }
+    .url-error { margin: -3px 0 0; color: var(--error); font-size: var(--text-label); }
 
     .output-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(230px, 1fr); gap: 12px; align-items: end; padding-top: 10px; border-top: 1px solid var(--line); }
     .folder-block, .encoder-row { min-width: 0; }
     .folder-row { display: flex; align-items: center; gap: 6px; }
     .folder {
-      min-width: 0; min-height: 36px; flex: 1; overflow: hidden;
-      padding: 8px 10px; border: 1px solid var(--field-line); border-radius: var(--control-radius);
-      background: var(--field); color: var(--ink); font-size: 12px;
+      min-width: 0; min-height: 38px; flex: 1; overflow: hidden;
+      padding: 8px 14px; border: 1px solid var(--field-line); border-radius: var(--control-radius);
+      background: var(--field); color: var(--ink); font-size: var(--text-control);
       text-overflow: ellipsis; white-space: nowrap; user-select: text;
     }
     .encoder-row { position: relative; }
     .encoder-native { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .encoder-trigger {
-      width: 100%; min-height: 42px; display: flex; align-items: center; gap: 10px;
-      padding: 6px 11px; border: 1px solid var(--field-line); border-radius: 15px;
+      width: 100%; min-height: 46px; display: flex; align-items: center; gap: 10px;
+      padding: 6px 14px; border: 1px solid var(--field-line); border-radius: 15px;
       background: var(--field); color: var(--ink); text-align: left; white-space: normal;
       transition: border-color .14s, background .14s, box-shadow .14s;
     }
     .encoder-trigger:hover, .encoder-row.open .encoder-trigger { border-color: var(--accent); background: var(--surface); }
     .encoder-copy { min-width: 0; flex: 1; }
-    .encoder-value { display: block; overflow: hidden; font-size: 12px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
-    .encoder-description { display: block; overflow: hidden; margin-top: 1px; color: var(--muted); font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+    .encoder-value { display: block; overflow: hidden; font-size: var(--text-control); font-weight: 600; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+    .encoder-description { display: block; overflow: hidden; color: var(--muted); font-size: var(--text-meta); line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
     .encoder-chevron { width: 8px; height: 8px; flex: none; margin: -4px 2px 0 0; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg); transition: transform .14s; }
     .encoder-row.open .encoder-chevron { margin-top: 4px; transform: rotate(225deg); }
     .encoder-menu {
@@ -155,19 +158,19 @@
       background: var(--surface); box-shadow: 0 12px 30px rgba(28, 25, 23, .2);
     }
     .encoder-option {
-      width: 100%; min-height: 40px; display: flex; align-items: center; gap: 8px;
-      padding: 6px 8px; border: 1px solid transparent; border-radius: 10px;
+      width: 100%; min-height: 48px; display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border: 1px solid transparent; border-radius: 10px;
       background: transparent; color: var(--ink); text-align: left; white-space: normal;
     }
     .encoder-option:hover, .encoder-option[aria-selected="true"] { border-color: var(--line); background: var(--accent-soft); }
     .encoder-option-copy { min-width: 0; flex: 1; }
-    .encoder-option-title { display: block; font-size: 11px; font-weight: 750; line-height: 1.25; }
-    .encoder-option-description { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; line-height: 1.25; }
-    .encoder-badge { flex: none; padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .04em; }
+    .encoder-option-title { display: block; font-size: var(--text-control); font-weight: 600; line-height: 1.35; }
+    .encoder-option-description { display: block; margin-top: 1px; color: var(--muted); font-size: var(--text-meta); line-height: 1.35; }
+    .encoder-badge { flex: none; padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 11px; font-weight: 500; line-height: 1.2; }
     .encoder-option[aria-selected="true"] .encoder-badge { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); color: var(--accent); }
-    .encoder-check { width: 15px; flex: none; color: var(--accent); font-size: 13px; font-weight: 800; text-align: center; }
-    .check { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; color: var(--ink); font-size: 12px; cursor: pointer; }
-    .check input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); }
+    .encoder-check { width: 16px; flex: none; color: var(--accent); font-size: var(--text-control); font-weight: 600; text-align: center; }
+    .check { min-height: 36px; display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-size: var(--text-control); cursor: pointer; }
+    .check input { width: 17px; height: 17px; margin: 0; accent-color: var(--accent); }
     .final-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; }
     .progress-wrap { display: none; grid-column: 1 / -1; grid-row: 2; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
     .progress-wrap.show { display: block; }
@@ -176,37 +179,38 @@
     .result-icon { width: 20px; height: 20px; flex: none; color: var(--ok); }
     .result.error .result-icon { color: var(--error); }
     .result-copy { min-width: 0; flex: 1; }
-    .result-title { font-size: 12px; font-weight: 750; }
-    .result-detail { overflow-wrap: anywhere; color: var(--muted); font-size: 11px; }
+    .result-title { font-size: var(--text-control); font-weight: 600; }
+    .result-detail { overflow-wrap: anywhere; color: var(--muted); font-size: var(--text-meta); line-height: 1.45; }
     .bar { height: 5px; overflow: hidden; border-radius: 99px; background: var(--line); }
     .fill { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .14s linear; }
-    .phase { margin-bottom: 4px; font-size: 12px; font-weight: 700; }
-    .stats { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
-    .stats b { color: var(--ink); }
+    .phase { margin-bottom: 6px; font-size: var(--text-control); font-weight: 600; }
+    .stats { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; color: var(--muted); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
+    .stats b { color: var(--ink); font-weight: 600; }
     .primary {
-      min-width: 150px; min-height: 38px; padding: 8px 14px; border: 0;
+      min-width: 170px; min-height: 42px; padding: 8px 20px; border: 0;
       border-radius: 999px; background: var(--action); color: var(--on-action);
-      font-size: 13px; font-weight: 700; white-space: nowrap;
+      font-size: var(--text-body); font-weight: 600; white-space: nowrap;
     }
     .primary:hover { background: var(--action-hover); }
-    .cancel { min-height: 38px; border-color: var(--error); color: var(--error); }
+    .cancel { min-height: 42px; border-color: var(--error); color: var(--error); }
 
-    .setup { gap: 5px; padding: 9px; }
-    .setup h2 { margin: 0; font-size: 14px; }
-    .setup-description { margin: 0; color: var(--muted); font-size: 11px; }
-    .tools { display: flex; flex-direction: column; gap: 2px; }
-    .tool { display: flex; flex-direction: column; gap: 3px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
-    .tool-head { display: flex; align-items: center; gap: 7px; font-size: 11px; }
-    .tool-head small, .tool-state { color: var(--muted); font-size: 9px; }
+    .setup { gap: 6px; padding: 12px 14px; }
+    .setup h2 { margin: 0; font-size: 16px; line-height: 1.35; font-weight: 600; }
+    .setup-description { margin: 0; color: var(--muted); font-size: var(--text-label); }
+    .tools { display: flex; flex-direction: column; gap: 4px; }
+    .tool { display: flex; flex-direction: column; gap: 3px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+    .tool-head { display: flex; align-items: center; gap: 8px; font-size: var(--text-control); }
+    .tool-head b { font-weight: 600; }
+    .tool-head small, .tool-state { color: var(--muted); font-size: var(--text-meta); }
     .tool-state { margin-left: auto; text-align: right; }
     .tool .bar { height: 3px; display: none; }
     .tool.busy .bar { display: block; }
     .tool.done .tool-state { color: var(--ok); }
-    #installBtn { min-height: 32px; padding: 6px 12px; font-size: 12px; }
-    .log { max-height: 120px; overflow-y: auto; margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); color: var(--muted); font: 10px/1.5 Consolas, monospace; user-select: text; white-space: pre-wrap; overflow-wrap: anywhere; }
+    #installBtn { min-height: 40px; padding: 6px 14px; font-size: var(--text-body); }
+    .log { max-height: 120px; overflow-y: auto; margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); color: var(--muted); font: 12px/1.5 Consolas, monospace; user-select: text; white-space: pre-wrap; overflow-wrap: anywhere; }
     .log .err { color: var(--error); }
     .log .ok { color: var(--ok); }
-    .toast { position: fixed; z-index: 10; left: 50%; bottom: 12px; max-width: calc(100vw - 24px); padding: 8px 12px; border-radius: 12px; background: var(--ink); color: var(--page); font-size: 12px; opacity: 0; pointer-events: none; transform: translate(-50%, 8px); transition: opacity .16s, transform .16s; }
+    .toast { position: fixed; z-index: 10; left: 50%; bottom: 12px; max-width: calc(100vw - 24px); padding: 8px 12px; border-radius: 12px; background: var(--ink); color: var(--page); font-size: var(--text-control); opacity: 0; pointer-events: none; transform: translate(-50%, 8px); transition: opacity .16s, transform .16s; }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
     @media (max-width: 620px) {
@@ -216,7 +220,7 @@
       .options-grid { grid-template-columns: minmax(128px, .75fr) minmax(0, 2fr); gap: 7px; }
       .output-grid { grid-template-columns: minmax(0, 1.3fr) minmax(185px, 1fr); gap: 8px; }
       .seg { gap: 3px; }
-      .seg label { font-size: 11px; }
+      .seg label { font-size: var(--text-label); }
     }
     @media (max-width: 460px) {
       .topbar { gap: 7px; }
@@ -268,7 +272,6 @@
   </section>
 
   <main class="panel hidden" id="main">
-    <div class="kicker" data-i18n="appKicker">ดาวน์โหลดและแปลงไฟล์</div>
     <div class="headline" data-i18n="headline">วางลิงก์ แล้วเลือกไฟล์</div>
     <label class="label url-label" for="url" data-i18n="urlLabel">ลิงก์วิดีโอ</label>
       <div class="url-row" id="urlField" aria-describedby="urlError">

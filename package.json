@@ -30,6 +30,8 @@
       "index.html",
       "renderer.js",
       "docs/language.js",
+      "fonts/*.woff2",
+      "fonts/OFL.txt",
       "build/icon.svg"
     ],
     "directories": {
