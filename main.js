@@ -89,6 +89,8 @@ function createWindow() {
 let appUpdates;
 app.whenReady().then(() => {
   createWindow();
+  // ทดสอบ GPU ไปพร้อมกับตอนหน้าจอโหลด ผลถูกเก็บใน encoderSupport ให้หน้าจอเรียกใช้ได้ทันที
+  detectEncoders().catch(() => {});
   appUpdates = startAppUpdates(send);
 });
 
@@ -121,12 +123,23 @@ async function fetchTo(url, dest, tag, language = 'th') {
   }
 }
 
+// yt-dlp.exe แตกตัวเองทุกครั้งที่รัน (~0.8 วินาที) จึงจำเวอร์ชันไว้ตามขนาดและเวลาแก้ไขไฟล์
+// อัปเดตแล้วไฟล์เปลี่ยน ค่าที่จำไว้จะถูกอ่านใหม่เอง
+const versionCache = () => path.join(binDir(), 'yt-dlp-version.json');
+async function ytdlpVersion() {
+  const bin = local('yt-dlp');
+  const stat = await fs.promises.stat(bin).catch(() => null);
+  if (!stat) return capture('yt-dlp', ['--version']).then((output) => output.trim()).catch(() => null);
+  const key = `${stat.size}:${stat.mtimeMs}`;
+  const cached = await fs.promises.readFile(versionCache(), 'utf8').then(JSON.parse).catch(() => null);
+  if (cached?.key === key && cached.version) return cached.version;
+  const version = await capture(bin, ['--version']).then((output) => output.trim()).catch(() => null);
+  if (version) await fs.promises.writeFile(versionCache(), JSON.stringify({ key, version })).catch(() => {});
+  return version;
+}
+
 ipcMain.handle('status', async () => {
-  const [version, ffmpeg] = await Promise.all([
-    capture(fs.existsSync(local('yt-dlp')) ? local('yt-dlp') : 'yt-dlp', ['--version'])
-      .then((output) => output.trim()).catch(() => null),
-    findFfmpeg(),
-  ]);
+  const [version, ffmpeg] = await Promise.all([ytdlpVersion(), findFfmpeg()]);
   return {
     version, ffmpeg: !!ffmpeg, canInstallFfmpeg: WIN,
     downloads: app.getPath('downloads'), appVersion: app.getVersion(),
@@ -268,12 +281,14 @@ function encoderVariant(enc, target, ff) {
   return encoderSupport.get(key);
 }
 
-ipcMain.handle('encoders', async () => {
+async function detectEncoders() {
   const ff = await findFfmpeg();
   if (!ff) return {};
   const found = await Promise.all(ENCODERS.map(async (enc) => [enc.id, await encoderVariant(enc, 'h264', ff) >= 0]));
   return Object.fromEntries(found);
-});
+}
+
+ipcMain.handle('encoders', detectEncoders);
 
 function encoderOrder(choice) {
   if (choice === 'cpu') return [CPU];
