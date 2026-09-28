@@ -85,6 +85,8 @@ npm run dist
 
 FramePort ใช้ [yt-dlp](https://github.com/yt-dlp/yt-dlp) และ [FFmpeg](https://ffmpeg.org/) ซึ่งดาวน์โหลดเมื่อติดตั้งเครื่องมือครั้งแรก โปรดปฏิบัติตามข้อกำหนดของเว็บไซต์และดาวน์โหลดเฉพาะเนื้อหาที่คุณมีสิทธิ์ใช้งาน
 
+ผู้พัฒนาไม่มีส่วนรับผิดชอบต่อการนำซอฟต์แวร์นี้ไปใช้ในทางที่ผิดกฎหมายหรือละเมิดลิขสิทธิ์ การใช้งานทั้งหมดถือเป็นความรับผิดชอบและดุลยพินิจของผู้ใช้แต่เพียงผู้เดียว
+
 ภาษาเริ่มต้นตรวจ country code ของ IP โดยประมาณผ่าน [ipwho.is](https://ipwhois.io/) และแคชรหัสประเทศไว้ในเครื่อง 24 ชั่วโมง บริการจะได้รับ public IP เพื่อระบุประเทศเท่านั้น ไม่ขอตำแหน่ง GPS หากตรวจไม่ได้จะใช้ภาษาอุปกรณ์หรือเขตเวลาแทน ผู้ใช้ยังเปลี่ยนภาษาเองได้
 
 ---
@@ -166,5 +168,7 @@ Run the focused checks with `npm run test:language`, `npm run test:updater`, `np
 ### Note
 
 FramePort uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [FFmpeg](https://ffmpeg.org/), which are downloaded when the tools are first installed. Follow the relevant website terms and only download content you have permission to use.
+
+The developer is not responsible for any misuse, illegal actions, or copyright infringement committed by the user. All use of this software is at your own discretion.
 
 The default language checks the estimated IP country code through [ipwho.is](https://ipwhois.io/) and caches the country code locally for 24 hours. The service receives the public IP to identify the country; FramePort does not request GPS location. If the lookup fails, the app uses the device language or timezone. Users can still choose a language manually.
