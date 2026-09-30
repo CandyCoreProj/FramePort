@@ -2,6 +2,10 @@ name: Build macOS
 
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: macOS runner (macos-15-intel when arm64 runners are busy)
+        default: macos-latest
   push:
     tags:
       - "v*"
@@ -11,7 +15,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ${{ inputs.runner || 'macos-latest' }}
     steps:
       - name: Check out source
         uses: actions/checkout@v6
