@@ -1,7 +1,7 @@
 {
   "name": "frameport",
   "productName": "FramePort",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "FramePort — reliable video downloads and edit-ready conversion",
   "author": "CandyCore",
   "main": "main.js",
