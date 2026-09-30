@@ -565,7 +565,8 @@ $('goBtn').onclick = async () => {
       showResult('error', tr('cancelled'), '');
     } else {
       finishJobs(false);
-      showResult('error', tr('failed'), error || tr('failedHint'));
+      // 403 จาก YouTube ส่วนใหญ่แก้ได้ด้วยการอัปเดต yt-dlp จึงบอกวิธีแก้ต่อท้าย
+      showResult('error', tr('failed'), !error ? tr('failedHint') : /HTTP Error 403/.test(error) ? `${error} — ${tr('failedHint')}` : error);
     }
   } catch (error) {
     finishJobs(false);

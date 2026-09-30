@@ -57,10 +57,10 @@ const capture = (cmd, args) => new Promise((resolve, reject) => {
   child.on('close', (code) => code === 0 ? resolve(stdout) : reject(new Error(stderr.trim() || `${cmd} exited ${code}`)));
 });
 
-// หา yt-dlp: ในโฟลเดอร์ของโปรแกรม -> ใน PATH
+// ใช้เฉพาะ yt-dlp ในโฟลเดอร์ของโปรแกรม ไม่ใช้ตัวใน PATH (เช่นจาก Homebrew/pip)
+// เพราะตัวนั้นอาจเก่าและอัปเดตด้วย -U ไม่ได้ ทำให้ YouTube ตอบ 403
 async function findYtdlp() {
-  if (fs.existsSync(local('yt-dlp'))) return local('yt-dlp');
-  return await runs('yt-dlp', ['--version']) ? 'yt-dlp' : null;
+  return fs.existsSync(local('yt-dlp')) ? local('yt-dlp') : null;
 }
 
 // คืนค่า: 'local' = อยู่ในโฟลเดอร์โปรแกรม, 'path' = อยู่ใน PATH, null = ไม่มี
@@ -136,7 +136,7 @@ const versionCache = () => path.join(binDir(), 'yt-dlp-version.json');
 async function ytdlpVersion() {
   const bin = local('yt-dlp');
   const stat = await fs.promises.stat(bin).catch(() => null);
-  if (!stat) return capture('yt-dlp', ['--version']).then((output) => output.trim()).catch(() => null);
+  if (!stat) return null;
   const key = `${stat.size}:${stat.mtimeMs}`;
   const cached = await fs.promises.readFile(versionCache(), 'utf8').then(JSON.parse).catch(() => null);
   if (cached?.key === key && cached.version) return cached.version;
