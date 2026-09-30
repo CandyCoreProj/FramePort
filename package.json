@@ -79,7 +79,7 @@
       ]
     },
     "dmg": {
-      "artifactName": "FramePort-${version}-${arch}.${ext}"
+      "artifactName": "FramePort-mac-${arch}.${ext}"
     },
     "afterPack": "build/list-installed-files.js",
     "nsis": {

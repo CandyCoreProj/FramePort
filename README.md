@@ -1,7 +1,7 @@
 <div align="center">
   <img src="build/icon.svg" alt="FramePort app icon" width="104" height="104">
   <h1>FramePort</h1>
-  <p><strong>ดาวน์โหลดวิดีโอและแปลงไฟล์ให้ง่าย พร้อมใช้งานบน Windows</strong></p>
+  <p><strong>ดาวน์โหลดวิดีโอและแปลงไฟล์ให้ง่าย พร้อมใช้งานบน Windows และ Mac</strong></p>
   <p>
     <a href="https://CandyCoreProj.github.io/FramePort/">เว็บไซต์และดาวน์โหลด</a>
     · <a href="https://github.com/CandyCoreProj/FramePort/releases">รุ่นล่าสุด</a>
@@ -9,7 +9,7 @@
   </p>
 </div>
 
-FramePort เป็นโปรแกรม Windows สำหรับดาวน์โหลดวิดีโอหรือเสียงจากลิงก์ แล้วบันทึกเป็นไฟล์ที่พร้อมใช้งานต่อ เลือกคุณภาพ เลือกโฟลเดอร์ และแปลงวิดีโอด้วย CPU หรือ GPU ได้จากหน้าจอเดียว
+FramePort เป็นโปรแกรม Windows และ macOS สำหรับดาวน์โหลดวิดีโอหรือเสียงจากลิงก์ แล้วบันทึกเป็นไฟล์ที่พร้อมใช้งานต่อ เลือกคุณภาพ เลือกโฟลเดอร์ และแปลงวิดีโอด้วย CPU หรือ GPU ได้จากหน้าจอเดียว
 
 ## ดาวน์โหลดและติดตั้ง
 
@@ -27,7 +27,7 @@ FramePort ดาวน์โหลดเครื่องมือเหล่�
 
 ### macOS
 
-ดาวน์โหลดไฟล์ `.dmg` ให้ตรงกับเครื่อง: `arm64` สำหรับ Mac ชิป Apple (M1 ขึ้นไป) หรือ `x64` สำหรับ Mac รุ่น Intel แล้วลาก FramePort ไปไว้ใน Applications
+รองรับ macOS 12 ขึ้นไป ดาวน์โหลดไฟล์ให้ตรงกับเครื่อง: `FramePort-mac-arm64.dmg` สำหรับ Mac ชิป Apple (M1 ขึ้นไป) หรือ `FramePort-mac-x64.dmg` สำหรับ Mac รุ่น Intel แล้วลาก FramePort ไปไว้ใน Applications
 
 ตัวโปรแกรมยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด macOS จะบล็อกไว้ ให้ไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway** หรือรันคำสั่งนี้ใน Terminal:
 
@@ -35,7 +35,7 @@ FramePort ดาวน์โหลดเครื่องมือเหล่�
 xattr -dr com.apple.quarantine /Applications/FramePort.app
 ```
 
-บน macOS โปรแกรมต้องดาวน์โหลดรุ่นใหม่จากหน้า Releases เอง เพราะอัปเดตอัตโนมัติไม่ได้
+บน macOS โปรแกรมจะแจ้งเมื่อมีรุ่นใหม่และเปิดหน้า Releases ให้ดาวน์โหลดเอง เพราะอัปเดตอัตโนมัติไม่ได้
 
 ## ความสามารถ
 
@@ -94,6 +94,7 @@ npm run dist
 | `build/` | ไอคอนโปรแกรมและสคริปต์สร้างไอคอน |
 | `docs/` | เว็บไซต์แนะนำและดาวน์โหลด FramePort |
 | `.github/workflows/pages.yml` | เผยแพร่เว็บไซต์ด้วย GitHub Pages |
+| `.github/workflows/build-mac.yml` | สร้างตัวติดตั้ง macOS บน GitHub Actions |
 
 ## หมายเหตุ
 
@@ -107,7 +108,7 @@ FramePort ใช้ [yt-dlp](https://github.com/yt-dlp/yt-dlp) และ [FFmpeg
 
 ## English
 
-FramePort is a Windows desktop app for downloading video or audio from a link and saving a file that is ready to use. Choose the quality, output folder, and CPU or GPU conversion mode from one simple screen.
+FramePort is a Windows and macOS desktop app for downloading video or audio from a link and saving a file that is ready to use. Choose the quality, output folder, and CPU or GPU conversion mode from one simple screen.
 
 ### Download
 
@@ -125,7 +126,7 @@ These tools are downloaded when needed instead of being bundled into the main in
 
 #### macOS
 
-Download the `.dmg` for your Mac: `arm64` for Apple silicon (M1 or later) or `x64` for Intel, then drag FramePort into Applications.
+Requires macOS 12 or later. Download the file for your Mac: `FramePort-mac-arm64.dmg` for Apple silicon (M1 or later) or `FramePort-mac-x64.dmg` for Intel, then drag FramePort into Applications.
 
 The app is not signed with an Apple Developer certificate, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and choose **Open Anyway**, or run:
 
@@ -133,7 +134,7 @@ The app is not signed with an Apple Developer certificate, so macOS blocks the f
 xattr -dr com.apple.quarantine /Applications/FramePort.app
 ```
 
-On macOS, download new versions from the Releases page; automatic updates are not available there.
+On macOS, FramePort tells you when a new version is out and opens the Releases page; it cannot install updates automatically.
 
 ### Features
 

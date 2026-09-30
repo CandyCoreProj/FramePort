@@ -37,4 +37,5 @@ jobs:
           path: |
             dist/*.dmg
             dist/*.zip
+            dist/latest-mac.yml
           if-no-files-found: error
