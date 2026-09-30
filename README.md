@@ -27,15 +27,17 @@ FramePort ดาวน์โหลดเครื่องมือเหล่�
 
 ### macOS
 
-รองรับ macOS 12 ขึ้นไป ดาวน์โหลดไฟล์ให้ตรงกับเครื่อง: `FramePort-mac-arm64.dmg` สำหรับ Mac ชิป Apple (M1 ขึ้นไป) หรือ `FramePort-mac-x64.dmg` สำหรับ Mac รุ่น Intel แล้วลาก FramePort ไปไว้ใน Applications
-
-ตัวโปรแกรมยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด macOS จะบล็อกไว้ ให้ไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway** หรือรันคำสั่งนี้ใน Terminal:
+รองรับ macOS 12 ขึ้นไป วิธีที่ง่ายที่สุดคือเปิด **Terminal** (กด ⌘ Space แล้วพิมพ์ Terminal) วางคำสั่งนี้แล้วกด Enter:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/FramePort.app
+curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/install-mac.sh | bash
 ```
 
-บน macOS โปรแกรมจะแจ้งเมื่อมีรุ่นใหม่และเปิดหน้า Releases ให้ดาวน์โหลดเอง เพราะอัปเดตอัตโนมัติไม่ได้
+คำสั่งนี้เลือกไฟล์ให้ตรงกับชิปของเครื่อง ติดตั้ง FramePort ลงใน Applications แล้วเปิดโปรแกรมให้ทันที โดยไม่ต้องไปกด Open Anyway ใน System Settings เมื่อมีรุ่นใหม่ รันคำสั่งเดิมอีกครั้งเพื่ออัปเดต
+
+หรือดาวน์โหลดเอง: `FramePort-mac-arm64.dmg` สำหรับ Mac ชิป Apple (M1 ขึ้นไป) หรือ `FramePort-mac-x64.dmg` สำหรับ Mac รุ่น Intel แล้วลาก FramePort ไปไว้ใน Applications ตัวโปรแกรมยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด macOS จะบล็อกไว้ ให้ไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway**
+
+บน macOS โปรแกรมจะแจ้งเมื่อมีรุ่นใหม่และเปิดหน้า Releases ให้ เพราะอัปเดตอัตโนมัติไม่ได้
 
 ## ความสามารถ
 
@@ -126,13 +128,15 @@ These tools are downloaded when needed instead of being bundled into the main in
 
 #### macOS
 
-Requires macOS 12 or later. Download the file for your Mac: `FramePort-mac-arm64.dmg` for Apple silicon (M1 or later) or `FramePort-mac-x64.dmg` for Intel, then drag FramePort into Applications.
-
-The app is not signed with an Apple Developer certificate, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and choose **Open Anyway**, or run:
+Requires macOS 12 or later. The easiest way is to open **Terminal** (press ⌘ Space and type Terminal), paste this command, and press Enter:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/FramePort.app
+curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/install-mac.sh | bash
 ```
+
+It picks the right file for your chip, installs FramePort into Applications, and opens it, with no trip to System Settings for **Open Anyway**. Run the same command again to update.
+
+Or download it yourself: `FramePort-mac-arm64.dmg` for Apple silicon (M1 or later) or `FramePort-mac-x64.dmg` for Intel, then drag FramePort into Applications. The app is not signed with an Apple Developer certificate, so macOS blocks the first launch: open **System Settings → Privacy & Security** and choose **Open Anyway**.
 
 On macOS, FramePort tells you when a new version is out and opens the Releases page; it cannot install updates automatically.
 

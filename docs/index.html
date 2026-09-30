@@ -191,6 +191,7 @@
     summary::after { position: absolute; right: 2px; content: "+"; color: var(--accent); font: 400 26px/1 var(--display); }
     details[open] summary::after { content: "−"; }
     details p { max-width: 680px; margin: -1px 0 18px; padding-right: 24px; color: var(--muted); font-size: 14px; }
+    details code { display: block; max-width: 680px; margin: -6px 0 18px; padding: 10px 12px; border-radius: 8px; background: var(--outline); font-size: 12px; overflow-wrap: anywhere; user-select: all; }
 
     .site-footer { background: var(--ink); color: var(--paper); }
     .footer-inner { min-height: 126px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
@@ -477,7 +478,7 @@
         </div>
         <div class="faq-list reveal" style="--d:1">
           <details><summary data-i18n="faqOneQuestion">ใช้กับเครื่องไหนได้บ้าง?</summary><p data-i18n="faqOneAnswer"></p></details>
-          <details><summary data-i18n="faqMacQuestion">เปิดบน Mac แล้วขึ้นว่าเปิดไม่ได้?</summary><p data-i18n="faqMacAnswer"></p></details>
+          <details><summary data-i18n="faqMacQuestion">เปิดบน Mac แล้วขึ้นว่าเปิดไม่ได้?</summary><p data-i18n="faqMacAnswer"></p><code>curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/install-mac.sh | bash</code></details>
           <details><summary data-i18n="faqTwoQuestion">ทำไมเปิดครั้งแรกต้องดาวน์โหลดเครื่องมือเพิ่ม?</summary><p data-i18n="faqTwoAnswer">FramePort ติดตั้ง yt-dlp สำหรับดาวน์โหลดและ FFmpeg สำหรับแปลงไฟล์เมื่อเริ่มใช้งานครั้งแรก เพื่อไม่รวมเครื่องมือขนาดใหญ่ไว้ในตัวติดตั้งหลัก</p></details>
           <details><summary data-i18n="faqThreeQuestion">ต้องมีการ์ดจอแยกหรือไม่?</summary><p data-i18n="faqThreeAnswer">ไม่จำเป็น FramePort ใช้ CPU ได้ และจะลองใช้ตัวเข้ารหัส GPU ที่รองรับเมื่อฮาร์ดแวร์กับไดรเวอร์พร้อม</p></details>
           <details><summary data-i18n="faqFiveQuestion">ไฟล์วิดีโอจะใหญ่ไหม?</summary><p data-i18n="faqFiveAnswer"></p></details>
@@ -528,7 +529,7 @@
         downloadNote: "ต้องใช้อินเทอร์เน็ตเพื่อติดตั้ง yt-dlp และ FFmpeg ในการเปิดใช้ครั้งแรก", releaseLink: "ดูทุกรุ่นบน GitHub",
         faqEyebrow: "ก่อนเริ่มใช้งาน", faqTitle: "คำถามที่พบบ่อย", faqIntro: "ข้อมูลสั้น ๆ ที่ช่วยให้เริ่มต้นได้อย่างมั่นใจ",
         faqOneQuestion: "ใช้กับเครื่องไหนได้บ้าง?", faqOneAnswer: "Windows x64 ใช้ได้ทั้งแบบ Setup และ Portable ส่วน Mac ต้องเป็น macOS 12 ขึ้นไป เลือกไฟล์ให้ตรงกับชิป: ชิป Apple (M1 ขึ้นไป) หรือ Intel ดูได้ที่เมนู Apple → About This Mac",
-        faqMacQuestion: "เปิดบน Mac แล้วขึ้นว่าเปิดไม่ได้?", faqMacAnswer: "FramePort ยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด ให้ไปที่ System Settings → Privacy & Security แล้วกด Open Anyway หลังจากนั้นเปิดได้ตามปกติ บน Mac โปรแกรมจะแจ้งเมื่อมีรุ่นใหม่ แล้วเปิดหน้าดาวน์โหลดให้ติดตั้งเอง",
+        faqMacQuestion: "เปิดบน Mac แล้วขึ้นว่าเปิดไม่ได้?", faqMacAnswer: "FramePort ยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ถ้าไม่อยากตั้งค่าเอง ให้เปิด Terminal (กด ⌘ Space แล้วพิมพ์ Terminal) วางคำสั่งด้านล่างแล้วกด Enter โปรแกรมจะติดตั้งลง Applications และเปิดให้ทันที รันซ้ำเมื่อต้องการอัปเดต ถ้าติดตั้งจากไฟล์ .dmg เอง ครั้งแรกที่เปิดให้ไปที่ System Settings → Privacy & Security แล้วกด Open Anyway",
         faqTwoQuestion: "ทำไมเปิดครั้งแรกต้องดาวน์โหลดเครื่องมือเพิ่ม?", faqTwoAnswer: "FramePort ติดตั้ง yt-dlp สำหรับดาวน์โหลดและ FFmpeg สำหรับแปลงไฟล์เมื่อเริ่มใช้งานครั้งแรก เพื่อไม่รวมเครื่องมือขนาดใหญ่ไว้ในตัวติดตั้งหลัก",
         faqThreeQuestion: "ต้องมีการ์ดจอแยกหรือไม่?", faqThreeAnswer: "ไม่จำเป็น FramePort ใช้ CPU ได้ และจะลองใช้ตัวเข้ารหัส GPU ที่รองรับเมื่อฮาร์ดแวร์กับไดรเวอร์พร้อม",
         faqFiveQuestion: "เลือกแบบไหนเพื่อให้ภาพชัด?", faqFiveAnswer: "H.264 และ H.265 แปลงจากไฟล์ต้นทางที่ดีที่สุดด้วยค่าคุณภาพสูง ส่วน “ต้นฉบับ” จะเก็บวิดีโอโดยไม่เข้ารหัสใหม่ หากดาวน์โหลดคลิปเดิมซ้ำ ไฟล์ใหม่จะเพิ่มเลขท้ายชื่อ เช่น ชื่อคลิป 2.mp4",
@@ -563,7 +564,7 @@
         downloadNote: "An internet connection is needed to install yt-dlp and FFmpeg on first launch.", releaseLink: "Browse all releases on GitHub",
         faqEyebrow: "Before you begin", faqTitle: "Frequently asked questions", faqIntro: "A few quick answers to help you get started.",
         faqOneQuestion: "Which computers are supported?", faqOneAnswer: "Windows x64, with Setup or Portable, and macOS 12 or later. On a Mac, pick the file for your chip: Apple silicon (M1 or later) or Intel. Check under Apple menu → About This Mac.",
-        faqMacQuestion: "My Mac says FramePort can't be opened", faqMacAnswer: "FramePort is not yet signed with an Apple Developer certificate. On first launch, open System Settings → Privacy & Security and choose Open Anyway. It opens normally after that. On a Mac, FramePort tells you when a new version is out and opens the download page so you can install it.",
+        faqMacQuestion: "My Mac says FramePort can't be opened", faqMacAnswer: "FramePort is not yet signed with an Apple Developer certificate. To skip the settings, open Terminal (press ⌘ Space and type Terminal), paste the command below, and press Enter. It installs FramePort into Applications and opens it; run it again to update. If you install from the .dmg yourself, open System Settings → Privacy & Security on first launch and choose Open Anyway.",
         faqTwoQuestion: "Why does the app download tools on first launch?", faqTwoAnswer: "FramePort installs yt-dlp for downloading and FFmpeg for conversion when you first use it. This keeps those larger tools out of the main installer.",
         faqThreeQuestion: "Do I need a dedicated graphics card?", faqThreeAnswer: "No. FramePort can use your CPU and will try a supported GPU encoder when your hardware and drivers are ready.",
         faqFiveQuestion: "Which option keeps the picture clear?", faqFiveAnswer: "H.264 and H.265 convert the best available source with high-quality settings. Original keeps the video without re-encoding. A duplicate gets a numbered filename such as Clip 2.mp4.",
