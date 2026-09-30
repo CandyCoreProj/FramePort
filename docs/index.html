@@ -191,7 +191,18 @@
     summary::after { position: absolute; right: 2px; content: "+"; color: var(--accent); font: 400 26px/1 var(--display); }
     details[open] summary::after { content: "−"; }
     details p { max-width: 680px; margin: -1px 0 18px; padding-right: 24px; color: var(--muted); font-size: 14px; }
-    details code { display: block; max-width: 680px; margin: -6px 0 18px; padding: 10px 12px; border-radius: 8px; background: var(--outline); font-size: 12px; overflow-wrap: anywhere; user-select: all; }
+    details code, .mac-dialog code { display: block; padding: 10px 12px; border-radius: 8px; background: var(--outline); font-size: 12px; overflow-wrap: anywhere; user-select: all; }
+    details code { max-width: 680px; margin: -6px 0 18px; }
+    .mac-dialog { width: min(560px, calc(100% - 32px)); max-height: calc(100% - 32px); padding: 28px; border: 0; border-radius: 24px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+    .mac-dialog::backdrop { background: rgb(28 25 23 / 55%); }
+    .mac-dialog h2 { margin: 0 0 8px; font: 700 22px/1.3 var(--display); }
+    .mac-dialog h3 { margin: 22px 0 6px; font: 600 16px/1.4 var(--display); }
+    .mac-dialog p, .mac-dialog ol { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .mac-dialog ol { padding-left: 20px; }
+    .mac-dialog code { margin: 0 0 14px; }
+    .mac-dialog hr { margin: 22px 0 0; border: 0; border-top: 1px solid var(--outline); }
+    .mac-dialog-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .mac-dialog .button { min-height: 44px; font-size: 14px; }
 
     .site-footer { background: var(--ink); color: var(--paper); }
     .footer-inner { min-height: 126px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
@@ -458,11 +469,11 @@
           </article>
           <article class="download-option">
             <div><h3 data-i18n="macArmTitle">Mac ชิป Apple</h3><p data-i18n="macArmCopy">M1 ขึ้นไป · ไฟล์ .dmg ลากไปไว้ใน Applications</p></div>
-            <a class="button button-accent" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort-mac-arm64.dmg" data-i18n="macArmButton">ดาวน์โหลดสำหรับ Mac</a>
+            <a class="button button-accent" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort-mac-arm64.dmg" data-mac-download data-i18n="macArmButton">ดาวน์โหลดสำหรับ Mac</a>
           </article>
           <article class="download-option">
             <div><h3 data-i18n="macIntelTitle">Mac Intel</h3><p data-i18n="macIntelCopy">Mac รุ่นก่อนชิป Apple · ไฟล์ .dmg</p></div>
-            <a class="button button-soft" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort-mac-x64.dmg" data-i18n="macIntelButton">ดาวน์โหลดสำหรับ Mac Intel</a>
+            <a class="button button-soft" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort-mac-x64.dmg" data-mac-download data-i18n="macIntelButton">ดาวน์โหลดสำหรับ Mac Intel</a>
           </article>
         </div>
         <p class="download-footnote"><span data-i18n="downloadNote">ต้องใช้อินเทอร์เน็ตเพื่อติดตั้ง yt-dlp และ FFmpeg ในการเปิดใช้ครั้งแรก</span> · <a href="https://github.com/CandyCoreProj/FramePort/releases" target="_blank" rel="noopener noreferrer" data-i18n="releaseLink">ดูทุกรุ่นบน GitHub</a></p>
@@ -487,6 +498,25 @@
       </div>
     </section>
   </main>
+
+  <dialog class="mac-dialog" id="macDialog" aria-labelledby="macDialogTitle">
+    <h2 id="macDialogTitle" data-i18n="macDialogTitle">แนะนำ: ติดตั้งด้วยคำสั่งเดียว</h2>
+    <p data-i18n="macDialogIntro">วิธีนี้ง่ายกว่าโหลดไฟล์เอง ไม่ต้องไปตั้งค่าใน System Settings เปิด Terminal (กด ⌘ Space แล้วพิมพ์ Terminal) วางคำสั่งนี้แล้วกด Enter</p>
+    <code id="macCommand">curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/install-mac.sh | bash</code>
+    <div class="mac-dialog-actions">
+      <button class="button button-accent" type="button" id="macCopy" data-i18n="macDialogCopy">คัดลอกคำสั่ง</button>
+      <form method="dialog"><button class="button button-soft" data-i18n="macDialogClose">ปิด</button></form>
+    </div>
+    <hr>
+    <h3 data-i18n="macDialogManualTitle">ยังอยากดาวน์โหลดไฟล์ .dmg เอง?</h3>
+    <ol>
+      <li data-i18n="macDialogStep1">เปิดไฟล์ .dmg แล้วลาก FramePort ไปไว้ใน Applications</li>
+      <li data-i18n="macDialogStep2">เปิด FramePort ครั้งแรก macOS จะแจ้งว่าเปิดไม่ได้ ให้กด Done</li>
+      <li data-i18n="macDialogStep3">ไปที่ System Settings → Privacy & Security เลื่อนลงไปที่ส่วน Security</li>
+      <li data-i18n="macDialogStep4">กด Open Anyway ข้าง FramePort แล้วใส่รหัสผ่านเครื่อง หลังจากนั้นเปิดได้ตามปกติ</li>
+    </ol>
+    <a class="button button-soft" id="macDownload" href="https://github.com/CandyCoreProj/FramePort/releases/latest" data-i18n="macDialogDownload">ดาวน์โหลด .dmg ต่อ</a>
+  </dialog>
 
   <footer class="site-footer">
     <div class="footer-inner wrap">
@@ -526,6 +556,8 @@
         portableTitle: "Windows Portable", portableCopy: "เปิดจากไฟล์ได้เลย ไม่ต้องติดตั้ง", portableButton: "ดาวน์โหลด Portable",
         macArmTitle: "Mac ชิป Apple", macArmCopy: "M1 ขึ้นไป · ไฟล์ .dmg ลากไปไว้ใน Applications", macArmButton: "ดาวน์โหลดสำหรับ Mac",
         macIntelTitle: "Mac Intel", macIntelCopy: "Mac รุ่นก่อนชิป Apple · ไฟล์ .dmg", macIntelButton: "ดาวน์โหลดสำหรับ Mac Intel",
+        macDialogTitle: "แนะนำ: ติดตั้งด้วยคำสั่งเดียว", macDialogIntro: "วิธีนี้ง่ายกว่าโหลดไฟล์เอง ไม่ต้องไปตั้งค่าใน System Settings เปิด Terminal (กด ⌘ Space แล้วพิมพ์ Terminal) วางคำสั่งนี้แล้วกด Enter", macDialogCopy: "คัดลอกคำสั่ง", macDialogCopied: "คัดลอกแล้ว", macDialogClose: "ปิด",
+        macDialogManualTitle: "ยังอยากดาวน์โหลดไฟล์ .dmg เอง?", macDialogStep1: "เปิดไฟล์ .dmg แล้วลาก FramePort ไปไว้ใน Applications", macDialogStep2: "เปิด FramePort ครั้งแรก macOS จะแจ้งว่าเปิดไม่ได้ ให้กด Done", macDialogStep3: "ไปที่ System Settings → Privacy & Security เลื่อนลงไปที่ส่วน Security", macDialogStep4: "กด Open Anyway ข้าง FramePort แล้วใส่รหัสผ่านเครื่อง หลังจากนั้นเปิดได้ตามปกติ", macDialogDownload: "ดาวน์โหลด .dmg ต่อ",
         downloadNote: "ต้องใช้อินเทอร์เน็ตเพื่อติดตั้ง yt-dlp และ FFmpeg ในการเปิดใช้ครั้งแรก", releaseLink: "ดูทุกรุ่นบน GitHub",
         faqEyebrow: "ก่อนเริ่มใช้งาน", faqTitle: "คำถามที่พบบ่อย", faqIntro: "ข้อมูลสั้น ๆ ที่ช่วยให้เริ่มต้นได้อย่างมั่นใจ",
         faqOneQuestion: "ใช้กับเครื่องไหนได้บ้าง?", faqOneAnswer: "Windows x64 ใช้ได้ทั้งแบบ Setup และ Portable ส่วน Mac ต้องเป็น macOS 12 ขึ้นไป เลือกไฟล์ให้ตรงกับชิป: ชิป Apple (M1 ขึ้นไป) หรือ Intel ดูได้ที่เมนู Apple → About This Mac",
@@ -561,6 +593,8 @@
         portableTitle: "Windows Portable", portableCopy: "Run the file directly, no installation needed.", portableButton: "Download Portable",
         macArmTitle: "Mac with Apple silicon", macArmCopy: "M1 or later · drag the app from the .dmg into Applications", macArmButton: "Download for Mac",
         macIntelTitle: "Mac with Intel", macIntelCopy: "Macs before Apple silicon · .dmg", macIntelButton: "Download for Intel Mac",
+        macDialogTitle: "Recommended: install with one command", macDialogIntro: "Easier than downloading the file, with no trip to System Settings. Open Terminal (press ⌘ Space and type Terminal), paste this command, and press Enter.", macDialogCopy: "Copy command", macDialogCopied: "Copied", macDialogClose: "Close",
+        macDialogManualTitle: "Still want the .dmg?", macDialogStep1: "Open the .dmg and drag FramePort into Applications.", macDialogStep2: "Open FramePort. macOS says it can't be opened; choose Done.", macDialogStep3: "Go to System Settings → Privacy & Security and scroll down to Security.", macDialogStep4: "Choose Open Anyway next to FramePort and enter your Mac password. It opens normally after that.", macDialogDownload: "Download .dmg anyway",
         downloadNote: "An internet connection is needed to install yt-dlp and FFmpeg on first launch.", releaseLink: "Browse all releases on GitHub",
         faqEyebrow: "Before you begin", faqTitle: "Frequently asked questions", faqIntro: "A few quick answers to help you get started.",
         faqOneQuestion: "Which computers are supported?", faqOneAnswer: "Windows x64, with Setup or Portable, and macOS 12 or later. On a Mac, pick the file for your chip: Apple silicon (M1 or later) or Intel. Check under Apple menu → About This Mac.",
@@ -616,6 +650,25 @@
       setLanguage(language === "th" ? "en" : "th", true);
     });
     setLanguage(language);
+
+    // ปุ่มดาวน์โหลด Mac: แนะนำคำสั่ง Terminal ก่อน ถ้ายังอยากได้ไฟล์ก็กดดาวน์โหลดต่อได้
+    const macDialog = document.getElementById("macDialog");
+    const macCopy = document.getElementById("macCopy");
+    document.querySelectorAll("[data-mac-download]").forEach((link) => link.addEventListener("click", (event) => {
+      if (!macDialog.showModal) return;
+      event.preventDefault();
+      document.getElementById("macDownload").href = link.href;
+      macCopy.textContent = copy[language].macDialogCopy;
+      macDialog.showModal();
+    }));
+    macCopy.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(document.getElementById("macCommand").textContent);
+        macCopy.textContent = copy[language].macDialogCopied;
+      } catch (_) {
+        getSelection().selectAllChildren(document.getElementById("macCommand"));
+      }
+    });
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
