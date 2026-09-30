@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  platform: process.platform,
   status: () => ipcRenderer.invoke('status'),
   encoders: () => ipcRenderer.invoke('encoders'),
   installYtdlp: (language) => ipcRenderer.invoke('install-ytdlp', language),

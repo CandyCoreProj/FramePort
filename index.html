@@ -353,6 +353,7 @@
           <option value="nvenc">NVIDIA · CUDA / NVENC</option>
           <option value="qsv">Intel · Quick Sync (iGPU / Arc)</option>
           <option value="amf">AMD · AMF (iGPU / Radeon)</option>
+          <option value="vt">Apple · VideoToolbox</option>
           <option value="hybrid" data-i18n="hybrid">CPU ถอดรหัส + GPU เข้ารหัส</option>
           <option value="cpu">CPU · x264</option>
         </select>
@@ -372,6 +373,9 @@
           </div>
           <div class="encoder-option" id="encoder-amf" role="option" tabindex="-1" data-value="amf" aria-selected="false">
             <span class="encoder-check" aria-hidden="true"></span><span class="encoder-option-copy"><span class="encoder-option-title">AMD · AMF</span><span class="encoder-option-description" data-i18n="encoderAmdDesc">กราฟิก AMD ในตัวหรือ Radeon</span></span><span class="encoder-badge">GPU</span>
+          </div>
+          <div class="encoder-option" id="encoder-vt" role="option" tabindex="-1" data-value="vt" aria-selected="false">
+            <span class="encoder-check" aria-hidden="true"></span><span class="encoder-option-copy"><span class="encoder-option-title">Apple · VideoToolbox</span><span class="encoder-option-description" data-i18n="encoderAppleDesc">ชิป Apple Silicon หรือ Mac รุ่น Intel</span></span><span class="encoder-badge">GPU</span>
           </div>
           <div class="encoder-option" id="encoder-hybrid" role="option" tabindex="-1" data-value="hybrid" aria-selected="false">
             <span class="encoder-check" aria-hidden="true"></span><span class="encoder-option-copy"><span class="encoder-option-title" data-i18n="hybrid">CPU ถอดรหัส + GPU เข้ารหัส</span><span class="encoder-option-description" data-i18n="encoderHybridDesc">แบ่งงานระหว่าง CPU และ GPU</span></span><span class="encoder-badge" data-i18n="hybridBadge">ผสม</span>

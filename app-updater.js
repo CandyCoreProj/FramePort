@@ -4,7 +4,7 @@ const RELEASES_URL = 'https://github.com/CandyCoreProj/FramePort/releases/latest
 const CHECK_EVERY = 4 * 60 * 60 * 1000;
 
 // อัปเดตตัวโปรแกรมจาก GitHub Releases: ตัวติดตั้งดาวน์โหลดเบื้องหลังแล้วรอรีสตาร์ต
-// ส่วนตัว portable อัปเดตตัวเองไม่ได้ จึงแจ้งเตือนและเปิดหน้าดาวน์โหลดแทน
+// ส่วนตัว portable และ macOS (ไม่ได้เซ็นด้วย Developer ID) อัปเดตตัวเองไม่ได้ จึงแจ้งเตือนและเปิดหน้าดาวน์โหลดแทน
 function startAppUpdates(send) {
   let state = null;
   let ready = false;
@@ -12,7 +12,7 @@ function startAppUpdates(send) {
 
   if (app.isPackaged) {
     const { autoUpdater } = require('electron-updater');
-    const portable = !!process.env.PORTABLE_EXECUTABLE_FILE;
+    const portable = !!process.env.PORTABLE_EXECUTABLE_FILE || process.platform === 'darwin';
     autoUpdater.autoDownload = !portable;
     autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.on('update-available', ({ version }) => publish({ state: portable ? 'available' : 'downloading', version }));

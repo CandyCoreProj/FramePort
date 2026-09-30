@@ -25,7 +25,7 @@ const words = {
     encoderLabel: 'ตัวเข้ารหัสวิดีโอ', auto: 'อัตโนมัติ', recommended: 'แนะนำ',
     encoderAutoDesc: 'เลือก GPU ที่เร็วที่สุดในเครื่องให้เอง', autoUsing: 'ใช้ ',
     encoderNvidiaDesc: 'การ์ดจอ NVIDIA GeForce / RTX', encoderIntelDesc: 'กราฟิก Intel ในตัวหรือ Arc',
-    encoderAmdDesc: 'กราฟิก AMD ในตัวหรือ Radeon', encoderHybridDesc: 'แบ่งงานระหว่าง CPU และ GPU',
+    encoderAmdDesc: 'กราฟิก AMD ในตัวหรือ Radeon', encoderAppleDesc: 'ชิป Apple Silicon หรือ Mac รุ่น Intel', encoderHybridDesc: 'แบ่งงานระหว่าง CPU และ GPU',
     hybrid: 'CPU ถอดรหัส + GPU เข้ารหัส', hybridBadge: 'ผสม', encoderCpuDesc: 'x264 / x265 ใช้ได้ทุกเครื่อง',
     detected: 'พบในเครื่อง', notDetected: 'ไม่พบ',
     playlist: 'ดาวน์โหลดทั้งเพลย์ลิสต์',
@@ -66,7 +66,7 @@ const words = {
     encoderLabel: 'Video encoder', auto: 'Automatic', recommended: 'Recommended',
     encoderAutoDesc: 'Picks the fastest GPU in this PC', autoUsing: 'Using ',
     encoderNvidiaDesc: 'NVIDIA GeForce / RTX graphics', encoderIntelDesc: 'Intel integrated graphics or Arc',
-    encoderAmdDesc: 'AMD integrated graphics or Radeon', encoderHybridDesc: 'Split work between the CPU and GPU',
+    encoderAmdDesc: 'AMD integrated graphics or Radeon', encoderAppleDesc: 'Apple Silicon or Intel Mac', encoderHybridDesc: 'Split work between the CPU and GPU',
     hybrid: 'CPU decode + GPU encode', hybridBadge: 'Hybrid', encoderCpuDesc: 'x264 / x265, works on any PC',
     detected: 'Detected', notDetected: 'Not found',
     playlist: 'Download entire playlist',
@@ -147,8 +147,14 @@ $('themeBtn').onclick = () => {
 
 // ---------- encoder menu ----------
 
+// macOS มีแค่ VideoToolbox ส่วน Windows/Linux ไม่มี VideoToolbox จึงซ่อนตัวเลือกที่ใช้ไม่ได้
+const encoderHidden = api.platform === 'darwin' ? ['nvenc', 'qsv', 'amf', 'hybrid'] : ['vt'];
+for (const value of encoderHidden) {
+  document.querySelector(`.encoder-option[data-value="${value}"]`).remove();
+  document.querySelector(`#encoder option[value="${value}"]`).remove();
+}
 const encoderOptions = [...document.querySelectorAll('.encoder-option')];
-const encoderNames = { nvenc: 'NVIDIA NVENC', qsv: 'Intel Quick Sync', amf: 'AMD AMF' };
+const encoderNames = { nvenc: 'NVIDIA NVENC', qsv: 'Intel Quick Sync', amf: 'AMD AMF', vt: 'Apple VideoToolbox' };
 
 function renderDetected() {
   for (const badge of document.querySelectorAll('[data-detect]')) {
@@ -164,7 +170,7 @@ function syncEncoderMenu() {
   $('encoderValue').textContent = selected.querySelector('.encoder-option-title').textContent;
   let description = selected.querySelector('.encoder-option-description').textContent;
   if (selected.dataset.value === 'auto' && detected) {
-    const best = ['nvenc', 'qsv', 'amf'].find((id) => detected[id]);
+    const best = ['nvenc', 'qsv', 'amf', 'vt'].find((id) => detected[id]);
     description = tr('autoUsing') + (best ? encoderNames[best] : 'CPU');
   }
   $('encoderDescription').textContent = description;

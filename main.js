@@ -10,13 +10,20 @@ const { reserveVersionedPath } = require('./download-path');
 const { startAppUpdates } = require('./app-updater');
 
 const WIN = process.platform === 'win32';
+const MAC = process.platform === 'darwin';
 const EXE = WIN ? '.exe' : '';
+// แอปที่เปิดจาก Finder ไม่ได้ PATH ของ shell มา จึงเพิ่มที่อยู่ของ Homebrew ให้หา ffmpeg ที่ติดตั้งไว้เจอ
+if (MAC) process.env.PATH = ['/opt/homebrew/bin', '/usr/local/bin', process.env.PATH].join(':');
 const binDir = () => path.join(app.getPath('userData'), 'bin');
 const local = (name) => path.join(binDir(), name + EXE);
 
-const YTDLP_URL = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp${EXE}`;
+// บน macOS ใช้ตัว standalone เพราะ yt-dlp แบบธรรมดาต้องมี Python ในเครื่อง
+const YTDLP_URL = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp${WIN ? '.exe' : MAC ? '_macos' : ''}`;
 // ffmpeg ที่ทีม yt-dlp build ไว้ใช้กับ yt-dlp โดยเฉพาะ
 const FFMPEG_URL = 'https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip';
+// ทีม yt-dlp ไม่มี build สำหรับ macOS จึงใช้ static build ที่แยก ffmpeg/ffprobe คนละไฟล์ zip
+const MAC_FFMPEG_URL = (name) =>
+  `https://ffmpeg.martin-riedl.de/redirect/latest/macos/${process.arch === 'arm64' ? 'arm64' : 'amd64'}/release/${name}.zip`;
 
 let win;
 let busy = false;
@@ -141,7 +148,7 @@ async function ytdlpVersion() {
 ipcMain.handle('status', async () => {
   const [version, ffmpeg] = await Promise.all([ytdlpVersion(), findFfmpeg()]);
   return {
-    version, ffmpeg: !!ffmpeg, canInstallFfmpeg: WIN,
+    version, ffmpeg: !!ffmpeg, canInstallFfmpeg: WIN || MAC,
     downloads: app.getPath('downloads'), appVersion: app.getVersion(),
   };
 });
@@ -159,10 +166,36 @@ ipcMain.handle('install-ytdlp', async (_e, language = 'th') => {
   return true;
 });
 
+async function installMacFfmpeg(language) {
+  const tmpDir = path.join(binDir(), 'ffmpeg-tmp');
+  try {
+    await fs.promises.rm(tmpDir, { recursive: true, force: true });
+    await fs.promises.mkdir(tmpDir);
+    for (const name of ['ffmpeg', 'ffprobe']) {
+      const zip = path.join(tmpDir, name + '.zip');
+      await fetchTo(MAC_FFMPEG_URL(name), zip, 'ffmpeg', language);
+      await capture('/usr/bin/ditto', ['-x', '-k', zip, tmpDir]);
+    }
+    send('install-progress', { tag: 'ffmpeg', pct: 100, extracting: true });
+    for (const name of ['ffmpeg', 'ffprobe']) {
+      await fs.promises.rename(path.join(tmpDir, name), local(name));
+      await fs.promises.chmod(local(name), 0o755);
+    }
+    encoderSupport.clear();
+  } finally {
+    await fs.promises.rm(tmpDir, { recursive: true, force: true });
+  }
+  return true;
+}
+
 ipcMain.handle('install-ffmpeg', async (_e, language = 'th') => {
+  if (MAC) {
+    fs.mkdirSync(binDir(), { recursive: true });
+    return installMacFfmpeg(language);
+  }
   if (!WIN) throw new Error(say(language,
-    'ติดตั้งอัตโนมัติได้เฉพาะ Windows — กรุณาติดตั้ง ffmpeg เอง',
-    'Automatic installation is available on Windows only. Please install FFmpeg manually.'));
+    'ติดตั้งอัตโนมัติได้เฉพาะ Windows และ macOS — กรุณาติดตั้ง ffmpeg เอง',
+    'Automatic installation is available on Windows and macOS only. Please install FFmpeg manually.'));
   fs.mkdirSync(binDir(), { recursive: true });
   const zip = path.join(binDir(), 'ffmpeg.zip');
   const tmpDir = path.join(binDir(), 'ffmpeg-tmp');
@@ -231,7 +264,14 @@ const TARGETS = {
 };
 const EIGHT_BIT = ['yuv420p', 'yuvj420p'];
 // ใช้ค่าคุณภาพสูงเพื่อเก็บรายละเอียดของต้นฉบับ แม้ไฟล์ที่ได้จะใหญ่ขึ้น
-const ENCODERS = [
+const ENCODERS = (MAC ? [
+  {
+    // q:v ใช้ได้เฉพาะ Apple Silicon เครื่อง Intel จะตกไปใช้แบบกำหนดบิตเรต
+    id: 'vt', name: 'Apple VideoToolbox', format: 'yuv420p',
+    codec: { h264: 'h264_videotoolbox', hevc: 'hevc_videotoolbox' }, quality: { h264: 75, hevc: 70 },
+    variants: [(q) => ['-q:v', q], () => ['-b:v', '40M']],
+  },
+] : [
   {
     id: 'nvenc', name: 'NVIDIA NVENC', decode: 'cuda', format: 'yuv420p',
     codec: { h264: 'h264_nvenc', hevc: 'hevc_nvenc' }, quality: { h264: 14, hevc: 16 },
@@ -252,7 +292,7 @@ const ENCODERS = [
     variants: [(q, target) => ['-quality', 'balanced', '-rc', 'cqp', '-qp_i', q, '-qp_p', q + 2,
       ...(target === 'h264' ? ['-qp_b', q + 4] : [])]],
   },
-];
+]);
 const CPU = {
   id: 'cpu', name: 'CPU', format: 'yuv420p',
   codec: { h264: 'libx264', hevc: 'libx265' }, quality: { h264: 14, hevc: 16 },

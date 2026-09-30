@@ -25,6 +25,18 @@ FramePort เป็นโปรแกรม Windows สำหรับดาว�
 
 FramePort ดาวน์โหลดเครื่องมือเหล่านี้เมื่อจำเป็น แทนการรวมไว้ในตัวติดตั้งหลัก
 
+### macOS
+
+ดาวน์โหลดไฟล์ `.dmg` ให้ตรงกับเครื่อง: `arm64` สำหรับ Mac ชิป Apple (M1 ขึ้นไป) หรือ `x64` สำหรับ Mac รุ่น Intel แล้วลาก FramePort ไปไว้ใน Applications
+
+ตัวโปรแกรมยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด macOS จะบล็อกไว้ ให้ไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway** หรือรันคำสั่งนี้ใน Terminal:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/FramePort.app
+```
+
+บน macOS โปรแกรมต้องดาวน์โหลดรุ่นใหม่จากหน้า Releases เอง เพราะอัปเดตอัตโนมัติไม่ได้
+
 ## ความสามารถ
 
 - ดาวน์โหลดวิดีโอเป็น MP4 หรือเลือกดาวน์โหลดเฉพาะเสียงเป็น MP3, FLAC หรือ WAV
@@ -63,6 +75,8 @@ npm start
 ```powershell
 npm run dist
 ```
+
+สร้าง `.dmg` สำหรับ macOS ต้องรันบนเครื่อง Mac ด้วย `npm run dist:mac` หรือสั่ง workflow **Build macOS** ใน GitHub Actions (ทำงานเองเมื่อ push tag `v*`) แล้วดาวน์โหลดไฟล์จาก Artifacts
 
 ไฟล์ที่สร้างจะอยู่ใน `dist/` โฟลเดอร์นี้ถูกละเว้นโดย Git เพื่อไม่เก็บตัวติดตั้งขนาดใหญ่ไว้ในประวัติซอร์สโค้ด
 
@@ -109,6 +123,18 @@ Both releases support Windows x64. On first launch, an internet connection is ne
 
 These tools are downloaded when needed instead of being bundled into the main installer.
 
+#### macOS
+
+Download the `.dmg` for your Mac: `arm64` for Apple silicon (M1 or later) or `x64` for Intel, then drag FramePort into Applications.
+
+The app is not signed with an Apple Developer certificate, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and choose **Open Anyway**, or run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/FramePort.app
+```
+
+On macOS, download new versions from the Releases page; automatic updates are not available there.
+
 ### Features
 
 - Download video as MP4 or audio as MP3, FLAC, or WAV.
@@ -147,6 +173,8 @@ Build the Windows x64 installer and portable app:
 ```powershell
 npm run dist
 ```
+
+Building the macOS `.dmg` must run on a Mac: use `npm run dist:mac`, or run the **Build macOS** GitHub Actions workflow (it also runs when a `v*` tag is pushed) and download the files from its artifacts.
 
 The generated files are saved to `dist/`. This folder is ignored by Git so large installers stay out of the source history.
 
