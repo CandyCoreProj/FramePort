@@ -11,12 +11,20 @@
 
 FramePort เป็นโปรแกรม Windows และ macOS สำหรับดาวน์โหลดวิดีโอหรือเสียงจากลิงก์ แล้วบันทึกเป็นไฟล์ที่พร้อมใช้งานต่อ เลือกคุณภาพ เลือกโฟลเดอร์ และแปลงวิดีโอด้วย CPU หรือ GPU ได้จากหน้าจอเดียว
 
+## มีอะไรใหม่ใน 1.0.8
+
+- เพิ่ม PO Token สำหรับดาวน์โหลด YouTube โดยไม่ต้องเข้าสู่ระบบ แอปสร้างโทเค็นให้เองและรวมปลั๊กอินที่จำเป็นไว้แล้ว
+- เมื่อ YouTube ขอให้ยืนยันว่าไม่ใช่บอท โปรแกรมจะลองใหม่ด้วยคุกกี้ผู้เยี่ยมชมและวิธีดาวน์โหลดสำรอง
+- เพิ่มปุ่มเข้าสู่ระบบ YouTube ในแอป สำหรับกรณีที่ลองวิธีสำรองแล้วยังดาวน์โหลดไม่ได้
+- แก้ข้อความจาก yt-dlp บน Windows ที่แสดงภาษาไทยหรืออักขระบางตัวผิดเพี้ยน
+- มีไฟล์สำหรับ Windows x64, Mac ชิป Apple และ Mac Intel ใน [Release 1.0.8](https://github.com/CandyCoreProj/FramePort/releases/tag/v1.0.8)
+
 ## ดาวน์โหลดและติดตั้ง
 
 ไปที่ [เว็บไซต์ FramePort](https://CandyCoreProj.github.io/FramePort/) หรือ [หน้า Releases](https://github.com/CandyCoreProj/FramePort/releases) แล้วเลือกไฟล์ที่ต้องการ:
 
-- **Setup**: ติดตั้งลงเครื่องและสร้างทางลัด
-- **Portable**: เปิดโปรแกรมจากไฟล์โดยไม่ต้องติดตั้ง
+- **[Setup](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-Setup.exe)**: ติดตั้งลงเครื่องและสร้างทางลัด
+- **[Portable](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort.exe)**: เปิดโปรแกรมจากไฟล์โดยไม่ต้องติดตั้ง
 
 รองรับ Windows x64 ทั้งสองแบบ ในการเปิดใช้งานครั้งแรก โปรแกรมต้องเชื่อมต่ออินเทอร์เน็ตเพื่อติดตั้งเครื่องมือที่จำเป็น:
 
@@ -35,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/instal
 
 คำสั่งนี้เลือกไฟล์ให้ตรงกับชิปของเครื่อง ติดตั้ง FramePort ลงใน Applications แล้วเปิดโปรแกรมให้ทันที โดยไม่ต้องไปกด Open Anyway ใน System Settings เมื่อมีรุ่นใหม่ รันคำสั่งเดิมอีกครั้งเพื่ออัปเดต
 
-หรือดาวน์โหลดเอง: `FramePort-mac-arm64.dmg` สำหรับ Mac ชิป Apple (M1 ขึ้นไป) หรือ `FramePort-mac-x64.dmg` สำหรับ Mac รุ่น Intel แล้วลาก FramePort ไปไว้ใน Applications ตัวโปรแกรมยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด macOS จะบล็อกไว้ ให้ไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway**
+หรือดาวน์โหลดเอง: [Mac ชิป Apple (M1 ขึ้นไป)](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-mac-arm64.dmg) หรือ [Mac Intel](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-mac-x64.dmg) แล้วลาก FramePort ไปไว้ใน Applications ตัวโปรแกรมยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด macOS จะบล็อกไว้ ให้ไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway**
 
 บน macOS โปรแกรมจะแจ้งเมื่อมีรุ่นใหม่และเปิดหน้า Releases ให้ เพราะอัปเดตอัตโนมัติไม่ได้
 
@@ -63,6 +71,12 @@ curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/instal
 
 ไฟล์จะบันทึกในโฟลเดอร์ Downloads เป็นค่าเริ่มต้น และเปลี่ยนโฟลเดอร์ได้จากหน้าหลัก
 
+### เมื่อ YouTube ขอให้ยืนยันว่าไม่ใช่บอท
+
+โปรแกรมจะลองดาวน์โหลดใหม่โดยไม่ต้องเข้าสู่ระบบให้ก่อน ถ้ายังไม่ผ่าน กด **เข้าสู่ระบบ YouTube** บนข้อความแจ้งข้อผิดพลาด แล้วเข้าสู่ระบบในหน้าต่างที่เปิดขึ้น โปรแกรมจะบันทึกคุกกี้ไว้ในเครื่องและลองดาวน์โหลดอีกครั้งให้อัตโนมัติ
+
+เมื่อต้องการลบคุกกี้ที่ใช้ดาวน์โหลด กด **ออกจากระบบ YouTube** ที่ด้านบนของโปรแกรม การดาวน์โหลดโดยไม่เข้าสู่ระบบอาจยังใช้ไม่ได้บนบางเครือข่าย ขึ้นอยู่กับการตรวจสอบของ YouTube
+
 ## สร้างโปรแกรมจากซอร์สโค้ด
 
 ต้องติดตั้ง Node.js ก่อน จากนั้นเปิด PowerShell ในโฟลเดอร์โปรเจกต์:
@@ -82,13 +96,17 @@ npm run dist
 
 ไฟล์ที่สร้างจะอยู่ใน `dist/` โฟลเดอร์นี้ถูกละเว้นโดย Git เพื่อไม่เก็บตัวติดตั้งขนาดใหญ่ไว้ในประวัติซอร์สโค้ด
 
-ตรวจพฤติกรรมเลือกภาษาอัตโนมัติได้ด้วย `npm run test:language`.
+ตรวจภาษา อัปเดต ชื่อไฟล์ และการเปิดหน้าจอได้ด้วย `npm run test:language`, `npm run test:updater`, `npm run test:download-path` และ `npm run test:startup`
+
+บน Windows ใช้ `npm run test:download-quality` เพื่อตรวจการแปลงวิดีโอและเสียง หรือ `npm run test:youtube-pot` เพื่อทดสอบดาวน์โหลด YouTube จริงผ่าน PO Token ทั้งสองคำสั่งต้องมีเครื่องมือของ FramePort ติดตั้งในเครื่องแล้ว ส่วนเทสต์ YouTube ต้องเชื่อมต่ออินเทอร์เน็ตและใช้เซสชันผู้เยี่ยมชมแยกจากบัญชีของผู้ใช้ เปลี่ยนคลิปทดสอบได้ด้วยตัวแปร `FRAMEPORT_TEST_YOUTUBE_URL`
 
 ## โครงสร้างโปรเจกต์
 
 | ไฟล์/โฟลเดอร์ | หน้าที่ |
 | --- | --- |
 | `main.js` | Electron main process, ดาวน์โหลดไฟล์ และเรียก FFmpeg |
+| `youtube-pot.js` | สร้าง PO Token และคุกกี้สำหรับดาวน์โหลด YouTube |
+| `vendor/`, `THIRD_PARTY_NOTICES.md` | ปลั๊กอินที่แนบมากับแอปและข้อความไลเซนส์ |
 | `preload.js` | สะพาน API ระหว่างหน้าจอกับ main process |
 | `index.html`, `renderer.js` | หน้าจอโปรแกรมและการโต้ตอบ |
 | `docs/language.js` | ตรวจประเทศจาก IP และเลือกภาษาเริ่มต้น |
@@ -97,10 +115,13 @@ npm run dist
 | `docs/` | เว็บไซต์แนะนำและดาวน์โหลด FramePort |
 | `.github/workflows/pages.yml` | เผยแพร่เว็บไซต์ด้วย GitHub Pages |
 | `.github/workflows/build-mac.yml` | สร้างตัวติดตั้ง macOS บน GitHub Actions |
+| `install-mac.sh` | ติดตั้งหรืออัปเดต macOS ด้วยคำสั่งเดียว |
 
 ## หมายเหตุ
 
 FramePort ใช้ [yt-dlp](https://github.com/yt-dlp/yt-dlp) และ [FFmpeg](https://ffmpeg.org/) ซึ่งดาวน์โหลดเมื่อติดตั้งเครื่องมือครั้งแรก โปรดปฏิบัติตามข้อกำหนดของเว็บไซต์และดาวน์โหลดเฉพาะเนื้อหาที่คุณมีสิทธิ์ใช้งาน
+
+แอปรวมปลั๊กอิน [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) โดยไม่แก้ไข ภายใต้ไลเซนส์ GPL-3.0 และใช้โค้ดบางส่วนจาก bgutils-js ภายใต้ไลเซนส์ MIT ดูรายละเอียดใน [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
 ผู้พัฒนาไม่มีส่วนรับผิดชอบต่อการนำซอฟต์แวร์นี้ไปใช้ในทางที่ผิดกฎหมายหรือละเมิดลิขสิทธิ์ การใช้งานทั้งหมดถือเป็นความรับผิดชอบและดุลยพินิจของผู้ใช้แต่เพียงผู้เดียว
 
@@ -112,12 +133,20 @@ FramePort ใช้ [yt-dlp](https://github.com/yt-dlp/yt-dlp) และ [FFmpeg
 
 FramePort is a Windows and macOS desktop app for downloading video or audio from a link and saving a file that is ready to use. Choose the quality, output folder, and CPU or GPU conversion mode from one simple screen.
 
+### What's new in 1.0.8
+
+- Generate YouTube PO Tokens inside the app without signing in, with the required plugin included.
+- Retry YouTube bot-check failures with guest cookies and alternate download methods.
+- Sign in to YouTube inside the app when the automatic retry still fails.
+- Fix garbled Thai text and other characters in yt-dlp output on Windows.
+- Download Windows x64, Apple silicon, and Intel Mac builds from [Release 1.0.8](https://github.com/CandyCoreProj/FramePort/releases/tag/v1.0.8).
+
 ### Download
 
 Get FramePort from the [website](https://CandyCoreProj.github.io/FramePort/) or the [GitHub Releases page](https://github.com/CandyCoreProj/FramePort/releases):
 
-- **Setup** installs the app and creates shortcuts.
-- **Portable** runs directly from the downloaded file without installation.
+- **[Setup](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-Setup.exe)** installs the app and creates shortcuts.
+- **[Portable](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort.exe)** runs directly from the downloaded file without installation.
 
 Both releases support Windows x64. On first launch, an internet connection is needed to install the required tools:
 
@@ -136,7 +165,7 @@ curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/instal
 
 It picks the right file for your chip, installs FramePort into Applications, and opens it, with no trip to System Settings for **Open Anyway**. Run the same command again to update.
 
-Or download it yourself: `FramePort-mac-arm64.dmg` for Apple silicon (M1 or later) or `FramePort-mac-x64.dmg` for Intel, then drag FramePort into Applications. The app is not signed with an Apple Developer certificate, so macOS blocks the first launch: open **System Settings → Privacy & Security** and choose **Open Anyway**.
+Or download it yourself: [Apple silicon (M1 or later)](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-mac-arm64.dmg) or [Intel Mac](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-mac-x64.dmg), then drag FramePort into Applications. The app is not signed with an Apple Developer certificate, so macOS blocks the first launch: open **System Settings → Privacy & Security** and choose **Open Anyway**.
 
 On macOS, FramePort tells you when a new version is out and opens the Releases page; it cannot install updates automatically.
 
@@ -164,6 +193,12 @@ Website support depends on the site and the installed yt-dlp version. GPU conver
 
 Files are saved in your Downloads folder by default. You can change the folder from the main screen.
 
+#### When YouTube asks you to confirm you are not a bot
+
+FramePort first retries without signing in. If that fails, click **Sign in to YouTube** on the error message and sign in through the window that opens. The app saves the cookies locally and retries the download automatically.
+
+Click **Sign out of YouTube** at the top of the app to remove the download cookies. Some networks may still require sign-in, depending on YouTube's checks.
+
 ### Build from source
 
 Install Node.js, then run these commands from the project directory:
@@ -183,13 +218,17 @@ Building the macOS `.dmg` must run on a Mac: use `npm run dist:mac`, or run the 
 
 The generated files are saved to `dist/`. This folder is ignored by Git so large installers stay out of the source history.
 
-Run the focused checks with `npm run test:language`, `npm run test:updater`, `npm run test:download-path`, and `npm run test:download-quality` (the last check uses locally installed FramePort tools).
+Run the focused checks with `npm run test:language`, `npm run test:updater`, `npm run test:download-path`, and `npm run test:startup`.
+
+On Windows, `npm run test:download-quality` checks video and audio conversion, and `npm run test:youtube-pot` checks a live YouTube download with PO Tokens. Both need locally installed FramePort tools. The YouTube check also needs internet access and uses an isolated guest session. Set `FRAMEPORT_TEST_YOUTUBE_URL` to test another video you have permission to download.
 
 ### Project structure
 
 | File/folder | Purpose |
 | --- | --- |
 | `main.js` | Electron main process, file downloads, and FFmpeg conversion |
+| `youtube-pot.js` | YouTube PO Token generation and cookie export |
+| `vendor/`, `THIRD_PARTY_NOTICES.md` | Bundled plugin and license notices |
 | `preload.js` | API bridge between the app UI and main process |
 | `index.html`, `renderer.js` | App interface and interactions |
 | `docs/language.js` | IP country lookup and default language selection |
@@ -197,14 +236,14 @@ Run the focused checks with `npm run test:language`, `npm run test:updater`, `np
 | `build/` | App icon and icon generation script |
 | `docs/` | FramePort product and download website |
 | `.github/workflows/pages.yml` | GitHub Pages publishing workflow |
+| `.github/workflows/build-mac.yml` | Build macOS installers in GitHub Actions |
+| `install-mac.sh` | Install or update macOS with one command |
 
 ### Note
 
 FramePort uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [FFmpeg](https://ffmpeg.org/), which are downloaded when the tools are first installed. Follow the relevant website terms and only download content you have permission to use.
 
-FramePort bundles the unmodified [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) yt-dlp plugin (GPL-3.0) and generates PO Tokens with BotGuard inside the app to help with YouTube downloads without signing in. YouTube may still require sign-in on some networks. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-On Windows, run `npm run test:youtube-pot` for an optional live integration check using the installed FramePort tools. It uses an isolated guest session, forces a client that requires PO Tokens, downloads a short public video, and checks that closing the main window exits the app with BotGuard still open. Set `FRAMEPORT_TEST_YOUTUBE_URL` to test another video you have permission to download. This check needs internet access and does not prove that every network's bot check will pass.
+FramePort bundles the unmodified [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) plugin under GPL-3.0 and adapts parts of bgutils-js under MIT. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 The developer is not responsible for any misuse, illegal actions, or copyright infringement committed by the user. All use of this software is at your own discretion.
 
