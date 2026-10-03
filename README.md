@@ -198,6 +198,10 @@ Run the focused checks with `npm run test:language`, `npm run test:updater`, `np
 
 FramePort uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [FFmpeg](https://ffmpeg.org/), which are downloaded when the tools are first installed. Follow the relevant website terms and only download content you have permission to use.
 
+FramePort bundles the unmodified [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) yt-dlp plugin (GPL-3.0) and generates PO Tokens with BotGuard inside the app to help with YouTube downloads without signing in. YouTube may still require sign-in on some networks. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+On Windows, run `npm run test:youtube-pot` for an optional live integration check using the installed FramePort tools. It uses an isolated guest session, forces a client that requires PO Tokens, downloads a short public video, and checks that closing the main window exits the app with BotGuard still open. Set `FRAMEPORT_TEST_YOUTUBE_URL` to test another video you have permission to download. This check needs internet access and does not prove that every network's bot check will pass.
+
 The developer is not responsible for any misuse, illegal actions, or copyright infringement committed by the user. All use of this software is at your own discretion.
 
 The default language checks the estimated IP country code through [ipwho.is](https://ipwhois.io/) and caches the country code locally for 24 hours. The service receives the public IP to identify the country; FramePort does not request GPS location. If the lookup fails, the app uses the device language or timezone. Users can still choose a language manually.

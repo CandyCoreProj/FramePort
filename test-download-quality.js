@@ -17,6 +17,8 @@ assert.ok(fs.existsSync(path.join(bin, 'yt-dlp.exe')) && fs.existsSync(ffmpeg), 
 fs.mkdirSync(output);
 fs.mkdirSync(audioOutput);
 app.setPath('userData', path.join(root, 'appdata'));
+fs.mkdirSync(path.join(root, 'appdata', 'bin'), { recursive: true });
+fs.copyFileSync(path.join(bin, 'yt-dlp.exe'), path.join(root, 'appdata', 'bin', 'yt-dlp.exe'));
 process.env.PATH = `${bin}${path.delimiter}${process.env.PATH}`;
 
 const generated = spawnSync(ffmpeg, [

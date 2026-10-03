@@ -14,7 +14,8 @@
     "test:updater": "node test-updater.js",
     "test:download-path": "node test-download-path.js",
     "test:download-quality": "electron test-download-quality.js",
-    "test:startup": "electron test-startup.js"
+    "test:startup": "electron test-startup.js",
+    "test:youtube-pot": "electron test-youtube-pot.js"
   },
   "build": {
     "appId": "com.tunarmz.videodownloader",
@@ -28,6 +29,7 @@
       "ytdlp-updater.js",
       "app-updater.js",
       "download-path.js",
+      "youtube-pot.js",
       "preload.js",
       "index.html",
       "renderer.js",
@@ -35,6 +37,20 @@
       "fonts/*.woff2",
       "fonts/OFL.txt",
       "build/icon.svg"
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/yt-dlp-plugins",
+        "to": "yt-dlp-plugins"
+      },
+      {
+        "from": "vendor/licenses",
+        "to": "licenses"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      }
     ],
     "directories": {
       "output": "dist"

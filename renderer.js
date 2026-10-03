@@ -46,6 +46,12 @@ const words = {
     toggleTheme: 'สลับธีมสว่าง/มืด', details: 'รายละเอียดการทำงาน', showInFolder: 'แสดงในโฟลเดอร์',
     trustLocal: 'ทำงานในเครื่องคุณ ไม่ต้องสมัครบัญชี', trustTools: 'ใช้ yt-dlp และ FFmpeg โอเพนซอร์ส',
     trustFiles: 'ไฟล์บันทึกตรงลงโฟลเดอร์ที่คุณเลือก',
+    botCheck: 'YouTube ขอให้ยืนยันว่าไม่ใช่บอท เข้าสู่ระบบ YouTube ในแอปครั้งเดียว แล้วแอปจะลองดาวน์โหลดใหม่ให้',
+    botCheckSignedIn: 'YouTube ยังขอให้ยืนยันว่าไม่ใช่บอท ลองเข้าสู่ระบบ YouTube ใหม่อีกครั้ง',
+    youtubeSignIn: 'เข้าสู่ระบบ YouTube', youtubeSignedIn: 'เข้าสู่ระบบ YouTube แล้ว กำลังลองใหม่…',
+    youtubeSignInCancelled: 'ยังไม่ได้เข้าสู่ระบบ YouTube',
+    youtubeSignOut: 'ออกจากระบบ YouTube', youtubeSignOutTitle: 'ลบคุกกี้ YouTube ที่แอปใช้ดาวน์โหลด',
+    youtubeSignedOut: 'ออกจากระบบ YouTube แล้ว',
   },
   en: {
     appTitle: 'Video Downloader', checking: 'Checking tools…', notInstalled: 'Tools not installed', ready: 'Ready', missing: 'Missing',
@@ -87,6 +93,12 @@ const words = {
     toggleTheme: 'Toggle light/dark theme', details: 'Activity details', showInFolder: 'Show in folder',
     trustLocal: 'Runs on your PC, no account needed', trustTools: 'Built on open-source yt-dlp and FFmpeg',
     trustFiles: 'Files save straight to the folder you choose',
+    botCheck: 'YouTube wants to confirm you are not a bot. Sign in to YouTube in the app once and the download will retry.',
+    botCheckSignedIn: 'YouTube still wants to confirm you are not a bot. Try signing in to YouTube again.',
+    youtubeSignIn: 'Sign in to YouTube', youtubeSignedIn: 'Signed in to YouTube. Retrying…',
+    youtubeSignInCancelled: 'Not signed in to YouTube',
+    youtubeSignOut: 'Sign out of YouTube', youtubeSignOutTitle: 'Remove the YouTube cookies used for downloads',
+    youtubeSignedOut: 'Signed out of YouTube',
   },
 };
 
@@ -303,6 +315,8 @@ function renderStatus() {
     : tr('notInstalled');
   if (toolStatus.appVersion) $('appVersion').textContent = 'v' + toolStatus.appVersion;
   $('updateBtn').classList.toggle('hidden', !toolStatus.version);
+  $('youtubeOutBtn').classList.toggle('hidden', !toolStatus.youtubeSignedIn);
+  $('youtubeOutBtn').disabled = running;
   $('setup').classList.toggle('hidden', !checked || ready);
   $('main').classList.remove('hidden');
   $('goBtn').disabled = !ready || running;
@@ -511,6 +525,7 @@ function showResult(type, title, detail) {
   $('resultTitle').textContent = title;
   $('resultDetail').textContent = detail;
   $('showBtn').classList.toggle('hidden', type !== 'ok' || !lastFiles.length);
+  $('youtubeInBtn').classList.add('hidden');
   // เริ่มอนิเมชันใหม่ทุกครั้ง
   result.style.animation = 'none';
   void result.offsetWidth;
@@ -565,8 +580,14 @@ $('goBtn').onclick = async () => {
       showResult('error', tr('cancelled'), '');
     } else {
       finishJobs(false);
-      // 403 จาก YouTube ส่วนใหญ่แก้ได้ด้วยการอัปเดต yt-dlp จึงบอกวิธีแก้ต่อท้าย
-      showResult('error', tr('failed'), !error ? tr('failedHint') : /HTTP Error 403/.test(error) ? `${error} — ${tr('failedHint')}` : error);
+      if (/Sign in to confirm|--cookies-from-browser/.test(error)) {
+        // IP ถูก YouTube สงสัยว่าเป็นบอท แก้ได้ด้วยการเข้าสู่ระบบ YouTube ให้ yt-dlp ใช้คุกกี้
+        showResult('error', tr('failed'), tr(toolStatus.youtubeSignedIn ? 'botCheckSignedIn' : 'botCheck'));
+        $('youtubeInBtn').classList.remove('hidden');
+      } else {
+        // 403 จาก YouTube ส่วนใหญ่แก้ได้ด้วยการอัปเดต yt-dlp จึงบอกวิธีแก้ต่อท้าย
+        showResult('error', tr('failed'), !error ? tr('failedHint') : /HTTP Error 403/.test(error) ? `${error} — ${tr('failedHint')}` : error);
+      }
     }
   } catch (error) {
     finishJobs(false);
@@ -575,6 +596,33 @@ $('goBtn').onclick = async () => {
   } finally {
     setRunning(false);
   }
+};
+
+$('youtubeInBtn').onclick = async () => {
+  const button = $('youtubeInBtn');
+  button.disabled = true;
+  try {
+    const signedIn = await api.youtubeSignIn(lang);
+    if (signedIn === null) return;
+    await refresh().catch(() => {});
+    if (!signedIn) return toast(tr('youtubeSignInCancelled'));
+    toast(tr('youtubeSignedIn'));
+    $('goBtn').click();
+  } catch (error) {
+    toast(cleanError(error));
+  } finally {
+    button.disabled = false;
+  }
+};
+
+$('youtubeOutBtn').onclick = async () => {
+  try {
+    await api.youtubeSignOut(lang);
+    toast(tr('youtubeSignedOut'));
+  } catch (error) {
+    toast(cleanError(error));
+  }
+  await refresh().catch(() => {});
 };
 
 $('cancelBtn').onclick = () => {

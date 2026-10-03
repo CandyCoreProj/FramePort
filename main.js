@@ -8,6 +8,7 @@ const fs = require('fs');
 const { updateYtdlp } = require('./ytdlp-updater');
 const { reserveVersionedPath } = require('./download-path');
 const { startAppUpdates } = require('./app-updater');
+const { cleanSession, createPotProvider, writeCookieFile, writeGuestCookies } = require('./youtube-pot');
 
 const WIN = process.platform === 'win32';
 const MAC = process.platform === 'darwin';
@@ -63,6 +64,75 @@ async function findYtdlp() {
   return fs.existsSync(local('yt-dlp')) ? local('yt-dlp') : null;
 }
 
+// YouTube บล็อก IP บางเครือข่ายด้วย "Sign in to confirm you're not a bot" แอปจะลองตามลำดับ:
+// 1) ดาวน์โหลดปกติ + PO Token จาก BotGuard (youtube-pot.js) ซึ่งไม่ต้องเข้าสู่ระบบ
+// 2) ถ้าโดน bot check: ใช้คุกกี้ผู้เยี่ยมชม + ไคลเอนต์ YouTube อื่น + PO Token ทุกคำขอ
+// 3) ถ้ายังไม่ผ่าน ให้ผู้ใช้เข้าสู่ระบบ YouTube ในหน้าต่างของแอป แล้วใช้คุกกี้นั้นแทน
+// (บน Windows อ่านคุกกี้จาก Chrome/Edge ไม่ได้เพราะ app-bound encryption จึงต้องเข้าสู่ระบบในแอปเอง)
+// yt-dlp จะอัปเดตไฟล์คุกกี้เองหลังใช้งาน
+const cookieFile = () => path.join(app.getPath('userData'), 'youtube-cookies.txt');
+const guestCookieFile = () => path.join(app.getPath('userData'), 'youtube-guest-cookies.txt');
+const youtubeSession = () => cleanSession('persist:youtube');
+const exportYoutubeCookies = (ses) => writeCookieFile(ses, cookieFile(), { requireLogin: true });
+const isYoutube = (link) => /^https?:\/\/([\w-]+\.)*(youtube\.com|youtu\.be)\//i.test(link);
+const isBotCheck = (error) => /Sign in to confirm/i.test(error);
+// ไคลเอนต์สำรอง: mweb ใช้ PO Token ส่วน tv และ web_safari ไม่ต้องใช้
+const FALLBACK_CLIENTS = 'mweb,tv,web_safari';
+// ปลั๊กอิน bgutil (GPL-3.0) แนบมากับตัวติดตั้งโดยไม่แก้ไข อยู่นอก asar เพื่อให้ yt-dlp อ่านได้
+const pluginDir = () => app.isPackaged
+  ? path.join(process.resourcesPath, 'yt-dlp-plugins')
+  : path.join(__dirname, 'vendor', 'yt-dlp-plugins');
+let pot;
+
+// เปิด PO Token server ในเครื่อง ถ้าไม่สำเร็จก็ดาวน์โหลดต่อแบบไม่มีโทเค็น
+async function potArgs(language) {
+  try {
+    pot ??= createPotProvider();
+    return ['--plugin-dirs', pluginDir(), '--extractor-args', `youtubepot-bgutilhttp:base_url=${await pot.baseUrl()}`];
+  } catch (error) {
+    send('log', say(language, `เปิด PO Token ไม่สำเร็จ: ${error.message}`, `Could not start PO Token: ${error.message}`));
+    return [];
+  }
+}
+
+let signInWin;
+ipcMain.handle('youtube-sign-in', (_e, language = 'th') => {
+  if (signInWin && !signInWin.isDestroyed()) { signInWin.focus(); return null; }
+  const ses = youtubeSession();
+  signInWin = new BrowserWindow({
+    parent: win, modal: true, width: 520, height: 720, autoHideMenuBar: true,
+    title: say(language, 'เข้าสู่ระบบ YouTube', 'Sign in to YouTube'),
+    webPreferences: { session: ses, contextIsolation: true, sandbox: true, nodeIntegration: false },
+  });
+  const login = signInWin;
+  login.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https:\/\/([\w-]+\.)*(google|youtube)\.com\//.test(url)) login.loadURL(url);
+    return { action: 'deny' };
+  });
+  let done = false;
+  // พอ Google ส่งกลับมาที่ youtube.com และมีคุกกี้ LOGIN_INFO แล้ว ถือว่าเข้าสู่ระบบสำเร็จ
+  login.webContents.on('did-navigate', async (_event, url) => {
+    if (done || !/^https:\/\/(www|m)\.youtube\.com\//.test(url)) return;
+    if (await exportYoutubeCookies(ses).catch(() => false)) {
+      done = true;
+      if (!login.isDestroyed()) login.close();
+    }
+  });
+  login.loadURL('https://accounts.google.com/ServiceLogin?service=youtube&continue=' +
+    encodeURIComponent('https://www.youtube.com/signin?action_handle_signin=true&next=%2F'));
+  return new Promise((resolve) => login.on('closed', async () => {
+    if (!done) done = await exportYoutubeCookies(ses).catch(() => false);
+    resolve(done);
+  }));
+});
+
+ipcMain.handle('youtube-sign-out', async (_e, language = 'th') => {
+  // yt-dlp เขียนไฟล์คุกกี้กลับตอนจบ ถ้าลบระหว่างดาวน์โหลดไฟล์จะกลับมาอีก
+  if (busy) throw new Error(say(language, 'รอให้ดาวน์โหลดเสร็จก่อน', 'Wait for the download to finish'));
+  await youtubeSession().clearStorageData();
+  await fs.promises.rm(cookieFile(), { force: true });
+});
+
 // คืนค่า: 'local' = อยู่ในโฟลเดอร์โปรแกรม, 'path' = อยู่ใน PATH, null = ไม่มี
 async function findFfmpeg() {
   if (fs.existsSync(local('ffmpeg')) && fs.existsSync(local('ffprobe'))) return 'local';
@@ -90,6 +160,7 @@ function createWindow() {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (event) => event.preventDefault());
   win.once('ready-to-show', () => win.show());
+  win.on('closed', quit);
   win.loadFile('index.html');
 }
 
@@ -103,10 +174,13 @@ app.whenReady().then(() => {
 
 ipcMain.handle('app-update-state', () => appUpdates?.state() ?? null);
 ipcMain.handle('install-app-update', () => appUpdates?.install() ?? 'unavailable');
-app.on('window-all-closed', async () => {
+// หน้าต่าง BotGuard ที่ซ่อนอยู่นับเป็นหน้าต่างด้วย จึงปิดแอปเมื่อหน้าต่างหลักปิดแทน window-all-closed
+async function quit() {
   await killProc();
+  pot?.close();
   app.quit();
-});
+}
+app.on('window-all-closed', quit);
 
 // ดาวน์โหลดไฟล์แบบมี % ส่งไปหน้าจอ
 async function fetchTo(url, dest, tag, language = 'th') {
@@ -150,6 +224,7 @@ ipcMain.handle('status', async () => {
   return {
     version, ffmpeg: !!ffmpeg, canInstallFfmpeg: WIN || MAC,
     downloads: app.getPath('downloads'), appVersion: app.getVersion(),
+    youtubeSignedIn: fs.existsSync(cookieFile()),
   };
 });
 
@@ -511,6 +586,8 @@ ipcMain.handle('download', async (_e, options) => {
       '--no-overwrites',
       '--no-mtime',
       '--newline',
+      // yt-dlp.exe ไม่สน PYTHONIOENCODING และพิมพ์เป็น code page ของ Windows ทำให้ข้อความเพี้ยน
+      '--encoding', 'utf-8',
       '--progress',
       '--concurrent-fragments', '8',
       '--js-runtimes', `node:${process.execPath}`,
@@ -522,6 +599,9 @@ ipcMain.handle('download', async (_e, options) => {
       playlist ? '--yes-playlist' : '--no-playlist',
     ];
     if (ff === 'local') args.push('--ffmpeg-location', binDir());
+    const signedIn = fs.existsSync(cookieFile());
+    if (signedIn) args.push('--cookies', cookieFile());
+    if (isYoutube(link)) args.push(...await potArgs(language));
 
     if (kind === 'audio') {
       args.push('-f', 'ba/b', '-x', '--audio-format', quality, '--audio-quality', '0', '--embed-metadata');
@@ -535,7 +615,6 @@ ipcMain.handle('download', async (_e, options) => {
         '--remux-video', 'mp4',
       );
     }
-    args.push('--', link);
 
     const files = [];
     const seen = new Set();
@@ -581,7 +660,7 @@ ipcMain.handle('download', async (_e, options) => {
 
     const label = say(language, 'กำลังดาวน์โหลด', 'Downloading');
     let lastProgress = 0;
-    let code = await run(bin, args, (line) => {
+    const download = (extra = []) => run(bin, [...args, ...extra, '--', link], (line) => {
       if (line.startsWith('[P]')) {
         const [pct, speed, eta, index, total] = line.slice(3).split('|').map((s) => s.trim());
         const value = parseFloat(pct) || 0;
@@ -596,6 +675,22 @@ ipcMain.handle('download', async (_e, options) => {
         send('log', line);
       }
     });
+    let code = await download();
+    // โดน bot check ก่อนได้ไฟล์ใดเลย: ลองใหม่ด้วยคุกกี้ผู้เยี่ยมชมและไคลเอนต์อื่นโดยไม่ต้องเข้าสู่ระบบ
+    if (code !== 0 && !cancelled && !seen.size && isYoutube(link) && isBotCheck(lastError)) {
+      send('log', say(language, 'YouTube ขอยืนยันว่าไม่ใช่บอท กำลังลองวิธีอื่นที่ไม่ต้องเข้าสู่ระบบ…',
+        'YouTube asked to confirm you are not a bot. Retrying without sign-in…'));
+      send('progress', { stage: 'download', pct: 0, label: say(language, 'กำลังลองใหม่', 'Retrying') });
+      const guest = !signedIn && await writeGuestCookies(guestCookieFile()).catch((error) => {
+        send('log', error.message);
+        return false;
+      });
+      lastError = '';
+      code = await download([
+        ...(guest ? ['--cookies', guestCookieFile()] : []),
+        '--extractor-args', `youtube:player_client=${FALLBACK_CLIENTS};fetch_pot=always`,
+      ]);
+    }
     await converting;
     for (const entry of completed) {
       let destination = entry.converted ? entry.reserved.finalPath : entry.reserved.path;
