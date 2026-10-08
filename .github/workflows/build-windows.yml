@@ -1,0 +1,118 @@
+name: Build Windows
+
+# เซ็นไฟล์ผ่าน SignPath Foundation (ฟรีสำหรับ open source) เมื่อตั้งค่า repository variable
+# SIGNPATH_ORGANIZATION_ID และ secret SIGNPATH_API_TOKEN แล้ว ถ้ายังไม่ตั้งจะสร้างไฟล์แบบไม่เซ็น
+# เซ็น 2 รอบ: รอบแรกเซ็น FramePort.exe ในโฟลเดอร์แอป แล้วค่อยห่อเป็น installer
+# รอบสองเซ็น FramePort-Setup.exe กับ Portable แต่ละรอบต้องกด Approve ในเว็บ SignPath
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SIGN: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Build app folder
+        run: npx electron-builder --win --x64 --dir --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Upload unsigned app
+        id: upload-app
+        if: env.SIGN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-app
+          path: dist/win-unpacked
+          if-no-files-found: error
+
+      - name: Sign app
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'FramePort' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: app
+          github-artifact-id: ${{ steps.upload-app.outputs.artifact-id }}
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: dist/win-signed
+          parameters: |
+            version: "${{ steps.version.outputs.version }}"
+
+      - name: Build installers
+        run: npx electron-builder --win --x64 --prepackaged ${{ env.SIGN == 'true' && 'dist/win-signed' || 'dist/win-unpacked' }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Upload unsigned installers
+        id: upload-installers
+        if: env.SIGN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-installers
+          path: |
+            dist/FramePort-Setup.exe
+            dist/FramePort.exe
+          if-no-files-found: error
+
+      - name: Sign installers
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'FramePort' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: installers
+          github-artifact-id: ${{ steps.upload-installers.outputs.artifact-id }}
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: dist/signed
+          parameters: |
+            version: "${{ steps.version.outputs.version }}"
+
+      - name: Update latest.yml for signed installer
+        if: env.SIGN == 'true'
+        shell: bash
+        run: |
+          cp dist/signed/FramePort-Setup.exe dist/signed/FramePort.exe dist/
+          node build/refresh-update-info.js dist
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: FramePort-windows
+          path: |
+            dist/FramePort-Setup.exe
+            dist/FramePort-Setup.exe.blockmap
+            dist/FramePort.exe
+            dist/latest.yml
+          if-no-files-found: error

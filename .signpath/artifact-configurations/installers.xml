@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SignPath artifact configuration "installers": เซ็นไฟล์ที่ผู้ใช้ดาวน์โหลด (Setup และ Portable) -->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <parameters>
+    <parameter name="version" required="true" />
+  </parameters>
+  <zip-file>
+    <pe-file path="FramePort-Setup.exe" product-name="FramePort" product-version="${version}">
+      <authenticode-sign />
+    </pe-file>
+    <pe-file path="FramePort.exe" product-name="FramePort" product-version="${version}">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>

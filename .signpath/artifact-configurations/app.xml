@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SignPath artifact configuration "app": เซ็น FramePort.exe ในโฟลเดอร์แอป (dist/win-unpacked) ก่อนห่อเป็น installer
+     ไฟล์ .exe ของแอปมี ProductVersion 4 หลัก เช่น 1.0.8.0 -->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <parameters>
+    <parameter name="version" required="true" />
+  </parameters>
+  <zip-file>
+    <pe-file path="FramePort.exe" product-name="FramePort" product-version="${version}.0">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>

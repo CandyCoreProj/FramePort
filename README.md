@@ -33,6 +33,16 @@ FramePort เป็นโปรแกรม Windows และ macOS สำหร
 
 FramePort ดาวน์โหลดเครื่องมือเหล่านี้เมื่อจำเป็น แทนการรวมไว้ในตัวติดตั้งหลัก
 
+### Windows ด้วยคำสั่งเดียว
+
+ถ้าไม่อยากเจอหน้า SmartScreen "Windows protected your PC" ที่ต้องกด More info → Run anyway ให้คลิกขวาที่ปุ่ม Start เลือก **Terminal** (หรือ PowerShell) วางคำสั่งนี้แล้วกด Enter:
+
+```powershell
+irm https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/install-windows.ps1 | iex
+```
+
+คำสั่งนี้ดาวน์โหลดตัวติดตั้งรุ่นล่าสุด ติดตั้งให้เฉพาะผู้ใช้นี้โดยไม่ต้องขอสิทธิ์ admin แล้วเปิดโปรแกรมให้ทันที รันคำสั่งเดิมอีกครั้งเพื่ออัปเดต
+
 ### macOS
 
 รองรับ macOS 12 ขึ้นไป วิธีที่ง่ายที่สุดคือเปิด **Terminal** (กด ⌘ Space แล้วพิมพ์ Terminal) วางคำสั่งนี้แล้วกด Enter:
@@ -116,6 +126,30 @@ npm run dist
 | `.github/workflows/pages.yml` | เผยแพร่เว็บไซต์ด้วย GitHub Pages |
 | `.github/workflows/build-mac.yml` | สร้างตัวติดตั้ง macOS บน GitHub Actions |
 | `install-mac.sh` | ติดตั้งหรืออัปเดต macOS ด้วยคำสั่งเดียว |
+| `install-windows.ps1` | ติดตั้งหรืออัปเดต Windows ด้วยคำสั่งเดียว |
+| `.github/workflows/build-windows.yml` | สร้างและเซ็นตัวติดตั้ง Windows บน GitHub Actions ผ่าน SignPath |
+| `.signpath/` | ค่าตั้ง artifact configuration ของ SignPath (ใส่ในเว็บ SignPath) |
+
+## Code signing policy
+
+ไฟล์ Windows (Setup และ Portable) เซ็นด้วย code signing certificate เพื่อให้ Windows ไม่ขึ้นหน้าเตือน SmartScreen
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)
+
+- ไฟล์ที่เซ็นทุกไฟล์สร้างจากซอร์สโค้ดใน repo นี้บน GitHub Actions ([build-windows.yml](.github/workflows/build-windows.yml)) ไม่ได้สร้างในเครื่องของผู้พัฒนา
+- Committers และ reviewers: [สมาชิก CandyCoreProj](https://github.com/orgs/CandyCoreProj/people)
+- Approvers: owner ของ [CandyCoreProj](https://github.com/CandyCoreProj) ต้องกดอนุมัติทุกครั้งก่อนเซ็น
+
+### Privacy policy
+
+FramePort ไม่มีระบบเก็บสถิติ ไม่ส่งข้อมูลการใช้งานหรือรายชื่อไฟล์ของคุณไปที่ไหน โปรแกรมเชื่อมต่อเครือข่ายเฉพาะกรณีต่อไปนี้:
+
+- ดาวน์โหลดจากลิงก์ที่คุณวาง โดยส่งคำขอไปยังเว็บไซต์ของลิงก์นั้นผ่าน yt-dlp
+- YouTube: สร้าง PO Token ผ่านเซิร์ฟเวอร์ของ Google และถ้าคุณกดเข้าสู่ระบบ YouTube ในแอป คุกกี้จะเก็บไว้ในเครื่องเท่านั้น
+- ติดตั้งและอัปเดต yt-dlp และ FFmpeg จาก GitHub (และ ffmpeg.martin-riedl.de บน Mac)
+- ตรวจรุ่นใหม่ของ FramePort จาก GitHub Releases เป็นระยะ
+- ตรวจประเทศจาก IP ผ่าน [ipwho.is](https://ipwhois.io/) เพื่อเลือกภาษาเริ่มต้น (ดูหมายเหตุด้านล่าง)
+
+บริการเหล่านี้อยู่ภายใต้นโยบายความเป็นส่วนตัวของผู้ให้บริการแต่ละราย
 
 ## หมายเหตุ
 
@@ -154,6 +188,16 @@ Both releases support Windows x64. On first launch, an internet connection is ne
 - FFmpeg for video and audio conversion (about 150 MB)
 
 These tools are downloaded when needed instead of being bundled into the main installer.
+
+#### Windows with one command
+
+To skip the SmartScreen "Windows protected your PC" screen (More info → Run anyway), right-click the Start button, choose **Terminal** (or PowerShell), paste this command, and press Enter:
+
+```powershell
+irm https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/install-windows.ps1 | iex
+```
+
+It downloads the latest installer, installs FramePort for the current user without admin rights, and opens it. Run the same command again to update.
 
 #### macOS
 
@@ -238,6 +282,30 @@ On Windows, `npm run test:download-quality` checks video and audio conversion, a
 | `.github/workflows/pages.yml` | GitHub Pages publishing workflow |
 | `.github/workflows/build-mac.yml` | Build macOS installers in GitHub Actions |
 | `install-mac.sh` | Install or update macOS with one command |
+| `install-windows.ps1` | Install or update Windows with one command |
+| `.github/workflows/build-windows.yml` | Build and sign Windows installers in GitHub Actions via SignPath |
+| `.signpath/` | SignPath artifact configurations (entered on the SignPath website) |
+
+### Code signing policy
+
+Windows files (Setup and Portable) are code signed so Windows does not show the SmartScreen warning.
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)
+
+- Every signed file is built from the source in this repository on GitHub Actions ([build-windows.yml](.github/workflows/build-windows.yml)), never on a developer's machine.
+- Committers and reviewers: [members of CandyCoreProj](https://github.com/orgs/CandyCoreProj/people)
+- Approvers: owners of [CandyCoreProj](https://github.com/CandyCoreProj), who approve every signing request manually
+
+#### Privacy policy
+
+FramePort has no analytics and does not send your usage data or file names anywhere. It connects to the network only for:
+
+- Downloading from links you paste, by sending requests to that website through yt-dlp
+- YouTube: generating PO Tokens through Google's servers, and, if you sign in to YouTube in the app, cookies that stay on your computer
+- Installing and updating yt-dlp and FFmpeg from GitHub (and ffmpeg.martin-riedl.de on Mac)
+- Checking GitHub Releases periodically for new FramePort versions
+- Looking up the country of your IP through [ipwho.is](https://ipwhois.io/) to choose the default language (see the note below)
+
+These services are covered by their own providers' privacy policies.
 
 ### Note
 

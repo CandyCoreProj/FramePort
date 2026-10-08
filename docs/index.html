@@ -461,11 +461,11 @@
         <div class="download-options">
           <article class="download-option">
             <div><h3 data-i18n="setupTitle">Windows Setup</h3><p data-i18n="setupCopy">ติดตั้งลงเครื่อง สร้างทางลัดให้พร้อมใช้</p></div>
-            <a class="button button-accent" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort-Setup.exe" data-i18n="setupButton">ดาวน์โหลด Setup</a>
+            <a class="button button-accent" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort-Setup.exe" data-win-download data-i18n="setupButton">ดาวน์โหลด Setup</a>
           </article>
           <article class="download-option">
             <div><h3 data-i18n="portableTitle">Windows Portable</h3><p data-i18n="portableCopy">เปิดจากไฟล์ได้เลย ไม่ต้องติดตั้ง</p></div>
-            <a class="button button-soft" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort.exe" data-i18n="portableButton">ดาวน์โหลด Portable</a>
+            <a class="button button-soft" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort.exe" data-win-download data-i18n="portableButton">ดาวน์โหลด Portable</a>
           </article>
           <article class="download-option">
             <div><h3 data-i18n="macArmTitle">Mac ชิป Apple</h3><p data-i18n="macArmCopy">M1 ขึ้นไป · ไฟล์ .dmg ลากไปไว้ใน Applications</p></div>
@@ -476,7 +476,7 @@
             <a class="button button-soft" href="https://github.com/CandyCoreProj/FramePort/releases/latest/download/FramePort-mac-x64.dmg" data-mac-download data-i18n="macIntelButton">ดาวน์โหลดสำหรับ Mac Intel</a>
           </article>
         </div>
-        <p class="download-footnote"><span data-i18n="downloadNote">ต้องใช้อินเทอร์เน็ตเพื่อติดตั้ง yt-dlp และ FFmpeg ในการเปิดใช้ครั้งแรก</span> · <a href="https://github.com/CandyCoreProj/FramePort/releases" target="_blank" rel="noopener noreferrer" data-i18n="releaseLink">ดูทุกรุ่นบน GitHub</a></p>
+        <p class="download-footnote"><span data-i18n="downloadNote">ต้องใช้อินเทอร์เน็ตเพื่อติดตั้ง yt-dlp และ FFmpeg ในการเปิดใช้ครั้งแรก</span> · <a href="https://github.com/CandyCoreProj/FramePort/releases" target="_blank" rel="noopener noreferrer" data-i18n="releaseLink">ดูทุกรุ่นบน GitHub</a> · <a href="https://github.com/CandyCoreProj/FramePort#code-signing-policy" target="_blank" rel="noopener noreferrer">Code signing policy</a></p>
       </div>
     </section>
 
@@ -498,6 +498,23 @@
       </div>
     </section>
   </main>
+
+  <dialog class="mac-dialog" id="winDialog" aria-labelledby="winDialogTitle">
+    <h2 id="winDialogTitle" data-i18n="winDialogTitle">แนะนำ: ติดตั้งด้วยคำสั่งเดียว</h2>
+    <p data-i18n="winDialogIntro">วิธีนี้ไม่ขึ้นหน้าเตือน SmartScreen ไม่ต้องกด Run anyway คลิกขวาที่ปุ่ม Start เลือก Terminal (หรือ PowerShell) วางคำสั่งนี้แล้วกด Enter</p>
+    <code id="winCommand">irm https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/install-windows.ps1 | iex</code>
+    <div class="mac-dialog-actions">
+      <button class="button button-accent" type="button" id="winCopy" data-i18n="macDialogCopy">คัดลอกคำสั่ง</button>
+      <form method="dialog"><button class="button button-soft" data-i18n="macDialogClose">ปิด</button></form>
+    </div>
+    <hr>
+    <h3 data-i18n="winDialogManualTitle">ยังอยากดาวน์โหลดไฟล์ .exe เอง?</h3>
+    <ol>
+      <li data-i18n="winDialogStep1">เปิดไฟล์ที่ดาวน์โหลด ถ้า Windows ขึ้นหน้า "Windows protected your PC"</li>
+      <li data-i18n="winDialogStep2">กด More info แล้วกด Run anyway</li>
+    </ol>
+    <a class="button button-soft" id="winDownload" href="https://github.com/CandyCoreProj/FramePort/releases/latest" data-i18n="winDialogDownload">ดาวน์โหลด .exe ต่อ</a>
+  </dialog>
 
   <dialog class="mac-dialog" id="macDialog" aria-labelledby="macDialogTitle">
     <h2 id="macDialogTitle" data-i18n="macDialogTitle">แนะนำ: ติดตั้งด้วยคำสั่งเดียว</h2>
@@ -528,6 +545,7 @@
       <nav class="footer-links" aria-label="เมนูท้ายเว็บ" data-i18n-aria="footerNavLabel">
         <a href="https://github.com/CandyCoreProj/FramePort" target="_blank" rel="noopener noreferrer" data-i18n="footerSource">ซอร์สโค้ด</a>
         <a href="https://github.com/CandyCoreProj/FramePort/issues" target="_blank" rel="noopener noreferrer" data-i18n="footerSupport">แจ้งปัญหา</a>
+        <a href="https://github.com/CandyCoreProj/FramePort#code-signing-policy" target="_blank" rel="noopener noreferrer">Code signing policy</a>
       </nav>
     </div>
   </footer>
@@ -558,6 +576,8 @@
         macIntelTitle: "Mac Intel", macIntelCopy: "Mac รุ่นก่อนชิป Apple · ไฟล์ .dmg", macIntelButton: "ดาวน์โหลดสำหรับ Mac Intel",
         macDialogTitle: "แนะนำ: ติดตั้งด้วยคำสั่งเดียว", macDialogIntro: "วิธีนี้ง่ายกว่าโหลดไฟล์เอง ไม่ต้องไปตั้งค่าใน System Settings เปิด Terminal (กด ⌘ Space แล้วพิมพ์ Terminal) วางคำสั่งนี้แล้วกด Enter", macDialogCopy: "คัดลอกคำสั่ง", macDialogCopied: "คัดลอกแล้ว", macDialogClose: "ปิด",
         macDialogManualTitle: "ยังอยากดาวน์โหลดไฟล์ .dmg เอง?", macDialogStep1: "เปิดไฟล์ .dmg แล้วลาก FramePort ไปไว้ใน Applications", macDialogStep2: "เปิด FramePort ครั้งแรก macOS จะแจ้งว่าเปิดไม่ได้ ให้กด Done", macDialogStep3: "ไปที่ System Settings → Privacy & Security เลื่อนลงไปที่ส่วน Security", macDialogStep4: "กด Open Anyway ข้าง FramePort แล้วใส่รหัสผ่านเครื่อง หลังจากนั้นเปิดได้ตามปกติ", macDialogDownload: "ดาวน์โหลด .dmg ต่อ",
+        winDialogTitle: "แนะนำ: ติดตั้งด้วยคำสั่งเดียว", winDialogIntro: "วิธีนี้ไม่ขึ้นหน้าเตือน SmartScreen ไม่ต้องกด Run anyway คลิกขวาที่ปุ่ม Start เลือก Terminal (หรือ PowerShell) วางคำสั่งนี้แล้วกด Enter",
+        winDialogManualTitle: "ยังอยากดาวน์โหลดไฟล์ .exe เอง?", winDialogStep1: "เปิดไฟล์ที่ดาวน์โหลด ถ้า Windows ขึ้นหน้า \"Windows protected your PC\"", winDialogStep2: "กด More info แล้วกด Run anyway", winDialogDownload: "ดาวน์โหลด .exe ต่อ",
         downloadNote: "ต้องใช้อินเทอร์เน็ตเพื่อติดตั้ง yt-dlp และ FFmpeg ในการเปิดใช้ครั้งแรก", releaseLink: "ดูทุกรุ่นบน GitHub",
         faqEyebrow: "ก่อนเริ่มใช้งาน", faqTitle: "คำถามที่พบบ่อย", faqIntro: "ข้อมูลสั้น ๆ ที่ช่วยให้เริ่มต้นได้อย่างมั่นใจ",
         faqOneQuestion: "ใช้กับเครื่องไหนได้บ้าง?", faqOneAnswer: "Windows x64 ใช้ได้ทั้งแบบ Setup และ Portable ส่วน Mac ต้องเป็น macOS 12 ขึ้นไป เลือกไฟล์ให้ตรงกับชิป: ชิป Apple (M1 ขึ้นไป) หรือ Intel ดูได้ที่เมนู Apple → About This Mac",
@@ -595,6 +615,8 @@
         macIntelTitle: "Mac with Intel", macIntelCopy: "Macs before Apple silicon · .dmg", macIntelButton: "Download for Intel Mac",
         macDialogTitle: "Recommended: install with one command", macDialogIntro: "Easier than downloading the file, with no trip to System Settings. Open Terminal (press ⌘ Space and type Terminal), paste this command, and press Enter.", macDialogCopy: "Copy command", macDialogCopied: "Copied", macDialogClose: "Close",
         macDialogManualTitle: "Still want the .dmg?", macDialogStep1: "Open the .dmg and drag FramePort into Applications.", macDialogStep2: "Open FramePort. macOS says it can't be opened; choose Done.", macDialogStep3: "Go to System Settings → Privacy & Security and scroll down to Security.", macDialogStep4: "Choose Open Anyway next to FramePort and enter your Mac password. It opens normally after that.", macDialogDownload: "Download .dmg anyway",
+        winDialogTitle: "Recommended: install with one command", winDialogIntro: "No SmartScreen warning and no Run anyway. Right-click the Start button, choose Terminal (or PowerShell), paste this command, and press Enter.",
+        winDialogManualTitle: "Still want the .exe?", winDialogStep1: "Open the downloaded file. If Windows shows \"Windows protected your PC\",", winDialogStep2: "choose More info, then Run anyway.", winDialogDownload: "Download .exe anyway",
         downloadNote: "An internet connection is needed to install yt-dlp and FFmpeg on first launch.", releaseLink: "Browse all releases on GitHub",
         faqEyebrow: "Before you begin", faqTitle: "Frequently asked questions", faqIntro: "A few quick answers to help you get started.",
         faqOneQuestion: "Which computers are supported?", faqOneAnswer: "Windows x64, with Setup or Portable, and macOS 12 or later. On a Mac, pick the file for your chip: Apple silicon (M1 or later) or Intel. Check under Apple menu → About This Mac.",
@@ -651,24 +673,27 @@
     });
     setLanguage(language);
 
-    // ปุ่มดาวน์โหลด Mac: แนะนำคำสั่ง Terminal ก่อน ถ้ายังอยากได้ไฟล์ก็กดดาวน์โหลดต่อได้
-    const macDialog = document.getElementById("macDialog");
-    const macCopy = document.getElementById("macCopy");
-    document.querySelectorAll("[data-mac-download]").forEach((link) => link.addEventListener("click", (event) => {
-      if (!macDialog.showModal) return;
-      event.preventDefault();
-      document.getElementById("macDownload").href = link.href;
-      macCopy.textContent = copy[language].macDialogCopy;
-      macDialog.showModal();
-    }));
-    macCopy.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(document.getElementById("macCommand").textContent);
-        macCopy.textContent = copy[language].macDialogCopied;
-      } catch (_) {
-        getSelection().selectAllChildren(document.getElementById("macCommand"));
-      }
-    });
+    // ปุ่มดาวน์โหลด Mac/Windows: แนะนำคำสั่งติดตั้งก่อน (ไม่ขึ้นหน้าเตือนของระบบ) ถ้ายังอยากได้ไฟล์ก็กดดาวน์โหลดต่อได้
+    for (const os of ["mac", "win"]) {
+      const dialog = document.getElementById(`${os}Dialog`);
+      const copyButton = document.getElementById(`${os}Copy`);
+      const command = document.getElementById(`${os}Command`);
+      document.querySelectorAll(`[data-${os}-download]`).forEach((link) => link.addEventListener("click", (event) => {
+        if (!dialog.showModal) return;
+        event.preventDefault();
+        document.getElementById(`${os}Download`).href = link.href;
+        copyButton.textContent = copy[language].macDialogCopy;
+        dialog.showModal();
+      }));
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(command.textContent);
+          copyButton.textContent = copy[language].macDialogCopied;
+        } catch (_) {
+          getSelection().selectAllChildren(command);
+        }
+      });
+    }
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
