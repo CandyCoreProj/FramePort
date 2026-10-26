@@ -1,7 +1,7 @@
 {
   "name": "frameport",
   "productName": "FramePort",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "FramePort — reliable video downloads and edit-ready conversion",
   "author": "CandyCore",
   "license": "MIT",
@@ -15,6 +15,7 @@
     "test:updater": "node test-updater.js",
     "test:download-path": "node test-download-path.js",
     "test:download-quality": "electron test-download-quality.js",
+    "test:multi-download": "electron test-multi-download.js",
     "test:startup": "electron test-startup.js",
     "test:youtube-pot": "electron test-youtube-pot.js"
   },

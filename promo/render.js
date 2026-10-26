@@ -1,11 +1,14 @@
 // เรนเดอร์คลิปใน promo/ เป็น MP4 (1920×1080, H.264) ด้วย Electron แบบ offscreen + FFmpeg
-// ใช้: npx electron promo/render.js <launch|intro> [th|en] [light|dark] [--samples=N] [--still=วินาที,...] [--out=โฟลเดอร์]
+// ใช้: npx electron promo/render.js <simple|showcase> [th|en] [light|dark] [--samples=N] [--workers=N] [--still=วินาที,...] [--out=โฟลเดอร์]
 // fps, ความยาว และ motion blur อ่านจาก window.FramePortClip ในหน้าคลิป
 // --still ส่งออกเฟรมเดี่ยว (มี motion blur) เป็น PNG แทนวิดีโอ เช่นใช้ทำภาพปก
 // ต้องมี FFmpeg: ใช้ตัวที่ FramePort ติดตั้งไว้ (%APPDATA%\FramePort\bin) หรือกำหนด FFMPEG=path
+// เร็วขึ้น: แบ่งวิดีโอเป็นช่วงละ ~2 วินาที ให้ Electron หลายตัวเรนเดอร์พร้อมกัน (--workers=N, ค่าเริ่มต้นตามจำนวนคอร์)
+// แล้วต่อไฟล์ด้วย FFmpeg แบบไม่เข้ารหัสใหม่ · motion blur ใช้เฉพาะช่วง FramePortClip.fast (ช่วงอื่นเฟรมเดียว)
 const { app, BrowserWindow, nativeImage } = require('electron');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const W = 1920;
@@ -21,6 +24,10 @@ const ffmpeg = process.env.FFMPEG || (fs.existsSync(localFfmpeg) ? localFfmpeg :
 const version = require('../package.json').version;
 const baseName = `FramePort-${clip}-${lang}${theme === 'dark' ? '-dark' : ''}`;
 const output = path.join(outDir, `${baseName}.mp4`);
+// โหมดลูก: เรนเดอร์เฉพาะเฟรม [from, to) ลงไฟล์ช่วง --segment
+const [rangeFrom, rangeTo] = option('range') ? option('range').split('-').map(Number) : [];
+const segment = option('segment');
+const workers = Math.max(1, Number(option('workers')) || Math.min(12, Math.floor(os.cpus().length / 2)));
 
 // motion blur: รวมเฟรมย่อยใน linear light (เหมือนแสงสะสมบนเซนเซอร์กล้อง) แล้วแปลงกลับเป็น sRGB พร้อม dither กันแถบสี
 const LEVELS = 16384;
@@ -87,6 +94,53 @@ function eraseMark(bgra) {
 
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 app.commandLine.appendSwitch('force-color-profile', 'srgb');
+// แต่ละโปรเซสใช้โฟลเดอร์ข้อมูลของตัวเอง หลายตัวจึงรันพร้อมกันได้โดยไม่แย่งแคชกัน
+app.setPath('userData', path.join(os.tmpdir(), 'frameport-render', String(process.pid)));
+// ถ้าโปรเซสที่สั่งงาน (terminal / โปรเซสแม่) ถูกปิดไป ให้ปิดตัวเองด้วย ไม่ค้างแย่ง CPU/GPU รอบเรนเดอร์ถัดไป
+const parentPid = process.ppid;
+setInterval(() => { try { process.kill(parentPid, 0); } catch { app.exit(1); } }, 2000).unref();
+
+const encoderArgs = (fps, file) => [
+  '-y', '-hide_banner', '-loglevel', 'error',
+  '-f', 'rawvideo', '-pix_fmt', 'bgra', '-s', `${W}x${H}`, '-r', fps, '-i', '-',
+  // แปลง RGB → YUV ด้วยเมทริกซ์ BT.709 และติดป้ายสีให้ครบ เครื่องเล่นจะแสดงสีตรงกับที่เรนเดอร์
+  '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv',
+  // aq-mode=3 ให้บิตกับฉากมืดมากขึ้น ลดแถบสีในแสงไล่เฉด
+  '-c:v', 'libx264', '-preset', 'slow', '-crf', 18, '-x264-params', 'aq-mode=3', '-profile:v', 'high',
+  '-movflags', '+faststart', file,
+].map(String);
+const exec = (cmd, argv, opts) => new Promise((resolve, reject) => {
+  const child = spawn(cmd, argv, opts);
+  child.on('error', reject);
+  child.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`${path.basename(cmd)} exited ${code}`))));
+});
+
+// โหมดแม่: แจกช่วงเฟรมให้ Electron ลูกทีละ workers ตัว แล้วต่อไฟล์ช่วงเป็นวิดีโอเดียว
+async function renderParallel(frames, fps) {
+  const chunk = fps * 2;
+  const jobs = [];
+  for (let from = 0; from < frames; from += chunk) jobs.push([from, Math.min(frames, from + chunk)]);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frameport-segments-'));
+  const started = Date.now();
+  let done = 0, next = 0;
+  const extra = args.filter((arg) => arg.startsWith('--samples='));
+  const worker = async () => {
+    while (next < jobs.length) {
+      const index = next++;
+      const [from, to] = jobs[index];
+      const file = path.join(dir, `${String(index).padStart(3, '0')}.mp4`);
+      await exec(process.execPath, [__filename, clip, lang, theme, `--range=${from}-${to}`, `--segment=${file}`, ...extra], { stdio: ['ignore', 'ignore', 'inherit'] });
+      done += to - from;
+      process.stdout.write(`\r${clip} ${lang}/${theme}: ${done}/${frames} frames · ${workers} workers · ${((Date.now() - started) / 1000).toFixed(0)}s`);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(workers, jobs.length) }, worker));
+  const list = path.join(dir, 'list.txt');
+  fs.writeFileSync(list, jobs.map((_, i) => `file '${path.join(dir, `${String(i).padStart(3, '0')}.mp4`).replace(/\\/g, '/')}'`).join('\n'));
+  await exec(ffmpeg, ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', '-movflags', '+faststart', output], { stdio: 'inherit' });
+  fs.rmSync(dir, { recursive: true, force: true });
+  console.log(`\nSaved ${output} (${frames} frames @ ${fps}fps, ${((Date.now() - started) / 1000).toFixed(0)}s)`);
+}
 
 app.whenReady().then(async () => {
   const win = new BrowserWindow({
@@ -100,9 +154,15 @@ app.whenReady().then(async () => {
   await win.loadFile(path.join(__dirname, `${clip}.html`), { query: { lang, theme, v: version, render: '1' } });
   const viewport = await run('[innerWidth, innerHeight]');
   if (viewport[0] !== W || viewport[1] !== H) throw new Error(`Viewport is ${viewport.join('×')}, expected ${W}×${H}`);
-  const spec = await run('FramePortClip.ready().then(() => ({ duration: FramePortClip.duration, fps: FramePortClip.fps, samples: FramePortClip.samples, shutter: FramePortClip.shutter }))');
+  const spec = await run('FramePortClip.ready().then(() => ({ duration: FramePortClip.duration, fps: FramePortClip.fps, samples: FramePortClip.samples, shutter: FramePortClip.shutter, fast: FramePortClip.fast || null }))');
   const samples = samplesOverride || spec.samples || 1;
   const frames = Math.round(spec.duration * spec.fps);
+  if (!stills.length && !segment && workers > 1) {
+    win.webContents.setFrameRate(1); // โปรเซสแม่แค่แจกงาน (ปิดหน้าต่างไม่ได้ ไม่งั้น Electron จะปิดทั้งแอป)
+    await renderParallel(frames, spec.fps);
+    app.exit(0);
+    return;
+  }
   await run(`(() => {
     const mark = document.createElement('div');
     mark.id = '__renderMark';
@@ -132,8 +192,10 @@ app.whenReady().then(async () => {
   const accumulator = samples > 1 ? new Accumulator(W * H) : null;
   const shutter = (spec.shutter || .5) / spec.fps;
   // หนึ่งเฟรมของวิดีโอ: ถ้ามี motion blur จะเฉลี่ยเฟรมย่อยที่กระจายอยู่ในช่วงชัตเตอร์รอบเวลานั้น
+  // เฟรมที่ไม่อยู่ในช่วงเคลื่อนเร็ว (spec.fast) ไม่ต้องเฉลี่ยเฟรมย่อย ภาพนิ่งหรือขยับช้าจึงเรนเดอร์เฟรมเดียว
+  const blurAt = (time) => !spec.fast || stills.length || spec.fast.some(([a, b]) => time >= a && time <= b);
   const renderFrame = async (time) => {
-    if (!accumulator) return grab(time);
+    if (!accumulator || !blurAt(time)) return grab(time);
     accumulator.reset();
     for (let k = 0; k < samples; k++) {
       const sub = time + ((k + .5) / samples - .5) * shutter;
@@ -153,32 +215,25 @@ app.whenReady().then(async () => {
     return;
   }
 
-  const encoder = spawn(ffmpeg, [
-    '-y', '-hide_banner', '-loglevel', 'error',
-    '-f', 'rawvideo', '-pix_fmt', 'bgra', '-s', `${W}x${H}`, '-r', spec.fps, '-i', '-',
-    // แปลง RGB → YUV ด้วยเมทริกซ์ BT.709 และติดป้ายสีให้ครบ เครื่องเล่นจะแสดงสีตรงกับที่เรนเดอร์
-    '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv',
-    // aq-mode=3 ให้บิตกับฉากมืดมากขึ้น ลดแถบสีในแสงไล่เฉดบนพื้นดำ
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', 18, '-x264-params', 'aq-mode=3', '-profile:v', 'high',
-    '-movflags', '+faststart', output,
-  ].map(String), { stdio: ['pipe', 'inherit', 'inherit'] });
+  const first = segment ? rangeFrom : 0, last = segment ? rangeTo : frames;
+  const encoder = spawn(ffmpeg, encoderArgs(spec.fps, segment || output), { stdio: ['pipe', 'inherit', 'inherit'] });
   const encoded = new Promise((resolve, reject) => {
     encoder.on('error', reject);
     encoder.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`FFmpeg exited ${code}`))));
   });
 
   const started = Date.now();
-  for (let frame = 0; frame < frames; frame++) {
+  for (let frame = first; frame < last; frame++) {
     const bitmap = await renderFrame(frame / spec.fps);
     if (!encoder.stdin.write(bitmap)) await new Promise((resolve) => encoder.stdin.once('drain', resolve));
-    if (frame % spec.fps === 0) {
+    if (!segment && frame % spec.fps === 0) {
       const elapsed = (Date.now() - started) / 1000;
       process.stdout.write(`\r${clip} ${lang}/${theme}: ${frame}/${frames} frames · ${samples} samples · ${elapsed.toFixed(0)}s`);
     }
   }
   encoder.stdin.end();
   await encoded;
-  console.log(`\nSaved ${output} (${frames} frames @ ${spec.fps}fps, ${((Date.now() - started) / 1000).toFixed(0)}s, stale captures skipped: ${stale})`);
+  if (!segment) console.log(`\nSaved ${output} (${frames} frames @ ${spec.fps}fps, ${((Date.now() - started) / 1000).toFixed(0)}s, stale captures skipped: ${stale})`);
   app.exit(0);
 }).catch((error) => {
   console.error(error);

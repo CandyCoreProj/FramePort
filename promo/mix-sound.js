@@ -1,6 +1,6 @@
 // ใส่ดนตรี + เสียงประกอบให้คลิป simple (ใช้ FFmpeg ที่ FramePort ติดตั้งไว้)
 // ใช้: node promo/mix-sound.js [ชื่อคลิป=FramePort-simple-th]
-// เวลาทุกเสียงคำนวณจากไทม์ไลน์ใน simple.html (เวลาออกแบบ → เวลาจริงผ่าน WARP) ให้ตรงเฟรม
+// เวลาทุกเสียงตรงกับไทม์ไลน์ AT ใน simple.html (วินาทีจริง) ให้ตรงเฟรม
 // pan ตามตำแหน่งบนจอ (x ของชิ้นส่วน / 960 - 1) แล้วลดครึ่งให้ฟังสบายในหูฟัง
 const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
@@ -14,15 +14,16 @@ const localFfmpeg = path.join(process.env.APPDATA || '', 'FramePort', 'bin', 'ff
 const ffmpeg = process.env.FFMPEG || (fs.existsSync(localFfmpeg) ? localFfmpeg : 'ffmpeg');
 const S = (name) => path.join(dir, 'Sound', name);
 
-const DURATION = 15;
-// จุดตกแรกของเพลงอยู่ที่ 1.70s → ให้ตรงกับลูกศรโลโก้ตก (0.80s) และช่วงเบรกของเพลง (~15.5s) กลายเป็นตอนจบคลิป
+const DURATION = 20.5; // ต้องตรงกับ DURATION ใน simple.html
+// จุดตกแรกของเพลงอยู่ที่ 1.70s → ไอคอนเด้งกลางประโยคเปิด (0.80s) · ช่วงเบรกของเพลง (คลิป ~14.4–15.5s) = ผืนหน้าต่าง "ครบในหน้าจอเดียว" → เลื่อนโฟกัสเข้าฉากปิดท้าย
+// เพลงกลับมาเต็มที่ 16.64s ในไฟล์ = 15.74s ในคลิป = ลูกศรโลโก้ปิดท้ายตก
 const MUSIC_START = 0.9;
+const MUSIC_FADE = 1.8;
 
 // hit = เวลาในไฟล์ที่เป็นจังหวะหลักของเสียง (transient / จุดดังสุดของ whoosh), trim = ตัดหางยาวทิ้งพร้อมเฟด
 // stereo = คงความกว้างสเตอริโอเดิม (ไม่ pan)
 const SFX = {
   rise: { file: S('ksjsbwuil-whoosh3-481204.mp3'), hit: .52, gain: -15 },
-  whip: { file: S('soundreality-whoosh-motion-243505.mp3'), hit: .17, gain: -9, trim: 1 },
   reveal: { file: S('koiroylers-whoosh-cinematic-1-355739.mp3'), hit: .5, gain: -7, trim: 1.6 },
   impact: { file: S('koiroylers-impact-whoosh-351956.mp3'), hit: .5, gain: -10, trim: 2.2, stereo: true },
   swipe1: { file: S('floraphonic-infographic-swipe-1-184021.mp3'), hit: .15, gain: -15 },
@@ -36,23 +37,21 @@ const SFX = {
 
 // [เวลาในคลิป, เสียง, pan -1..1, ตัวเลือก] · sweep = [pan เริ่ม, pan จบ] เคลื่อนรอบจุด hit
 const CUES = [
-  [.55, 'rise', 0],                                    // การ์ดโลโก้ลอยขึ้น
-  [.80, 'pop', 0, { gain: -3 }],                       // ลูกศรในไอคอนโลโก้ตกลง (ตรงกับจังหวะแรกของเพลง)
-  [1.00, 'swipe1', 0, { sweep: [-.3, .3], gain: -21 }], // แสงวาบกวาดผ่านไอคอน (ซ้าย → ขวา)
-  [2.13, 'whip', 0, { sweep: [.6, -.6] }],             // whip pan โลโก้ → ขั้นตอน (ขวา → ซ้าย)
-  [2.36, 'typing', -.4, { from: .42, dur: .5 }],       // ขั้นที่ 1 (ข้อความฝั่งซ้าย)
-  [3.30, 'click', .43],                                // แตะ "วางลิงก์"
-  [4.56, 'swipe2', 0, { sweep: [.2, -.4] }],           // ขั้นที่ 2 สไลด์เข้าจากขวา
-  [4.61, 'typing', -.4, { from: 1.12, dur: .5 }],
-  [5.37, 'select', .05],                               // เลือก 4K
-  [6.85, 'swipe1', 0, { sweep: [.2, -.4] }],           // ขั้นที่ 3
-  [6.90, 'typing', -.4, { from: 1.8, dur: .5 }],
-  [7.50, 'tap', .38],                                  // กด "เริ่มดาวน์โหลด"
-  [8.79, 'pop', .35],                                  // บันทึกไฟล์แล้ว
-  [9.33, 'reveal', 0, { sweep: [.6, -.6] }],           // whip pan → หน้าต่างโปรแกรมเต็มจอ
-  [12.85, 'impact', 0],                                // zoom ทะลุไปฉากปิดท้าย
-  [13.41, 'pop', 0, { gain: -4 }],                     // ลูกศรไอคอนปิดท้ายตก
-  [13.93, 'typing', 0, { from: 2.9, dur: .45, gain: -19 }], // ลิงก์เว็บไซต์
+  [.30, 'rise', 0, { gain: -18 }],                      // การ์ดกระจกลอยขึ้น
+  [2.85, 'swipe1', 0, { gain: -18 }],                   // การ์ดกระจายออก เลื่อนโฟกัส
+  [3.72, 'pop', 0, { gain: -4 }],                       // ลูกศรในไอคอนตก
+  [5.05, 'swipe2', 0, { gain: -21 }],                   // เลื่อนโฟกัสเข้าฉากสามขั้นตอน
+  [5.90, 'click', .5],                                  // กดวางลิงก์
+  [6.95, 'select', .4],                                 // คลิก 4K
+  [7.90, 'tap', .5, { gain: -10 }],                     // กดเริ่มดาวน์โหลด
+  [8.45, 'swipe1', 0, { gain: -20 }],                   // เลื่อนโฟกัส
+  [9.08, 'pop', 0, { gain: -16 }],                      // ป้ายตัวเข้ารหัส
+  [10.02, 'pop', 0, { gain: -6 }],                      // เสร็จแล้ว
+  [10.65, 'swipe2', 0, { gain: -20 }],                  // เลื่อนโฟกัส
+  [13.08, 'reveal', 0, { sweep: [.4, -.4], gain: -14 }], // ผืนหน้าต่างโปรแกรม
+  [15.20, 'impact', 0, { gain: -15 }],                  // เลื่อนโฟกัสเข้าฉากปิดท้าย
+  [15.74, 'pop', 0, { gain: -3 }],                      // เพลงกลับมา + ลูกศรโลโก้ตก
+  [17.02, 'tap', 0, { gain: -16 }],                     // พัฒนาโดย CandyCore
 ];
 
 // constant-power pan: กลาง = 0 dB ทั้งสองข้าง
@@ -92,7 +91,7 @@ CUES.forEach(([time, name, pan, opt = {}], i) => {
 // รวมเสียงประกอบ + ห้องเล็กๆ ให้กลืนกับเพลง แล้วแยกสายไว้กดเพลง (sidechain) เบาๆ
 graph.push(`${labels.join('')}amix=inputs=${labels.length}:normalize=0,volume=10dB,apad=whole_dur=${DURATION},highpass=f=90,aecho=0.8:0.6:38|67:0.12|0.07,asplit[sfx][key]`);
 // เพลงต้นฉบับดังมาก (-9.5 LUFS) → ลดลง, เว้นช่วง 2.5–4 kHz ให้เสียงคลิก, เฟดออกตอนเบรกของเพลง
-graph.push(`[1:a]aresample=48000,volume=-10dB,highpass=f=30,equalizer=f=3200:t=q:w=1.2:g=-2,afade=t=out:st=${DURATION - 1}:d=1[mus]`);
+graph.push(`[1:a]aresample=48000,volume=-10dB,highpass=f=30,equalizer=f=3200:t=q:w=1.2:g=-2,afade=t=out:st=${DURATION - MUSIC_FADE}:d=${MUSIC_FADE}[mus]`);
 graph.push('[mus][key]sidechaincompress=threshold=0.03:ratio=3:attack=5:release=180:makeup=1[duck]');
 graph.push(`[duck][sfx]amix=inputs=2:normalize=0,atrim=0:${DURATION},alimiter=limit=0.79:attack=3:release=60:level=disabled[out]`);
 

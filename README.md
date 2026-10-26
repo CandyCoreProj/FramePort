@@ -11,20 +11,20 @@
 
 FramePort เป็นโปรแกรม Windows และ macOS สำหรับดาวน์โหลดวิดีโอหรือเสียงจากลิงก์ แล้วบันทึกเป็นไฟล์ที่พร้อมใช้งานต่อ เลือกคุณภาพ เลือกโฟลเดอร์ และแปลงวิดีโอด้วย CPU หรือ GPU ได้จากหน้าจอเดียว
 
-## มีอะไรใหม่ใน 1.0.8
+## มีอะไรใหม่ใน 1.0.9
 
-- เพิ่ม PO Token สำหรับดาวน์โหลด YouTube โดยไม่ต้องเข้าสู่ระบบ แอปสร้างโทเค็นให้เองและรวมปลั๊กอินที่จำเป็นไว้แล้ว
-- เมื่อ YouTube ขอให้ยืนยันว่าไม่ใช่บอท โปรแกรมจะลองใหม่ด้วยคุกกี้ผู้เยี่ยมชมและวิธีดาวน์โหลดสำรอง
-- เพิ่มปุ่มเข้าสู่ระบบ YouTube ในแอป สำหรับกรณีที่ลองวิธีสำรองแล้วยังดาวน์โหลดไม่ได้
-- แก้ข้อความจาก yt-dlp บน Windows ที่แสดงภาษาไทยหรืออักขระบางตัวผิดเพี้ยน
-- มีไฟล์สำหรับ Windows x64, Mac ชิป Apple และ Mac Intel ใน [Release 1.0.8](https://github.com/CandyCoreProj/FramePort/releases/tag/v1.0.8)
+- รองรับการวางลิงก์วิดีโอหลายๆ ลิงก์พร้อมกัน และดาวน์โหลดไฟล์ทั้งหมดในรอบเดียว
+- ปรับช่องกรอกลิงก์เป็นแบบขยายความสูงอัตโนมัติ (Auto-expanding Textarea) พร้อมแสดงจำนวนลิงก์และคัดกรองลิงก์ซ้ำให้อัตโนมัติ
+- แสดงลำดับและชื่อคลิปที่กำลังดาวน์โหลด/แปลงไฟล์อย่างชัดเจน (เช่น ไฟล์ 1/3)
+- ปรับปรุงการจัดการข้อผิดพลาด หากมีบางลิงก์ไม่สำเร็จ คลิปอื่นๆ ที่โหลดผ่านจะยังคงถูกบันทึกให้อย่างครบถ้วน
+- มีไฟล์สำหรับ Windows x64, Mac ชิป Apple และ Mac Intel ใน [Release 1.0.9](https://github.com/CandyCoreProj/FramePort/releases/tag/v1.0.9)
 
 ## ดาวน์โหลดและติดตั้ง
 
 ไปที่ [เว็บไซต์ FramePort](https://CandyCoreProj.github.io/FramePort/) หรือ [หน้า Releases](https://github.com/CandyCoreProj/FramePort/releases) แล้วเลือกไฟล์ที่ต้องการ:
 
-- **[Setup](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-Setup.exe)**: ติดตั้งลงเครื่องและสร้างทางลัด
-- **[Portable](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort.exe)**: เปิดโปรแกรมจากไฟล์โดยไม่ต้องติดตั้ง
+- **[Setup](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.9/FramePort-Setup.exe)**: ติดตั้งลงเครื่องและสร้างทางลัด
+- **[Portable](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.9/FramePort.exe)**: เปิดโปรแกรมจากไฟล์โดยไม่ต้องติดตั้ง
 
 รองรับ Windows x64 ทั้งสองแบบ ในการเปิดใช้งานครั้งแรก โปรแกรมต้องเชื่อมต่ออินเทอร์เน็ตเพื่อติดตั้งเครื่องมือที่จำเป็น:
 
@@ -53,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/instal
 
 คำสั่งนี้เลือกไฟล์ให้ตรงกับชิปของเครื่อง ติดตั้ง FramePort ลงใน Applications แล้วเปิดโปรแกรมให้ทันที โดยไม่ต้องไปกด Open Anyway ใน System Settings เมื่อมีรุ่นใหม่ รันคำสั่งเดิมอีกครั้งเพื่ออัปเดต
 
-หรือดาวน์โหลดเอง: [Mac ชิป Apple (M1 ขึ้นไป)](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-mac-arm64.dmg) หรือ [Mac Intel](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-mac-x64.dmg) แล้วลาก FramePort ไปไว้ใน Applications ตัวโปรแกรมยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด macOS จะบล็อกไว้ ให้ไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway**
+หรือดาวน์โหลดเอง: [Mac ชิป Apple (M1 ขึ้นไป)](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.9/FramePort-mac-arm64.dmg) หรือ [Mac Intel](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.9/FramePort-mac-x64.dmg) แล้วลาก FramePort ไปไว้ใน Applications ตัวโปรแกรมยังไม่ได้เซ็นด้วยใบรับรอง Apple Developer ครั้งแรกที่เปิด macOS จะบล็อกไว้ ให้ไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway**
 
 บน macOS โปรแกรมจะแจ้งเมื่อมีรุ่นใหม่และเปิดหน้า Releases ให้ เพราะอัปเดตอัตโนมัติไม่ได้
 
@@ -167,20 +167,20 @@ FramePort ใช้ [yt-dlp](https://github.com/yt-dlp/yt-dlp) และ [FFmpeg
 
 FramePort is a Windows and macOS desktop app for downloading video or audio from a link and saving a file that is ready to use. Choose the quality, output folder, and CPU or GPU conversion mode from one simple screen.
 
-### What's new in 1.0.8
+### What's new in 1.0.9
 
-- Generate YouTube PO Tokens inside the app without signing in, with the required plugin included.
-- Retry YouTube bot-check failures with guest cookies and alternate download methods.
-- Sign in to YouTube inside the app when the automatic retry still fails.
-- Fix garbled Thai text and other characters in yt-dlp output on Windows.
-- Download Windows x64, Apple silicon, and Intel Mac builds from [Release 1.0.8](https://github.com/CandyCoreProj/FramePort/releases/tag/v1.0.8).
+- Support pasting multiple video links at once and downloading them all in a single batch.
+- Auto-expanding multi-line link input with link counter badge and automatic deduplication.
+- Sequential progress reporting with item counts and video titles during download and conversion.
+- Resilient error handling: if some links fail, successfully downloaded clips are preserved and saved.
+- Download Windows x64, Apple silicon, and Intel Mac builds from [Release 1.0.9](https://github.com/CandyCoreProj/FramePort/releases/tag/v1.0.9).
 
 ### Download
 
 Get FramePort from the [website](https://CandyCoreProj.github.io/FramePort/) or the [GitHub Releases page](https://github.com/CandyCoreProj/FramePort/releases):
 
-- **[Setup](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-Setup.exe)** installs the app and creates shortcuts.
-- **[Portable](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort.exe)** runs directly from the downloaded file without installation.
+- **[Setup](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.9/FramePort-Setup.exe)** installs the app and creates shortcuts.
+- **[Portable](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.9/FramePort.exe)** runs directly from the downloaded file without installation.
 
 Both releases support Windows x64. On first launch, an internet connection is needed to install the required tools:
 
@@ -209,7 +209,7 @@ curl -fsSL https://raw.githubusercontent.com/CandyCoreProj/FramePort/main/instal
 
 It picks the right file for your chip, installs FramePort into Applications, and opens it, with no trip to System Settings for **Open Anyway**. Run the same command again to update.
 
-Or download it yourself: [Apple silicon (M1 or later)](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-mac-arm64.dmg) or [Intel Mac](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.8/FramePort-mac-x64.dmg), then drag FramePort into Applications. The app is not signed with an Apple Developer certificate, so macOS blocks the first launch: open **System Settings → Privacy & Security** and choose **Open Anyway**.
+Or download it yourself: [Apple silicon (M1 or later)](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.9/FramePort-mac-arm64.dmg) or [Intel Mac](https://github.com/CandyCoreProj/FramePort/releases/download/v1.0.9/FramePort-mac-x64.dmg), then drag FramePort into Applications. The app is not signed with an Apple Developer certificate, so macOS blocks the first launch: open **System Settings → Privacy & Security** and choose **Open Anyway**.
 
 On macOS, FramePort tells you when a new version is out and opens the Releases page; it cannot install updates automatically.
 

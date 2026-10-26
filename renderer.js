@@ -12,7 +12,8 @@ const words = {
     setupNote: 'ดาวน์โหลดจาก GitHub ทางการของ yt-dlp',
     ytdlpDescription: 'ตัวดาวน์โหลด · ~18 MB', ffmpegDescription: 'แปลงวิดีโอและเสียง · ~150 MB',
     headline: 'วางลิงก์ แล้วเลือกไฟล์', subhead: 'รองรับ YouTube, TikTok, Facebook, X และอีกหลายเว็บไซต์',
-    urlLabel: 'ลิงก์วิดีโอ', urlPlaceholder: 'วางลิงก์วิดีโอ เช่น https://youtu.be/…', paste: 'วางลิงก์', clear: 'ล้างลิงก์',
+    urlLabel: 'ลิงก์วิดีโอ', urlPlaceholder: 'วางลิงก์ YouTube, TikTok, Facebook… (วางได้หลายลิงก์)', paste: 'วางลิงก์', clear: 'ล้างลิงก์',
+    linkCount: '{n} ลิงก์', startMany: 'เริ่มดาวน์โหลด ({n})', someFailed: 'ล้มเหลว {n} รายการ',
     format: 'รูปแบบไฟล์', video: 'วิดีโอ', audioOnly: 'เสียง',
     resolution: 'ความละเอียด', best: 'สูงสุด', available: 'ที่มี', smallFile: 'ไฟล์เล็ก',
     videoHint: 'เลือกต้นทางที่คมชัดที่สุดตามความละเอียด แล้วแปลงตามรูปแบบที่เลือก',
@@ -59,7 +60,8 @@ const words = {
     setupNote: 'Downloaded from the official yt-dlp GitHub releases',
     ytdlpDescription: 'Downloader · ~18 MB', ffmpegDescription: 'Video and audio conversion · ~150 MB',
     headline: 'Paste a link and choose a format', subhead: 'Works with YouTube, TikTok, Facebook, X and many more sites',
-    urlLabel: 'Video link', urlPlaceholder: 'Paste a video link, e.g. https://youtu.be/…', paste: 'Paste', clear: 'Clear link',
+    urlLabel: 'Video link', urlPlaceholder: 'Paste YouTube, TikTok, Facebook links… (multiple links supported)', paste: 'Paste', clear: 'Clear link',
+    linkCount: '{n} links', startMany: 'Download ({n})', someFailed: '{n} failed',
     format: 'Format', video: 'Video', audioOnly: 'Audio',
     resolution: 'Resolution', best: 'Best', available: 'available', smallFile: 'Smaller',
     videoHint: 'Selects the clearest source at your chosen resolution, then converts to your chosen format',
@@ -324,6 +326,7 @@ function renderStatus() {
   setTool('t-ytdlp', !!toolStatus.version);
   setTool('t-ffmpeg', !!toolStatus.ffmpeg,
     !toolStatus.ffmpeg && toolStatus.canInstallFfmpeg === false ? tr('manualInstall') : undefined);
+  if (typeof updateUrlState === 'function') updateUrlState();
 }
 
 function setFolder(value) {
@@ -424,9 +427,46 @@ syncKind();
 
 // ---------- link field ----------
 
+function parseUrls(text) {
+  if (!text) return [];
+  const matches = String(text).match(/https?:\/\/[^\s"'<>]+/gi) || [];
+  const cleaned = matches
+    .map((u) => u.replace(/[.,;:)\]]+$/, ''))
+    .filter((u) => /^https?:\/\/\S+$/i.test(u));
+  return [...new Set(cleaned)];
+}
+
+function autoResizeUrl() {
+  const el = $('url');
+  if (!el) return;
+  el.style.height = 'auto';
+  const newHeight = Math.min(140, Math.max(42, el.scrollHeight));
+  el.style.height = `${newHeight}px`;
+  el.classList.toggle('multiline', newHeight > 50 || el.value.includes('\n'));
+}
+
+function updateUrlState() {
+  autoResizeUrl();
+  const val = $('url').value;
+  $('clearBtn').classList.toggle('hidden', !val.trim());
+  const urls = parseUrls(val);
+  const countEl = $('urlCount');
+  if (countEl) {
+    if (urls.length > 1) {
+      countEl.textContent = tr('linkCount', { n: urls.length });
+      countEl.classList.remove('hidden');
+    } else {
+      countEl.classList.add('hidden');
+    }
+  }
+  if (!running) {
+    $('goText').textContent = urls.length > 1 ? tr('startMany', { n: urls.length }) : tr('start');
+  }
+}
+
 function setUrl(value) {
   $('url').value = value.trim();
-  $('clearBtn').classList.toggle('hidden', !$('url').value);
+  updateUrlState();
   showUrlError('');
 }
 
@@ -437,15 +477,21 @@ function showUrlError(message) {
   if (message) requestAnimationFrame(() => $('urlField').classList.add('invalid'));
 }
 
-$('url').addEventListener('input', () => setUrl($('url').value));
+$('url').addEventListener('input', () => updateUrlState());
 $('url').addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' && !$('goBtn').disabled) $('goBtn').click();
+  if (event.key === 'Enter') {
+    if (event.ctrlKey || event.metaKey || (!event.shiftKey && !$('url').value.includes('\n'))) {
+      event.preventDefault();
+      if (!$('goBtn').disabled) $('goBtn').click();
+    }
+  }
 });
 $('clearBtn').onclick = () => { setUrl(''); $('url').focus(); };
 
 $('pasteBtn').onclick = async () => {
   try {
-    setUrl(await navigator.clipboard.readText());
+    const text = await navigator.clipboard.readText();
+    setUrl(text);
     $('url').focus();
   } catch {
     toast(tr('clipboardFailed'));
@@ -454,7 +500,7 @@ $('pasteBtn').onclick = async () => {
 
 // วางลิงก์ได้จากทุกที่ในหน้าต่าง และลากลิงก์มาวางได้
 document.addEventListener('paste', (event) => {
-  if (event.target instanceof HTMLInputElement) return;
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
   const text = event.clipboardData?.getData('text') || '';
   if (!text.trim()) return;
   event.preventDefault();
@@ -472,8 +518,11 @@ document.addEventListener('drop', (event) => {
   event.preventDefault();
   document.body.classList.remove('dragging');
   const text = event.dataTransfer?.getData('text/uri-list') || event.dataTransfer?.getData('text') || '';
-  const link = text.split(/\r?\n/).find((line) => line && !line.startsWith('#'));
-  if (link) setUrl(link);
+  if (text.trim()) {
+    const urls = parseUrls(text);
+    if (urls.length > 0) setUrl(urls.join('\n'));
+    else setUrl(text);
+  }
 });
 
 $('pickBtn').onclick = async () => {
@@ -540,16 +589,18 @@ $('showBtn').onclick = () => api.showFile(lastFiles[lastFiles.length - 1]);
 function setRunning(value) {
   running = value;
   $('goBtn').classList.toggle('working', value);
-  $('goText').textContent = tr(value ? 'downloading' : 'start');
+  const urls = parseUrls($('url').value);
+  $('goText').textContent = tr(value ? 'downloading' : (urls.length > 1 ? 'startMany' : 'start'), { n: urls.length });
   $('cancelBtn').classList.toggle('hidden', !value);
   $('cancelBtn').disabled = false;
   renderStatus();
 }
 
 $('goBtn').onclick = async () => {
-  const url = $('url').value.trim();
-  if (!url) return showUrlError(tr('urlRequired'));
-  if (!/^https?:\/\/\S+$/i.test(url)) return showUrlError(tr('urlInvalid'));
+  const raw = $('url').value.trim();
+  if (!raw) return showUrlError(tr('urlRequired'));
+  const urls = parseUrls(raw);
+  if (!urls.length) return showUrlError(tr('urlInvalid'));
   showUrlError('');
 
   const taskLanguage = lang;
@@ -564,16 +615,18 @@ $('goBtn').onclick = async () => {
   const kind = picked('kind');
   const quality = kind === 'audio' ? picked('aq') : picked('vq');
   try {
-    const { code, files, error } = await api.download({
-      url, kind, quality, folder, playlist: $('playlist').checked,
+    const { code, files, error, partial, total } = await api.download({
+      urls, url: urls[0], kind, quality, folder, playlist: $('playlist').checked,
       encoder: $('encoder').value, output: picked('out'), language: taskLanguage,
     });
     lastFiles = files || [];
     const names = lastFiles.map((file) => file.split(/[\\/]/).pop());
-    if (code === 0) {
+    if (code === 0 || lastFiles.length > 0) {
       finishJobs(true);
       const more = names.length > 1 ? tr('andMore', { n: names.length - 1 }) : '';
-      showResult('ok', names.length > 1 ? tr('savedMany', { n: names.length }) : tr('savedOne'), (names[0] || '') + more);
+      const titleText = names.length > 1 ? tr('savedMany', { n: names.length }) : tr('savedOne');
+      const notice = partial ? ` (${tr('someFailed', { n: (total || urls.length) - names.length })})` : '';
+      showResult('ok', titleText + notice, (names[0] || '') + more + (error && partial ? ` — ${error}` : ''));
       log(tr('finished'), 'ok');
     } else if (code === -1) {
       finishJobs(false, true);

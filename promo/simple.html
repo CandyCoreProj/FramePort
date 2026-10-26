@@ -9,102 +9,129 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Urbanist:wght@700&display=swap" rel="stylesheet">
   <style>
-    /* คลิปโชว์โปรแกรม 1920×1080 แนว product launch: พื้นสว่าง + หน้าจอโปรแกรมจริง + กระจกฝ้า */
+    /* คลิปเปิดตัวโปรแกรม 1920×1080 แนว product launch แบบนุ่มนวล (light mode): พื้นไล่สีพาสเทล + การ์ดกระจกฝ้า
+       + ระยะชัดตื้น (ชิ้นที่อยู่ไกลเบลอ) + ข้อความค่อยๆ ลอยขึ้นทีละคำ + เปลี่ยนฉากด้วยการเลื่อนโฟกัส (เบลอออก → ชัดเข้า) + กล้องเคลื่อนช้าตลอด */
     :root {
-      --paper: #f4efe9; --ink: #1c1917; --muted: #5c554f; --rust: #a8441a; --apricot: #f2a054; --peach: #ffd9ad;
+      --bg: #faf6f1; --ink: #1c1917; --muted: #6f665e; --rust: #a8441a; --apricot: #f2a054;
+      --grad: linear-gradient(100deg, #f2a054 0%, #e2703c 55%, #a8441a 100%);
       --display: "IBM Plex Sans Thai", "IBM Plex Sans", "Leelawadee UI", "Segoe UI", sans-serif;
-      --brand: "Urbanist", "IBM Plex Sans", sans-serif; /* ใช้เฉพาะโลโก้ตัวอักษร FramePort ตามเว็บ docs */
-      --mono: "Cascadia Mono", "Consolas", monospace;
+      --brand: "Urbanist", "IBM Plex Sans", sans-serif; /* ใช้เฉพาะโลโก้ตัวอักษร FramePort / CandyCore */
     }
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; overflow: hidden; background: #fbf8f4; }
+    html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg); }
     #stage {
       position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; overflow: hidden;
-      background: #f8f3ed; color: var(--ink); font-family: var(--display); -webkit-font-smoothing: antialiased;
+      background: var(--bg); color: var(--ink); font-family: var(--display); -webkit-font-smoothing: antialiased;
       transform: translate(-50%, -50%) scale(var(--fit, 1));
     }
-    .scene { position: absolute; inset: 0; }
-    .blob { position: absolute; left: 0; top: 0; border-radius: 50%; }
-    #blobA { width: 1400px; height: 1400px; background: radial-gradient(circle, rgb(255 217 173 / 90%) 0%, rgb(255 217 173 / 32%) 40%, transparent 70%); }
-    #blobB { width: 1200px; height: 1200px; background: radial-gradient(circle, rgb(242 160 84 / 50%) 0%, rgb(242 160 84 / 15%) 40%, transparent 70%); }
-    #blobC { width: 1000px; height: 1000px; background: radial-gradient(circle, rgb(168 68 26 / 24%) 0%, rgb(168 68 26 / 7%) 40%, transparent 70%); }
-    #blobD { width: 1300px; height: 1300px; background: radial-gradient(circle, rgb(255 255 255 / 95%) 0%, rgb(255 255 255 / 45%) 40%, transparent 70%); }
+    .scene { position: absolute; inset: 0; transform-origin: 50% 50%; }
+    /* พื้นไล่สีพาสเทล: ก้อนแสงสี่สีลอยช้าๆ */
+    .glow { position: absolute; left: 0; top: 0; border-radius: 50%; }
+    #glowA { width: 1500px; height: 1500px; background: radial-gradient(circle, rgb(255 211 168 / 75%) 0%, rgb(255 211 168 / 25%) 40%, transparent 70%); }
+    #glowB { width: 1300px; height: 1300px; background: radial-gradient(circle, rgb(247 190 170 / 45%) 0%, rgb(247 190 170 / 14%) 40%, transparent 70%); }
+    #glowC { width: 1400px; height: 1400px; background: radial-gradient(circle, rgb(222 214 240 / 55%) 0%, rgb(222 214 240 / 16%) 42%, transparent 70%); }
+    #glowD { width: 1200px; height: 1200px; background: radial-gradient(circle, rgb(255 255 255 / 95%) 0%, rgb(255 255 255 / 40%) 42%, transparent 70%); }
+    .float { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 
-    /* กระจกฝ้าสีขาว */
-    .lg {
-      position: absolute; left: 0; top: 0; overflow: hidden; isolation: isolate;
-      background: linear-gradient(160deg, rgb(255 255 255 / 84%), rgb(255 255 255 / 56%));
-      -webkit-backdrop-filter: blur(28px) saturate(160%); backdrop-filter: blur(28px) saturate(160%);
-      box-shadow: inset 0 1.5px 0 rgb(255 255 255 / 95%), inset 0 0 0 1px rgb(255 255 255 / 65%),
-        0 40px 90px -36px rgb(110 60 25 / 42%), 0 10px 26px -14px rgb(28 25 23 / 20%);
-    }
-    .sheen {
-      position: absolute; top: -30%; left: 0; z-index: 3; width: 45%; height: 160%; pointer-events: none;
-      background: linear-gradient(100deg, transparent 0%, rgb(255 255 255 / 0%) 30%, rgb(255 255 255 / 75%) 50%, rgb(255 255 255 / 0%) 70%, transparent 100%);
-      transform: translateX(-300%);
-    }
+    /* กระจกฝ้า */
+    .glass { border-radius: 28px; background: linear-gradient(150deg, rgb(255 255 255 / 78%), rgb(255 255 255 / 46%));
+      box-shadow: inset 0 1.5px 0 rgb(255 255 255 / 95%), inset 0 0 0 1.5px rgb(255 255 255 / 70%), 0 34px 70px -34px rgb(150 80 30 / 30%), 0 10px 24px -14px rgb(28 25 23 / 10%); }
+    .tile { padding: 16px 18px; }
+    .tile .label { margin-bottom: 8px; }
+    .tile .seg.out, .tile .seg3 { grid-template-columns: repeat(3, 150px); }
 
-    /* ตัวอักษรเรื่องเล่า */
-    .center { position: absolute; left: 0; right: 0; text-align: center; }
+    /* ข้อความที่ค่อยๆ ขึ้นทีละคำ */
+    .typed { position: absolute; white-space: nowrap; }
+    .typed .w { padding: .12em .02em .16em; }
+    .hot { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; padding: .1em 0 .14em; }
+    .w { display: inline-block; }
+    .center { left: 0; right: 0; text-align: center; }
+    .t-hero { font: 500 76px/1.3 var(--display); }
+    .t-head { font: 600 84px/1.3 var(--display); }
+    .t-col { font: 400 92px/1.28 var(--display); }
+    .t-col.bold { font-weight: 700; }
+    .eyebrow { position: absolute; font: 600 32px/1.3 var(--display); color: var(--rust); white-space: nowrap; }
+    .subline { position: absolute; left: 0; right: 0; text-align: center; font: 500 36px/1.4 var(--display); color: var(--muted); white-space: nowrap; }
 
-    /* ฉาก 2: โลโก้ */
-    .icon { display: block; width: 100%; height: 100%; }
-    #logoCard { width: 320px; height: 320px; border-radius: 84px; }
-    #logoCard .icon { position: absolute; left: 52px; top: 52px; width: 216px; height: 216px; filter: drop-shadow(0 18px 30px rgb(28 25 23 / 30%)); }
-    .wordmark { font: 700 132px/1 var(--brand); letter-spacing: -.045em; white-space: nowrap; }
-    .wordmark span { display: inline-block; padding: .08em 0 .12em; }
-    .wordmark .port { color: var(--rust); }
-    .subline { font: 500 38px/1.4 var(--display); color: var(--muted); white-space: nowrap; }
-    .subline .w { display: inline-block; }
+    /* การ์ดโลโก้ */
+    #logoCard { width: 760px; height: 470px; display: grid; justify-items: center; align-content: center; gap: 22px; border-radius: 56px; }
+    #logoCard .app-icon { width: 170px; height: 170px; }
+    .app-icon .icon { display: block; width: 100%; height: 100%; }
+    .app-icon { filter: drop-shadow(0 22px 34px rgb(120 60 20 / 28%)); }
+    .wordmark { font: 700 118px/1.05 var(--brand); letter-spacing: -.045em; white-space: nowrap; }
 
-    /* ฉาก 3: หน้าต่างโปรแกรม (Windows 11 + Mica) */
-    #win {
-      position: absolute; left: 0; top: 0; width: 940px; overflow: hidden; border-radius: 12px; transform-origin: 0 0;
-      background: rgb(244 239 233 / 90%); -webkit-backdrop-filter: blur(30px) saturate(140%); backdrop-filter: blur(30px) saturate(140%);
-      box-shadow: 0 0 0 1px rgb(28 25 23 / 10%), 0 50px 110px -34px rgb(90 50 20 / 48%), 0 14px 34px -14px rgb(28 25 23 / 26%);
-    }
-    .titlebar { height: 34px; display: flex; align-items: center; gap: 10px; padding-left: 14px; font: 12px/1 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: var(--ink); }
-    .titlebar .icon { width: 16px; height: 16px; }
+    /* แผงความคืบหน้าขนาดใหญ่ */
+    #bigProg { width: 1360px; padding: 44px 52px 40px; border-radius: 44px; }
+    #bigProg .ph { font: 700 40px/1.3 var(--display); white-space: nowrap; }
+    #bigProg .track { height: 18px; margin: 26px 0 18px; overflow: hidden; border-radius: 99px; background: rgb(28 25 23 / 9%); }
+    #bigProg .fill { height: 100%; border-radius: inherit; background: var(--grad); transform-origin: left; }
+    #bigProg .st { display: flex; justify-content: space-between; font: 500 30px/1.3 var(--display); color: var(--muted); font-variant-numeric: tabular-nums; }
+    #bigProg .st b { color: var(--ink); font-weight: 700; }
+    .pill { display: inline-flex; align-items: center; gap: 12px; padding: 16px 28px; border-radius: 999px; font: 600 30px/1 "IBM Plex Sans", var(--display); white-space: nowrap; }
+    .pill i { width: 12px; height: 12px; border-radius: 50%; background: var(--grad); }
+    #bigResult { display: flex; align-items: center; gap: 24px; width: 1360px; padding: 26px 34px; border-radius: 34px; }
+    #bigResult svg { width: 52px; height: 52px; flex: none; color: #2f7d4f; }
+    #bigResult b { display: block; font: 700 34px/1.3 var(--display); }
+    #bigResult small { display: block; font: 500 26px/1.3 var(--display); color: var(--muted); }
+    #bigResult .btn2 { margin-left: auto; padding: 14px 24px; border-radius: 999px; background: rgb(28 25 23 / 6%); font: 600 26px/1 var(--display); }
+
+    /* การ์ดไฟล์ลอยรอบข้อความ */
+    .fcard { display: flex; align-items: center; gap: 22px; padding: 22px 30px 22px 22px; border-radius: 32px; white-space: nowrap; }
+    .fcard b { display: block; font: 700 32px/1.25 "IBM Plex Sans", var(--display); }
+    .fcard small { display: block; margin-top: 4px; font: 500 24px/1.3 var(--display); color: var(--muted); }
+    .thumb { width: 96px; height: 96px; flex: none; display: grid; place-items: center; border-radius: 24px; }
+    .thumb svg { width: 42px; height: 42px; }
+    .thumb.video { background: linear-gradient(135deg, #f2a054, #a8441a); }
+    .thumb.audio { background: linear-gradient(135deg, #ffd9ad, #e2703c); }
+    .thumb.list { background: linear-gradient(135deg, #3a302a, #1c1917); }
+
+    /* หน้าต่างโปรแกรม (Windows 11 + Mica) */
+    .win { position: absolute; left: 0; top: 0; width: 940px; overflow: hidden; border-radius: 12px; transform-origin: 0 0;
+      background: rgb(244 239 233 / 97%); color: #1c1917; box-shadow: 0 0 0 1px rgb(28 25 23 / 8%), 0 60px 120px -40px rgb(110 60 25 / 40%), 0 18px 36px -20px rgb(28 25 23 / 18%); }
+    .win.dark { background: rgb(28 25 23 / 98%); color: #f4efe9; box-shadow: 0 0 0 1px rgb(255 255 255 / 8%), 0 60px 120px -40px rgb(40 20 10 / 60%); }
+    .titlebar { height: 34px; display: flex; align-items: center; gap: 10px; padding-left: 14px; font: 12px/1 "Segoe UI Variable Text", "Segoe UI", sans-serif; }
+    .titlebar .icon { display: block; width: 16px; height: 16px; }
     .ctl { display: flex; margin-left: auto; }
     .ctl i { width: 46px; height: 34px; display: grid; place-items: center; }
-    .ctl svg { width: 10px; height: 10px; fill: none; stroke: var(--ink); stroke-width: 1; }
-    #app { padding: 6px 22px 16px; }
-    .dot { position: absolute; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; opacity: 0;
-      background: rgb(28 25 23 / 80%); box-shadow: 0 0 0 3px rgb(255 255 255 / 88%), 0 6px 16px rgb(28 25 23 / 35%); }
-    .ring { position: absolute; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 2px solid var(--rust); opacity: 0; }
-    /* ฉากขั้นตอน: ข้อความทางซ้าย + ส่วนของโปรแกรมที่ขยายใหญ่ทางขวา */
-    #steps3 { position: absolute; left: 150px; top: 0; display: flex; gap: 10px; }
-    #steps3 i { position: relative; width: 70px; height: 6px; overflow: hidden; border-radius: 6px; background: rgb(28 25 23 / 12%); }
-    #steps3 b { position: absolute; inset: 0; background: var(--rust); transform: scaleX(0); transform-origin: left; }
-    .step { position: absolute; left: 150px; top: 0; width: 620px; }
-    .step-kicker { margin-bottom: 10px; font: 600 32px/1.3 var(--display); color: var(--rust); }
-    .step-title { font: 600 96px/1.15 var(--display); letter-spacing: -.02em; }
-    :lang(th) .step-title { letter-spacing: 0; }
-    .step-title .w { display: inline-block; padding: .12em .01em .16em; }
-    .step-sub { margin-top: 18px; font: 400 36px/1.5 var(--display); color: var(--muted); }
-    .step-sub .w, .step-kicker .w { display: inline-block; }
-    #card { position: absolute; left: 0; top: 0; width: 580px; transform-origin: 50% 50%; }
-    #card .panel { position: relative; overflow: hidden; box-shadow: 0 30px 70px -30px rgb(90 50 20 / 38%), 0 8px 24px rgb(28 25 23 / 7%); }
-    .part { position: absolute; left: 14px; right: 14px; top: 14px; }
-    .part .progress, .part .result { margin-top: 10px; }
-    .win-title { font: 600 76px/1.2 var(--display); letter-spacing: -.02em; white-space: nowrap; }
-    .win-title .w { display: inline-block; padding: .12em .01em .16em; }
-    .notes, .url { font: 500 32px/1.35 var(--display); white-space: nowrap; }
-    .notes { color: var(--muted); }
-    .notes .w, .url .w { display: inline-block; }
-    .url, .hot { color: var(--rust); }
-    #vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 75% at 50% 50%, transparent 58%, rgb(120 70 30 / 13%) 100%); }
-    #fade { position: absolute; inset: 0; background: #fbf8f4; pointer-events: none; }
+    .ctl svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1; }
+    .app { padding: 6px 22px 16px; }
+    /* ผืนหน้าต่างอยู่ครึ่งล่าง ขอบบนจางหาย ข้อความด้านบนจึงอยู่บนพื้นเรียบ อ่านง่าย */
+    #gridWrap { position: absolute; inset: 0; perspective: 2600px; perspective-origin: 960px 600px;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 250px, #000 470px); mask-image: linear-gradient(to bottom, transparent 250px, #000 470px); }
+    #plane { position: absolute; left: 0; top: 0; width: 2360px; height: 700px; transform-origin: 50% 50%; }
+    .gcard { position: absolute; width: 560px; height: 330px; overflow: hidden; border-radius: 34px; padding: 30px 30px 0; }
+    .gcard > .ui { zoom: 1.35; }
+    .gcard .glabel { margin-bottom: 8px; color: var(--muted); font-size: 11px; font-weight: 700; }
 
-    /* ---------- สำเนาหน้าตาโปรแกรมจริงจาก index.html ---------- */
+    /* ปิดท้าย */
+    #endIcon { position: absolute; left: 0; top: 0; width: 190px; height: 190px; }
+    .kline { position: absolute; left: 0; right: 0; text-align: center; white-space: nowrap; }
+    .kline .w { padding: .12em .03em .16em; }
+    .kline .sep { color: #d9b89c; }
+    .lead { font: 500 40px/1.4 var(--display); color: var(--muted); }
+    .notes { font: 500 32px/1.4 var(--display); color: var(--muted); }
+    .url { font: 600 34px/1.4 var(--display); color: var(--rust); }
+    .by { display: flex; align-items: center; justify-content: center; gap: 16px; font: 500 28px/1 var(--display); color: var(--muted); }
+    .by .lbl { display: inline-block; }
+    .by .chip { display: inline-flex; align-items: center; gap: 14px; padding: 9px 28px 9px 20px; border-radius: 999px; background: var(--ink);
+      color: #fff; font: 700 30px/1 var(--brand); letter-spacing: -.02em; box-shadow: 0 14px 30px -14px rgb(28 25 23 / 45%); }
+    .by .chip svg { width: 36px; height: 44px; flex: none; }
+    .icon-glow { position: absolute; left: 0; top: 0; width: 760px; height: 760px; border-radius: 50%;
+      background: radial-gradient(circle, rgb(255 217 173 / 80%) 0%, rgb(242 160 84 / 18%) 38%, transparent 68%); }
+
+    #pointer { position: absolute; left: 0; top: 0; width: 30px; height: 46px; overflow: visible; transform-origin: 0 0; filter: drop-shadow(0 4px 6px rgb(28 25 23 / 35%)); }
+    #clickRing { position: absolute; left: 0; top: 0; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; border: 3px solid var(--rust); }
+    #fade { position: absolute; inset: 0; background: var(--bg); pointer-events: none; }
+
+    /* ---------- สำเนาหน้าตาโปรแกรมจริงจาก index.html (ธีมสว่าง) ---------- */
     .ui {
       --page: #f4efe9; --surface: #fff; --field: #eae2d8; --line: #e0d6ca; --field-line: #e0d6ca; --ink: #1c1917; --muted: #5c554f;
       --accent: #a8441a; --accent-soft: #ede3d6; --action: #f2a054; --on-action: #2a1405; --ok: #2f7d4f; --error: #b3261e;
       color: var(--ink); font: 14px/1.45 "IBM Plex Sans Thai", "IBM Plex Sans", "Leelawadee UI", "Segoe UI", sans-serif; letter-spacing: 0;
     }
-    .ui.dark { --page: #1c1917; --surface: #2a211d; --field: #332921; --line: #493a30; --field-line: #66503e; --ink: #f4efe9; --muted: #c8b9ac; --accent: #f2a054; --accent-soft: #463526; --ok: #75c18d; }
     .ui .topbar { min-height: 45px; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 0 2px 9px; border-bottom: 1px solid var(--line); }
-    .ui .logo { width: 38px; height: 38px; flex: none; border-radius: 12px; box-shadow: 0 3px 8px rgb(28 25 23 / 12%); }
+    .ui .logo { width: 38px; height: 38px; flex: none; overflow: hidden; border-radius: 12px; box-shadow: 0 3px 8px rgb(28 25 23 / 12%); }
+    .ui .logo .icon { display: block; width: 100%; height: 100%; }
     .ui h1 { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.01em; }
     .ui .sub { display: flex; align-items: center; gap: 7px; margin-top: 2px; color: var(--muted); font-size: 11px; }
     .ui .okdot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--ok); }
@@ -149,21 +176,20 @@
     .ui .final { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; }
     .ui .check { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; }
     .ui .box { width: 15px; height: 15px; display: grid; place-items: center; border: 1.5px solid var(--muted); border-radius: 3px; }
-    .ui .box.on { border-color: var(--accent); background: var(--accent); }
-    .ui .box svg { width: 11px; height: 11px; }
     .ui .progress { grid-column: 1 / -1; grid-row: 2; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
     .ui .phase { margin-bottom: 4px; overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
     .ui .bar { height: 5px; overflow: hidden; border-radius: 99px; background: var(--line); }
-    .ui .fill { height: 100%; border-radius: inherit; background: var(--accent); transform-origin: left; }
+    .ui .fill { height: 100%; border-radius: inherit; background: var(--accent); }
     .ui .stats { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
     .ui .stats b { color: var(--ink); }
     .ui .primary { min-width: 150px; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border-radius: 999px; background: var(--action); color: var(--on-action); font-size: 13px; font-weight: 700; }
-    .ui .cancel { min-height: 38px; border-color: var(--error); color: var(--error); }
     .ui .result { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
     .ui .result > svg { width: 20px; height: 20px; flex: none; color: var(--ok); }
     .ui .rcopy { min-width: 0; flex: 1; }
     .ui .rtitle { font-size: 12px; font-weight: 750; }
     .ui .rdetail { color: var(--muted); font-size: 11px; }
+    .ui .box.on { border-color: var(--accent); background: var(--accent); }
+    .ui .box svg { width: 11px; height: 11px; }
     .ui .menu { display: grid; gap: 3px; padding: 5px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
     .ui .opt { min-height: 40px; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid transparent; border-radius: 10px; }
     .ui .opt.on { border-color: var(--line); background: var(--accent-soft); }
@@ -176,70 +202,74 @@
     .ui .files { display: grid; gap: 6px; }
     .ui .file { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); font-size: 12px; font-weight: 700; }
     .ui .file small { margin-left: auto; color: var(--muted); font-weight: 400; }
+    .ui.dark { --page: #1c1917; --surface: #2a211d; --field: #332921; --line: #493a30; --field-line: #66503e; --ink: #f4efe9; --muted: #c8b9ac; --accent: #f2a054; --accent-soft: #463526; --ok: #75c18d; }
   </style>
 </head>
 <body>
   <main id="stage" role="img" aria-label="FramePort">
-    <div class="blob" id="blobA"></div>
-    <div class="blob" id="blobB"></div>
-    <div class="blob" id="blobC"></div>
-    <div class="blob" id="blobD"></div>
+    <div class="glow" id="glowA"></div>
+    <div class="glow" id="glowB"></div>
+    <div class="glow" id="glowC"></div>
+    <div class="glow" id="glowD"></div>
 
-    <div class="scene" id="s1">
-      <div class="lg" id="logoCard"><span id="logoIcon"></span><i class="sheen" id="logoSheen"></i></div>
-      <div class="center wordmark" id="logoWord"></div>
-      <div class="center subline" id="logoSub"></div>
-    </div>
-
+    <!-- 1: ทุ่งการ์ดกระจกจากหน้าจอโปรแกรม + ประโยคเปิด -->
+    <div class="scene" id="s1"><div id="tiles"></div><div class="typed center t-hero" id="t1"></div></div>
+    <!-- 2: การ์ดโลโก้ -->
     <div class="scene" id="s2">
-      <div id="steps3"><i><b></b></i><i><b></b></i><i><b></b></i></div>
-      <div id="stepTexts"></div>
-      <div id="card" class="ui"><div class="panel" id="cardPanel"></div></div>
-      <i class="ring" id="ring"></i>
-      <i class="dot" id="dot"></i>
+      <div class="float glass" id="logoCard"><div class="app-icon" id="logoIcon"></div><div class="wordmark" id="logoWord"></div></div>
+      <div class="subline" id="logoSub"></div>
     </div>
-
+    <!-- 3: ข้อความซ้าย + หน้าต่างโปรแกรมจริงด้านขวา (วางลิงก์ → 4K → ดาวน์โหลด) -->
     <div class="scene" id="s3">
-      <div class="center win-title" id="winTitle"></div>
-      <div id="win">
-        <div class="titlebar">
-          <span id="titleIcon" style="width:16px;height:16px"></span><span>FramePort</span>
-          <span class="ctl">
-            <i><svg viewBox="0 0 10 10"><path d="M0 5.5h10"/></svg></i>
-            <i><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" rx="1.5"/></svg></i>
-            <i><svg viewBox="0 0 10 10"><path d="m.5.5 9 9m0-9-9 9"/></svg></i>
-          </span>
-        </div>
-        <div id="app" class="ui"></div>
-      </div>
+      <div class="eyebrow" id="e3"></div>
+      <div class="typed t-col bold" id="t3a"></div>
+      <div class="typed t-col" id="t3b"></div>
+      <div class="typed t-col" id="t3c"></div>
+      <div class="win" id="win"></div>
     </div>
-
+    <!-- 4: ความคืบหน้าขนาดใหญ่ -->
     <div class="scene" id="s4">
-      <div id="endIcon" style="position:absolute;left:0;top:0;width:180px;height:180px"></div>
-      <div class="center wordmark" id="endWord"></div>
-      <div class="center subline" id="endLine"></div>
-      <div class="center notes" id="endNotes"></div>
-      <div class="center url" id="endUrl"></div>
+      <div class="typed center t-head" id="t4"></div>
+      <div id="encPills"></div>
+      <div class="float glass" id="bigProg"></div>
+      <div class="float glass" id="bigResult"></div>
+    </div>
+    <!-- 5: การ์ดไฟล์ลอยรอบข้อความ -->
+    <div class="scene" id="s5"><div id="fcards"></div><div class="typed center t-hero" id="t5"></div></div>
+    <!-- 6: การ์ดฟีเจอร์ 8 ใบเอียงเป็นผืนครึ่งล่าง + หัวข้อด้านบน -->
+    <div class="scene" id="s6">
+      <div id="gridWrap"><div id="plane"></div></div>
+      <div class="typed center t-head" id="t6"></div>
+      <div class="subline" id="s6sub"></div>
+    </div>
+    <!-- 7: ปิดท้าย -->
+    <div class="scene" id="s7">
+      <div class="icon-glow" id="endGlow"></div>
+      <div class="app-icon" id="endIcon"></div>
+      <div class="kline wordmark" id="endWord"></div>
+      <div class="kline lead" id="endLine"></div>
+      <div class="kline notes" id="endNotes"></div>
+      <div class="kline url" id="endUrl"></div>
+      <div class="kline by" id="endBy"></div>
     </div>
 
-    <div id="vignette"></div>
+    <i id="clickRing"></i>
+    <svg id="pointer" viewBox="0 0 14 22"><path d="M1 1v16.3l4-3.9 2.7 6.4 2.6-1.1-2.7-6.3h5.6z" fill="#fff" stroke="#1c1917" stroke-width="1.1" stroke-linejoin="round"/></svg>
     <div id="fade"></div>
   </main>
   <script>
-    // เรื่องเล่า: [คำ] = สีเน้น · ข้อความในหน้าจอโปรแกรมคัดลอกจาก renderer.js (words) และ main.js
+    // เรื่องเล่า: [คำ] = ไล่สีเน้น · ข้อความในหน้าจอโปรแกรมคัดลอกจาก renderer.js (words) และ main.js · คุณสมบัติตรงกับเว็บ docs
     const COPY = {
       th: {
-        label: 'FramePort — วิธีใช้งานใน 3 ขั้นตอน',
-        logoSub: 'ดาวน์โหลดวิดีโอและแปลงไฟล์ให้ง่าย',
-        // ขั้นตอนเดียวกับหัวข้อ "เริ่มได้ในไม่กี่ขั้น" บนเว็บ docs
-        steps: [
-          ['ขั้นที่ 1', 'วางลิงก์', 'คัดลอกลิงก์วิดีโอแล้ววางใน FramePort'],
-          ['ขั้นที่ 2', 'เลือกรูปแบบ', 'เลือกวิดีโอหรือเสียง คุณภาพ และโฟลเดอร์บันทึก'],
-          ['ขั้นที่ 3', 'เริ่มดาวน์โหลด', 'ติดตามความคืบหน้า แล้วเปิดโฟลเดอร์ไฟล์ได้ทันที'],
-        ],
-        winTitle: 'ครบใน[หน้าจอเดียว]',
-        endLine: 'โหลดคลิป แปลงไฟล์ [พร้อมใช้]',
-        endNotes: 'Windows x64 · ภาษาไทยและ English',
+        label: 'FramePort — ดาวน์โหลดวิดีโอและแปลงไฟล์',
+        t1: 'โหลดวิดีโอ [ไม่ควรยุ่งยาก]', logoSub: 'ดาวน์โหลดวิดีโอและแปลงไฟล์ ในที่เดียว',
+        e3: 'ง่ายใน 3 ขั้น', t3: ['วางลิงก์', 'เลือกคุณภาพ', 'แล้วกดดาวน์โหลด'],
+        t4: 'แปลงไฟล์ด้วย[การ์ดจอ]', t5: 'ได้ไฟล์ [พร้อมตัดต่อ]', editors: 'Premiere · Resolve · CapCut',
+        t6: 'ครบใน[หน้าจอเดียว]', s6sub: 'เครื่องมือที่จำเป็น โดยไม่ต้องตั้งค่าให้ยุ่งยาก',
+        endLine: 'โหลดคลิป แปลงไฟล์ [พร้อมใช้]', endNotes: 'Windows x64 · ภาษาไทย และ English', by: 'พัฒนาโดย',
+        files: [['Travel vlog 4K.mp4', 'MP4 · H.264 · 2160p', 'video'], ['Podcast EP.12.mp3', 'MP3 · ไฟล์เสียง', 'audio'],
+          ['Live session.flac', 'FLAC · ไม่เสียคุณภาพ', 'audio'], ['Road trip', 'เพลย์ลิสต์ · 24 ไฟล์', 'list']],
+        converting: 'กำลังแปลงเป็น H.264 · NVIDIA NVENC', remaining: 'เหลือ ',
         ui: {
           appTitle: 'ดาวน์โหลดวิดีโอ', ready: 'พร้อมใช้งาน', lang: 'EN', theme: 'Dark', light: 'Light', update: 'อัปเดต yt-dlp',
           kicker: 'ดาวน์โหลดและแปลงไฟล์', headline: 'วางลิงก์ แล้วเลือกไฟล์', urlLabel: 'ลิงก์วิดีโอ', placeholder: 'วางลิงก์วิดีโอ เช่น https://youtu.be/…',
@@ -249,25 +279,22 @@
           outputLabel: 'ไฟล์วิดีโอที่ได้', h264Tag: 'พร้อมตัดต่อ', h264Desc: 'เปิดได้ใน Premiere, Resolve, CapCut และทุกเครื่องเล่น',
           hevcTag: 'คุณภาพสูง', hevcDesc: 'คงรายละเอียดภาพ เหมาะกับโปรแกรมรุ่นใหม่', originalTitle: 'ต้นฉบับ', originalTag: 'เร็วที่สุด', originalDesc: 'ไม่แปลงไฟล์ คุณภาพต้นฉบับ (AV1/VP9)',
           saveTo: 'บันทึกที่', choose: 'เปลี่ยน', open: 'เปิดโฟลเดอร์', encoderLabel: 'ตัวเข้ารหัสวิดีโอ', auto: 'อัตโนมัติ', autoUsing: 'ใช้ ',
-          playlist: 'ดาวน์โหลดทั้งเพลย์ลิสต์', start: 'เริ่มดาวน์โหลด', working: 'กำลังทำงาน…', cancel: 'ยกเลิก',
-          downloading: 'กำลังดาวน์โหลด', converting: 'กำลังแปลงเป็น H.264 · NVIDIA NVENC', finished: 'เสร็จแล้ว', remaining: 'เหลือ ', item: 'ไฟล์ ',
-          savedOne: 'บันทึกไฟล์แล้ว', showInFolder: 'แสดงในโฟลเดอร์',
-          audioFormat: 'ไฟล์เสียง', smallPlay: 'เปิดได้ทุกที่', lossless: 'ไม่เสียคุณภาพ', uncompressed: 'ไม่บีบอัด', recommended: 'แนะนำ',
-          nvDesc: 'การ์ดจอ NVIDIA GeForce / RTX', intelDesc: 'กราฟิก Intel ในตัวหรือ Arc', amdDesc: 'กราฟิก AMD ในตัวหรือ Radeon', cpuDesc: 'x264 / x265 ใช้ได้ทุกเครื่อง',
-          namesCard: 'ชื่อไฟล์ตรงกับชื่อคลิป', themeCard: 'ธีมสว่างและมืด', langCard: 'ภาษาไทยและ English',
+          playlist: 'ดาวน์โหลดทั้งเพลย์ลิสต์', start: 'เริ่มดาวน์โหลด', working: 'กำลังทำงาน…', downloading: 'กำลังดาวน์โหลด', finished: 'เสร็จแล้ว',
+          savedOne: 'บันทึกไฟล์แล้ว', showInFolder: 'แสดงในโฟลเดอร์', audioFormat: 'ไฟล์เสียง', smallPlay: 'เปิดได้ทุกที่', lossless: 'ไม่เสียคุณภาพ', uncompressed: 'ไม่บีบอัด',
+          recommended: 'แนะนำ', nvDesc: 'การ์ดจอ NVIDIA GeForce / RTX', intelDesc: 'กราฟิก Intel ในตัวหรือ Arc', amdDesc: 'กราฟิก AMD ในตัวหรือ Radeon', item: 'ไฟล์ ',
+          namesCard: 'ชื่อไฟล์ตรงกับชื่อคลิป', themeCard: 'ธีมสว่างและมืด', langCard: 'ภาษาไทย และ English',
         },
       },
       en: {
-        label: 'FramePort — three simple steps',
-        logoSub: 'Reliable video downloads and edit-ready conversion',
-        steps: [
-          ['Step 1', 'Paste a link', 'Copy a video link and paste it into FramePort.'],
-          ['Step 2', 'Choose a format', 'Pick video or audio, quality, and where to save it.'],
-          ['Step 3', 'Start the download', 'Follow the progress, then open the folder when it is done.'],
-        ],
-        winTitle: 'All in [one screen.]',
-        endLine: 'Download clips. Convert. [Get to work.]',
-        endNotes: 'Windows x64 · Thai and English',
+        label: 'FramePort — download and convert videos',
+        t1: 'Downloading video [should be simple]', logoSub: 'Download and convert, all in one place',
+        e3: 'Three steps', t3: ['Paste a link', 'Pick the quality', 'Hit download'],
+        t4: 'Converted on your [graphics card]', t5: 'Files that are [edit-ready]', editors: 'Premiere · Resolve · CapCut',
+        t6: 'All in [one screen]', s6sub: 'The essentials, without the fiddly setup',
+        endLine: 'Download clips. Convert. [Get to work.]', endNotes: 'Windows x64 · Thai and English', by: 'Made by',
+        files: [['Travel vlog 4K.mp4', 'MP4 · H.264 · 2160p', 'video'], ['Podcast EP.12.mp3', 'MP3 · audio', 'audio'],
+          ['Live session.flac', 'FLAC · lossless', 'audio'], ['Road trip', 'Playlist · 24 files', 'list']],
+        converting: 'Converting to H.264 · NVIDIA NVENC', remaining: 'ETA ',
         ui: {
           appTitle: 'Video Downloader', ready: 'Ready', lang: 'ไทย', theme: 'Dark', light: 'Light', update: 'Update yt-dlp',
           kicker: 'Download and convert', headline: 'Paste a link and choose a format', urlLabel: 'Video link', placeholder: 'Paste a video link, e.g. https://youtu.be/…',
@@ -277,11 +304,9 @@
           outputLabel: 'Video output', h264Tag: 'Edit-ready', h264Desc: 'Opens in Premiere, Resolve, CapCut and every player',
           hevcTag: 'High quality', hevcDesc: 'Preserves picture detail for modern apps', originalTitle: 'Original', originalTag: 'Fastest', originalDesc: 'No conversion, original quality (AV1/VP9)',
           saveTo: 'Save to', choose: 'Change', open: 'Open folder', encoderLabel: 'Video encoder', auto: 'Automatic', autoUsing: 'Using ',
-          playlist: 'Download entire playlist', start: 'Download', working: 'Working…', cancel: 'Cancel',
-          downloading: 'Downloading', converting: 'Converting to H.264 · NVIDIA NVENC', finished: 'Complete', remaining: 'ETA ', item: 'Item ',
-          savedOne: 'File saved', showInFolder: 'Show in folder',
-          audioFormat: 'Audio format', smallPlay: 'Plays anywhere', lossless: 'Lossless', uncompressed: 'Uncompressed', recommended: 'Recommended',
-          nvDesc: 'NVIDIA GeForce / RTX graphics', intelDesc: 'Intel integrated graphics or Arc', amdDesc: 'AMD integrated graphics or Radeon', cpuDesc: 'x264 / x265, works on any PC',
+          playlist: 'Download entire playlist', start: 'Download', working: 'Working…', downloading: 'Downloading', finished: 'Complete',
+          savedOne: 'File saved', showInFolder: 'Show in folder', audioFormat: 'Audio format', smallPlay: 'Plays anywhere', lossless: 'Lossless', uncompressed: 'Uncompressed',
+          recommended: 'Recommended', nvDesc: 'NVIDIA GeForce / RTX graphics', intelDesc: 'Intel integrated graphics or Arc', amdDesc: 'AMD integrated graphics or Radeon', item: 'Item ',
           namesCard: 'Keep the clip title', themeCard: 'Light and dark themes', langCard: 'Thai and English',
         },
       },
@@ -290,8 +315,18 @@
     const FILE = 'Travel vlog 4K.mp4';
     const FOLDER = 'C:\\Users\\User\\Downloads';
     const YTDLP = '2026.08.19'; // yt-dlp ที่ FramePort ติดตั้งไว้ในเครื่อง ณ วันที่ทำคลิป
-    const SITE = 'CandyCoreProj.github.io/FramePort';
-    const DURATION = 15;
+    const SITE = 'candycoreproj.github.io/FramePort/';
+    const DURATION = 20.5;
+
+    // ---------- ไทม์ไลน์ (วินาทีจริง) ตามจังหวะเพลง ~96.5 BPM (MUSIC_START ใน mix-sound.js = 0.9s) ----------
+    // 1 ทุ่งการ์ด + "โหลดวิดีโอ ไม่ควรยุ่งยาก" 0–3.1 · 2 การ์ดโลโก้ 3.06–5.0 (ลูกศรตก 3.72) · 3 สามขั้นตอน + หน้าต่างจริง 5.28–8.4
+    // 4 แปลงไฟล์ด้วยการ์ดจอ 8.68–10.6 · 5 ไฟล์พร้อมตัดต่อ 10.88–13.0 · 6 ผืนหน้าต่าง "ครบในหน้าจอเดียว" 13.28–15.12 (ช่วงเพลงเบรก)
+    // 7 ปิดท้าย: เพลงกลับมา 15.74 = ลูกศรโลโก้ตก · ค้างให้อ่านถึง 19.9
+    // เปลี่ยนฉาก = เลื่อนโฟกัส: ฉากเก่าเบลอ+ขยาย+จางใน 0.35s ฉากใหม่เริ่มหลังจากนั้น 0.28s จึงไม่มีข้อความสองฉากซ้อนกัน
+    const SCENES = { 1: [-1, 2.78], 2: [3.06, 5.0], 3: [5.28, 8.4], 4: [8.68, 10.6], 5: [10.88, 13.0], 6: [13.28, 15.12], 7: [15.4, 99] };
+    const CLICKS = [5.9, 6.95, 7.9];
+    const WIN_X = 1560, WIN_S = 1.25; // หน้าต่างโปรแกรมในฉาก 3: จุดกึ่งกลาง x และขนาด (ขอบซ้ายกำหนดพื้นที่ของข้อความ)
+    const HIT = 15.74, OUT = 19.9;
 
     const params = new URLSearchParams(location.search);
     const lang = params.get('lang') === 'en' ? 'en' : 'th';
@@ -311,88 +346,135 @@
         + '<line class="under" x1="201" y1="404" x2="311" y2="404" stroke="#a8441a" stroke-linecap="round" stroke-width="20"/>'
         + `<g clip-path="url(#${id})"><path class="arrow" fill="#f2a054" d="M239 174h34v92l37-37 24 24-78 78-78-78 24-24 37 37z"/></g></svg>`;
     };
+    // โลโก้ CandyCore (วาดใหม่จากไฟล์ต้นฉบับ 1080×1080) ถมสีขาวล้วน
+    const candyLogo = '<svg viewBox="181 104 713 872" aria-hidden="true"><path fill="#fff" d="M622 104 894 240 639 384 377 240zM181 351 376 240v595l-195-84zM610 408l117 69v124l-117 69-116-69V477zM639 692 894 832 622 976 378 832z"/></svg>';
     const words = (text) => text.split(/(\[[^\]]*\])/).filter(Boolean).map((part) => {
       const hot = part.startsWith('[');
-      return (hot ? part.slice(1, -1) : part).split(/( )/)
-        .map((w) => (w === ' ' ? ' ' : w ? `<span class="w${hot ? ' hot' : ''}">${w}</span>` : '')).join('');
+      return (hot ? part.slice(1, -1) : part).split(/( )/).map((w) => {
+        if (w === ' ' || !w) return w;
+        return `<span class="w${w === '·' ? ' sep' : hot ? ' hot' : ''}">${w}</span>`;
+      }).join('');
     }).join('');
+    const typedHtml = words;
     const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
-    const tick = '<svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 6.2 2.3 2.3L9.5 3.8"/></svg>';
     const seg6 = (on) => `<div class="seg seg6">${[[u.best, u.available], ['4K', '2160p'], ['2K', '1440p'], ['1080p', 'Full HD'], ['720p', 'HD'], ['480p', u.smallFile]]
       .map(([a, b], i) => `<span class="${i === on ? 'on' : ''}">${a}<small>${b}</small></span>`).join('')}</div>`;
     const outSeg = `<div class="seg seg3 out"><span class="on"><strong>H.264</strong><small>${u.h264Tag}</small><small>${u.h264Desc}</small></span>`
       + `<span><strong>H.265</strong><small>${u.hevcTag}</small><small>${u.hevcDesc}</small></span>`
       + `<span><strong>${u.originalTitle}</strong><small>${u.originalTag}</small><small>${u.originalDesc}</small></span></div>`;
-    const topbar = (themeLabel) => `<header class="topbar"><span class="logo">${icon()}</span><div><h1>${u.appTitle}</h1>`
-      + `<div class="sub"><span class="okdot"></span><span>${u.ready} · yt-dlp ${YTDLP}</span><span>v${VERSION}</span></div></div>`
-      + `<div class="spacer"></div><div class="hc"><span class="btn">${u.lang}</span><span class="btn">${themeLabel}</span><span class="btn accent">${u.update}</span></div></header>`;
+    const titlebar = () => `<div class="titlebar"><span style="width:16px;height:16px">${icon()}</span><span>FramePort</span><span class="ctl">`
+      + '<i><svg viewBox="0 0 10 10"><path d="M0 5.5h10"/></svg></i><i><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" rx="1.5"/></svg></i>'
+      + '<i><svg viewBox="0 0 10 10"><path d="m.5.5 9 9m0-9-9 9"/></svg></i></span></div>';
+    // หน้าจอหลักของโปรแกรม (โครงเดียวกับ index.html) · live = ตัวที่ขยับตามเรื่อง (มี id, เริ่มจากยังไม่วางลิงก์)
+    function appHtml({ live, dark }) {
+      const id = (name) => (live ? ` id="${name}"` : '');
+      const hide = live ? ' style="visibility:hidden"' : '';
+      return titlebar() + `<div class="app ui${dark ? ' dark' : ''}"><header class="topbar"><span class="logo">${icon()}</span><div><h1>${u.appTitle}</h1>`
+        + `<div class="sub"><span class="okdot"></span><span>${u.ready} · yt-dlp ${YTDLP}</span><span>v${VERSION}</span></div></div>`
+        + `<div class="spacer"></div><div class="hc"><span class="btn">${u.lang}</span><span class="btn">${dark ? u.light : u.theme}</span><span class="btn accent">${u.update}</span></div></header>`
+        + `<main class="panel">
+          <div class="kicker">${u.kicker}</div><div class="headline">${u.headline}</div>
+          <span class="label url-label">${u.urlLabel}</span>
+          <div class="url-row"><div class="input"${id('wIn')}>${live ? `<span class="ph">${u.placeholder}</span>` : URL_TEXT}</div><span class="cbtn">${u.clear}</span><span class="cbtn"${id('wPaste')}>${u.paste}</span></div>
+          <div class="options">
+            <div><div class="label">${u.format}</div><div class="tabs"><span class="on">${u.video}</span><span>${u.audio}</span></div></div>
+            <div><div class="label">${u.resolution}</div><div${id('wRes')}>${seg6(live ? 0 : 1)}</div><div class="hint">${u.hint}</div></div>
+            <div class="full"><div class="label">${u.outputLabel}</div>${outSeg}</div>
+          </div>
+          <div class="outgrid">
+            <div><div class="label">${u.saveTo}</div><div class="folder-row"><div class="folder">${FOLDER}</div><span class="cbtn">${u.choose}</span><span class="cbtn">${u.open}</span></div></div>
+            <div><div class="label">${u.encoderLabel}</div><div class="enc"><span class="enc-copy"><span class="enc-value">${u.auto}</span><span class="enc-desc">${u.autoUsing}NVIDIA NVENC</span></span><span class="chev"></span></div></div>
+          </div>
+          <div class="final">
+            <span class="check"><span class="box"></span>${u.playlist}</span>
+            <div class="progress"${id('wProg')}${hide}><div class="phase"${id('wPhase')}>${u.finished}</div><div class="bar"><div class="fill"${id('wFill')}></div></div>
+              <div class="stats"><span><b${id('wPct')}>100%</b></span><span${id('wSpeed')}></span><span${id('wEta')}></span></div></div>
+            <div class="url-row"><span class="primary"${id('wGo')}>${u.start}</span></div>
+          </div>
+          <div class="result"${hide}>${checkSvg}<div class="rcopy"><div class="rtitle">${u.savedOne}</div><div class="rdetail">${FILE}</div></div><span class="cbtn">${u.showInFolder}</span></div>
+        </main></div>`;
+    }
+    $('win').innerHTML = appHtml({ live: true });
 
-    // หน้าจอหลักของโปรแกรม (โครงเดียวกับ index.html) ในสถานะดาวน์โหลดเสร็จแล้ว
-    $('app').innerHTML = topbar(u.theme) + `<main class="panel">
-      <div class="kicker">${u.kicker}</div><div class="headline">${u.headline}</div>
-      <span class="label url-label">${u.urlLabel}</span>
-      <div class="url-row" id="uRow"><div class="input">${URL_TEXT}</div><span class="cbtn" id="uClear">${u.clear}</span><span class="cbtn" id="uPaste">${u.paste}</span></div>
-      <div class="options">
-        <div><div class="label">${u.format}</div><div class="tabs"><span class="on">${u.video}</span><span>${u.audio}</span></div></div>
-        <div><div class="label">${u.resolution}</div><div>${seg6(1)}</div><div class="hint">${u.hint}</div></div>
-        <div class="full"><div class="label">${u.outputLabel}</div>${outSeg}</div>
-      </div>
-      <div class="outgrid">
-        <div><div class="label">${u.saveTo}</div><div class="folder-row"><div class="folder">${FOLDER}</div><span class="cbtn">${u.choose}</span><span class="cbtn">${u.open}</span></div></div>
-        <div><div class="label">${u.encoderLabel}</div><div class="enc"><span class="enc-copy"><span class="enc-value">${u.auto}</span><span class="enc-desc">${u.autoUsing}NVIDIA NVENC</span></span><span class="chev"></span></div></div>
-      </div>
-      <div class="final" id="uFinal">
-        <span class="check"><span class="box"></span>${u.playlist}</span>
-        <div class="progress" id="uProg"><div class="phase">${u.finished}</div><div class="bar"><div class="fill"></div></div>
-          <div class="stats"><span><b>100%</b></span></div></div>
-        <div class="url-row"><span class="primary" id="uGo">${u.start}</span></div>
-      </div>
-      <div class="result" id="uResult">${checkSvg}<div class="rcopy"><div class="rtitle">${u.savedOne}</div><div class="rdetail">${FILE}</div></div><span class="cbtn">${u.showInFolder}</span></div>
-    </main>`;
-    $('titleIcon').innerHTML = icon();
-
-    // ส่วนของโปรแกรมที่ขยายในแต่ละขั้นตอน (หน้าตาและข้อความเดียวกับ index.html)
-    const PARTS = [
-      `<span class="label">${u.urlLabel}</span><div class="url-row" style="margin-top:5px"><div class="input" id="kIn"><span class="ph">${u.placeholder}</span></div><span class="cbtn" id="kPaste">${u.paste}</span></div>`,
-      `<div class="label">${u.format}</div><div class="tabs"><span class="on">${u.video}</span><span>${u.audio}</span></div>
-        <div class="label" style="margin-top:12px">${u.resolution}</div><div id="kRes">${seg6(0)}</div>
-        <div class="label" style="margin-top:12px">${u.outputLabel}</div>${outSeg}
-        <div class="label" style="margin-top:12px">${u.saveTo}</div><div class="folder-row"><div class="folder">${FOLDER}</div><span class="cbtn">${u.choose}</span></div>`,
-      `<div class="final"><span class="check"><span class="box"></span>${u.playlist}</span><span class="primary" id="kGo">${u.start}</span></div>
-        <div class="progress" id="kProg"><div class="phase" id="kPhase">${u.downloading}</div><div class="bar"><div class="fill" id="kFill"></div></div>
-          <div class="stats"><span><b id="kPct">0.0%</b></span><span id="kSpeed">42.80MiB/s</span><span id="kEta">${u.remaining}00:04</span></div></div>
-        <div class="result" id="kResult">${checkSvg}<div class="rcopy"><div class="rtitle">${u.savedOne}</div><div class="rdetail">${FILE}</div></div><span class="cbtn">${u.showInFolder}</span></div>`,
+    // 1: การ์ดกระจกตัดจากหน้าจอโปรแกรม [ชนิด, x, y, ความลึก 0 ชัด → 2 เบลอ]
+    const glyph = {
+      video: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg>',
+      audio: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg>',
+      list: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+    };
+    const TILE = {
+      link: `<span class="label">${u.urlLabel}</span><div class="input" style="width:420px">${URL_TEXT}</div>`,
+      res: `<span class="label">${u.resolution}</span><div style="width:520px">${seg6(1)}</div>`,
+      tabs: `<span class="label">${u.format}</span><div class="tabs" style="width:240px"><span class="on">${u.video}</span><span>${u.audio}</span></div>`,
+      prog: `<div class="progress" style="width:420px"><div class="phase">${u.downloading}</div><div class="bar"><div class="fill" style="width:62%"></div></div><div class="stats"><span><b>62.0%</b></span><span>42.80MiB/s</span></div></div>`,
+      enc: `<span class="label">${u.encoderLabel}</span><div class="enc" style="width:300px"><span class="enc-copy"><span class="enc-value">${u.auto}</span><span class="enc-desc">${u.autoUsing}NVIDIA NVENC</span></span><span class="chev"></span></div>`,
+      folder: `<span class="label">${u.saveTo}</span><div class="folder-row" style="width:420px"><div class="folder">${FOLDER}</div><span class="cbtn">${u.choose}</span></div>`,
+      go: `<span class="primary">${u.start}</span>`,
+      out: `<span class="label">${u.outputLabel}</span><div style="width:300px"><div class="seg out" style="grid-template-columns:1fr">${outSeg.match(/<span class="on">.*?<\/small><\/span>/)[0]}</div></div>`,
+      result: `<div class="result" style="width:400px">${checkSvg}<div class="rcopy"><div class="rtitle">${u.savedOne}</div><div class="rdetail">${FILE}</div></div></div>`,
+    };
+    const TILES = [['link', 330, 200, 1], ['res', 1010, 175, 0], ['tabs', 1640, 215, 2], ['prog', 170, 545, 2], ['enc', 1760, 545, 1],
+      ['folder', 350, 890, 0], ['go', 960, 900, 2], ['out', 1560, 880, 1], ['result', -60, 200, 2]];
+    $('tiles').innerHTML = TILES.map(([kind]) => `<div class="float glass tile ui">${TILE[kind]}</div>`).join('');
+    // 4: แผงความคืบหน้า + ผลลัพธ์ + ตัวเข้ารหัสที่รองรับ
+    $('bigProg').innerHTML = `<div class="ph" id="bpPhase"></div><div class="track"><div class="fill" id="bpFill"></div></div><div class="st"><b id="bpPct"></b><span id="bpSpeed"></span><span id="bpEta"></span></div>`;
+    $('bigResult').innerHTML = `${checkSvg}<div><b>${u.savedOne}</b><small>${FILE}</small></div><span class="btn2">${u.showInFolder}</span>`;
+    $('encPills').innerHTML = ['NVIDIA NVENC', 'Intel Quick Sync', 'AMD AMF'].map((name) => `<span class="float glass pill"><i></i>${name}</span>`).join('');
+    // 5: การ์ดไฟล์ [ไฟล์, x, y, ความลึก] + ป้ายโปรแกรมตัดต่อ + ชิป 4K
+    const FCARDS = [[0, 470, 290, 0], [1, 1480, 260, 1], [2, 400, 820, 2], [3, 1500, 800, 0]];
+    $('fcards').innerHTML = FCARDS.map(([k]) => { const [name, meta, kind] = T.files[k]; return `<div class="float glass fcard"><span class="thumb ${kind}">${glyph[kind]}</span><span><b>${name}</b><small>${meta}</small></span></div>`; }).join('')
+      + `<span class="float glass pill" id="edPill"><i></i>${T.editors}</span><span class="float glass pill" id="kPill"><i></i>4K · 2160p</span>`;
+    // 6: การ์ดฟีเจอร์ 8 ใบ ทุกใบคือส่วนหนึ่งของหน้าจอโปรแกรมจริง (ชุดเดียวกับ showcase.html)
+    const tick = '<svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 6.2 2.3 2.3L9.5 3.8"/></svg>';
+    const opt = (title, desc, badge, on) => `<div class="opt${on ? ' on' : ''}"><span class="opt-check">${on ? '✓' : ''}</span><span class="opt-copy"><span class="opt-title">${title}</span><span class="opt-desc">${desc}</span></span><span class="badge">${badge}</span></div>`;
+    const topbarMini = `<header class="topbar"><span class="logo">${icon()}</span><div><h1>${u.appTitle}</h1><div class="sub"><span class="okdot"></span><span>${u.ready} · yt-dlp ${YTDLP}</span><span>v${VERSION}</span></div></div>`
+      + `<div class="spacer"></div><div class="hc"><span class="btn">${u.lang}</span><span class="btn">${u.light}</span></div></header>`;
+    const CARDS = [
+      [u.resolution, seg6(1) + `<div class="hint">${u.hint}</div>`],
+      [u.audioFormat, `<div class="seg seg3"><span>MP3<small>${u.smallPlay}</small></span><span class="on">FLAC<small>${u.lossless}</small></span><span>WAV<small>${u.uncompressed}</small></span></div>`],
+      [u.encoderLabel, `<div class="menu">${opt('NVIDIA · CUDA / NVENC', u.nvDesc, u.recommended, true)}${opt('Intel · Quick Sync', u.intelDesc, 'iGPU')}${opt('AMD · AMF', u.amdDesc, 'GPU')}</div>`],
+      [u.namesCard, `<div class="files">${['Clip.mp4', 'Clip 2.mp4', 'Clip 3.mp4'].map((f) => `<div class="file">${f}<small>H.264</small></div>`).join('')}</div>`],
+      [u.outputLabel, outSeg],
+      [u.playlist, `<span class="check"><span class="box on">${tick}</span>${u.playlist}</span><div class="progress" style="margin-top:6px"><div class="phase">${u.downloading} · ${u.item}3/12</div><div class="bar"><div class="fill" style="width:42%"></div></div><div class="stats"><span><b>42.0%</b></span><span>42.80MiB/s</span><span>${T.remaining}00:06</span></div></div>`],
+      [u.themeCard, `<div class="ui dark" style="padding:10px 12px 12px;border-radius:14px;background:var(--page)">${topbarMini}<span class="primary">${u.start}</span></div>`],
+      [u.langCard, `<div class="tabs" style="margin-bottom:10px"><span class="on">ไทย</span><span>English</span></div><div class="headline">${COPY.th.ui.headline}</div><div class="headline" style="margin-top:6px;color:var(--muted)">${COPY.en.ui.headline}</div>`],
     ];
-    $('cardPanel').innerHTML = PARTS.map((html) => `<div class="part">${html}</div>`).join('');
-    $('stepTexts').innerHTML = T.steps.map(([kicker, title, sub]) =>
-      `<div class="step"><div class="step-kicker">${words(kicker)}</div><div class="step-title">${words(title)}</div><div class="step-sub">${words(sub)}</div></div>`).join('');
+    $('plane').innerHTML = CARDS.map(([label, body], k) => `<div class="glass gcard" style="left:${(k % 4) * 600}px;top:${Math.floor(k / 4) * 370}px"><div class="ui"><div class="glabel">${label}</div>${body}</div></div>`).join('');
+
+    $('t1').innerHTML = typedHtml(T.t1);
     $('logoIcon').innerHTML = icon();
-    $('logoWord').innerHTML = [...'FramePort'].map((c, i) => `<span class="${i > 4 ? 'port' : ''}">${c}</span>`).join('');
-    $('logoSub').innerHTML = words(T.logoSub);
-    $('winTitle').innerHTML = words(T.winTitle);
+    $('logoWord').innerHTML = '<span class="w">Frame</span><span class="w hot">Port</span>';
+    $('logoSub').textContent = T.logoSub;
+    $('e3').textContent = T.e3;
+    ['t3a', 't3b', 't3c'].forEach((id, k) => { $(id).innerHTML = typedHtml(T.t3[k]); });
+    $('t4').innerHTML = typedHtml(T.t4);
+    $('t5').innerHTML = typedHtml(T.t5);
+    $('t6').innerHTML = typedHtml(T.t6);
+    $('s6sub').textContent = T.s6sub;
     $('endIcon').innerHTML = icon();
     $('endWord').innerHTML = $('logoWord').innerHTML;
     $('endLine').innerHTML = words(T.endLine);
     $('endNotes').innerHTML = words(T.endNotes);
     $('endUrl').innerHTML = `<span class="w">${SITE}</span>`;
+    $('endBy').innerHTML = `<span class="lbl">${T.by}</span><span class="chip">${candyLogo}CandyCore</span>`;
     $('stage').setAttribute('aria-label', T.label);
 
     const all = (selector, root) => [...root.querySelectorAll(selector)];
+    const ws = (id) => all('.w', $(id));
     const el = {
-      stage: $('stage'), blobs: ['blobA', 'blobB', 'blobC', 'blobD'].map($), fade: $('fade'), scenes: ['s1', 's2', 's3', 's4'].map($),
-      logoCard: $('logoCard'), logoArrow: $('logoIcon').querySelector('.arrow'), logoUnder: $('logoIcon').querySelector('.under'), logoSheen: $('logoSheen'),
-      logoWord: $('logoWord'), logoLetters: [...$('logoWord').children], logoSubBox: $('logoSub'), logoSub: all('.w', $('logoSub')),
-      barBox: $('steps3'), bars: all('b', $('steps3')),
-      steps: all('.step', $('stepTexts')).map((root) => ({ root, words: all('.w', root) })),
-      card: $('card'), panel: $('cardPanel'), parts: all('.part', $('cardPanel')), dot: $('dot'), ring: $('ring'),
-      kIn: $('kIn'), kPaste: $('kPaste'), chips: all('.seg > span', $('kRes')), kGo: $('kGo'),
-      kProg: $('kProg'), kPhase: $('kPhase'), kFill: $('kFill'), kPct: $('kPct'), kSpeed: $('kSpeed'), kEta: $('kEta'), kResult: $('kResult'),
-      winTitleBox: $('winTitle'), winTitle: all('.w', $('winTitle')), win: $('win'),
-      endIcon: $('endIcon'), endArrow: $('endIcon').querySelector('.arrow'), endUnder: $('endIcon').querySelector('.under'),
-      endWord: $('endWord'), endLetters: [...$('endWord').children],
-      endLineBox: $('endLine'), endLine: all('.w', $('endLine')), endNotesBox: $('endNotes'), endNotes: all('.w', $('endNotes')),
-      endUrlBox: $('endUrl'), endUrl: $('endUrl').firstElementChild,
+      stage: $('stage'), glows: ['glowA', 'glowB', 'glowC', 'glowD'].map($), fade: $('fade'), pointer: $('pointer'), clickRing: $('clickRing'),
+      scenes: Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((k) => [k, $(`s${k}`)])),
+      tiles: all('.tile', $('tiles')), t1: $('t1'),
+      logoCard: $('logoCard'), logoArrow: $('logoIcon').querySelector('.arrow'), logoUnder: $('logoIcon').querySelector('.under'), logoWord: $('logoWord'), logoSub: $('logoSub'),
+      e3: $('e3'), t3: ['t3a', 't3b', 't3c'].map($), win: $('win'),
+      wIn: $('wIn'), wPaste: $('wPaste'), chips: all('.seg > span', $('wRes')), wGo: $('wGo'), wProg: $('wProg'), wPhase: $('wPhase'), wFill: $('wFill'), wPct: $('wPct'), wSpeed: $('wSpeed'), wEta: $('wEta'),
+      t4: $('t4'), pills: all('.pill', $('encPills')), bigProg: $('bigProg'), bpPhase: $('bpPhase'), bpFill: $('bpFill'), bpPct: $('bpPct'), bpSpeed: $('bpSpeed'), bpEta: $('bpEta'), bigResult: $('bigResult'),
+      fcards: all('.fcard', $('fcards')), edPill: $('edPill'), kPill: $('kPill'), t5: $('t5'),
+      plane: $('plane'), gcards: all('.gcard', $('plane')), t6: $('t6'), s6sub: $('s6sub'),
+      endGlow: $('endGlow'), endIcon: $('endIcon'), endArrow: $('endIcon').querySelector('.arrow'), endUnder: $('endIcon').querySelector('.under'), endWord: $('endWord'),
+      endLine: ws('endLine'), endNotes: ws('endNotes'), endUrl: ws('endUrl'), byLabel: $('endBy').querySelector('.lbl'), byChip: $('endBy').querySelector('.chip'),
     };
+
     // ---------- เวลาและการเคลื่อนไหว ----------
     const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
     const lerp = (a, b, p) => a + (b - a) * p;
@@ -400,12 +482,12 @@
       lin: (p) => p,
       in: (p) => p ** 3,
       inOut: (p) => (p < .5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2),
+      out4: (p) => 1 - (1 - p) ** 4,
       expo: (p) => (p >= 1 ? 1 : 1 - 2 ** (-10 * p)),
-      back: (p) => 1 + 2.4 * (p - 1) ** 3 + 1.4 * (p - 1) ** 2,
+      back: (p) => 1 + 1.7 * (p - 1) ** 3 + .7 * (p - 1) ** 2, // เด้งเกินเล็กน้อย (~4%)
     };
     const ramp = (t, a, b, ease = E.inOut) => ease(clamp((t - a) / (b - a)));
     const bump = (t, c, d = .3) => Math.sin(Math.PI * clamp((t - c + d * .3) / d));
-    const mix = (a, b, p) => { const o = {}; for (const k in a) o[k] = lerp(a[k], b[k], p); return o; };
     const px = (v) => v.toFixed(2);
     const shown = new Map();
     const text = (node, value) => { if (shown.get(node) !== value) { shown.set(node, value); node.textContent = value; } };
@@ -416,18 +498,24 @@
       return visible;
     }
     const blurCss = (amount) => (amount > .05 ? `blur(${px(amount)}px)` : 'none');
-    // ตัวอักษรชัดขึ้นจากความเบลอทีละคำ (a = เข้า 0→1, b = ออก 0→1)
-    function fx(node, a, b = 0, o = {}) {
-      const { blur = 14, rise = 24, lift = -16, outBlur = 14, grow = 1.04, outScale = 1 } = o;
-      if (!show(node, clamp(a) * (1 - b))) return;
-      node.style.filter = blurCss((1 - a) * blur + b * outBlur);
-      node.style.transform = `translateY(${px((1 - a) * rise + b * lift)}px) scale(${(lerp(grow, 1, a) * lerp(1, outScale, b)).toFixed(4)})`;
+    function fx(node, a, o = {}) {
+      const { blur = 12, rise = 24 } = o;
+      if (!show(node, clamp(a))) return;
+      node.style.filter = blurCss((1 - a) * blur);
+      node.style.transform = `translateY(${px((1 - a) * rise)}px)`;
     }
-    const sweep = (node, p, width) => {
-      node.style.opacity = p > 0 && p < 1 ? 1 : 0;
-      node.style.transform = `translateX(${px(lerp(-width * .5, width * 1.05, p))}px)`;
-    };
-    // ลูกศรในไอคอนหล่นลง (viewBox 512) แล้วเส้นใต้กวาดออก
+    // คำค่อยๆ ลอยขึ้นและชัดขึ้นทีละคำ (ห่างกันคำละ step วินาที)
+    function reveal(node, t, start, step = .14) {
+      const ws = node._w || (node._w = all('.w', node));
+      if (!show(node, t >= start - .05 ? 1 : 0)) return;
+      ws.forEach((w, j) => fx(w, ramp(t, start + j * step, start + j * step + .7, E.expo), { rise: 26, blur: 12 }));
+    }
+    const put = (node, cx, cy, extra = '') => { node.style.transform = `translate(${px(cx)}px,${px(cy)}px) ${extra} translate(-50%,-50%)`; };
+    const place = (node, size, cx, cy, s = 1) => { node.style.transform = `translate(${px(cx - size / 2)}px,${px(cy - size / 2)}px) scale(${s.toFixed(4)})`; };
+    function centerOnStage(node) {
+      const s = el.stage.getBoundingClientRect(), r = node.getBoundingClientRect(), k = s.width / 1920;
+      return { x: (r.x + r.width / 2 - s.x) / k, y: (r.y + r.height / 2 - s.y) / k };
+    }
     function iconMotion(arrow, under, drop, line) {
       arrow.setAttribute('transform', `translate(0 ${lerp(-330, 0, drop).toFixed(1)})`);
       const half = 55 * line;
@@ -435,202 +523,195 @@
       under.setAttribute('x2', (256 + half).toFixed(1));
       under.setAttribute('opacity', half > .5 ? 1 : 0);
     }
-
-    // ---------- ไทม์ไลน์ออกแบบ 15 วินาที (เล่นจริงผ่าน warp) ----------
-    // โลโก้ 0–2.6 · ขั้นตอน 1–3 ขั้นละ ~2.6 วินาที · หน้าต่างเต็ม 10.8–12.9 · ปิดท้าย 12.8–15
-    const STEPS = [[2.7, 5.3], [5.3, 7.95], [7.95, 10.9]];
-    const TAPS = [3.85, 6.25, 8.7];
-    const CARD = { x: 1320, y: 560, s: 1.95 };
-
-    let M = null;
-    function centerIn(node, root) {
-      let x = node.offsetWidth / 2, y = node.offsetHeight / 2;
-      for (let n = node; n && n !== root; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
-      return { x, y };
+    function pointerPath(t, legs) {
+      let pos = legs[0][2];
+      for (const [a, b, from, to] of legs) {
+        if (t < a) break;
+        const p = ramp(t, a, b, E.inOut);
+        pos = { x: lerp(from.x, to.x, p), y: lerp(from.y, to.y, p) - 40 * Math.sin(Math.PI * p) };
+      }
+      return pos;
+    }
+    // เลื่อนโฟกัสเข้า/ออกของแต่ละฉาก + กล้องดันเข้าช้าๆ ตลอดเวลาที่อยู่บนจอ
+    function focus(k, t) {
+      const [a, b] = SCENES[k];
+      const i = ramp(t, a, a + .55, E.out4), o = ramp(t, b, b + .35, E.in);
+      return { op: i * (1 - o), blur: (1 - i) * 16 + o * 18, s: lerp(.965, 1, i) * lerp(1, 1.05, o) * (1 + .03 * ramp(t, a, b + .35, E.lin)) };
     }
     const middle = (node, cy) => { node.style.top = `${px(cy - node.offsetHeight / 2)}px`; };
+    let ready = false;
     function measure() {
-      M = {
-        partH: el.parts.map((part) => part.scrollHeight + 36),
-        paste: centerIn(el.kPaste, el.card), chip4k: centerIn(el.chips[1], el.card), go: centerIn(el.kGo, el.card),
-        winW: el.win.offsetWidth, winH: el.win.offsetHeight,
-      };
-      middle(el.logoWord, 655);
-      middle(el.logoSubBox, 758);
-      // ทุกขั้นตอนเริ่มที่บรรทัดเดียวกัน หัวข้อจึงไม่กระโดดเวลาสลับขั้น
-      const top = 560 - Math.max(...el.steps.map((s) => s.root.offsetHeight)) / 2;
-      el.steps.forEach((s) => { s.root.style.top = `${px(top)}px`; });
-      el.barBox.style.top = `${px(top - 44)}px`;
-      middle(el.winTitleBox, 150);
-      middle(el.endWord, 548);
-      middle(el.endLineBox, 655);
-      middle(el.endNotesBox, 728);
-      middle(el.endUrlBox, 796);
+      middle(el.t1, 540); middle(el.logoSub, 830);
+      el.e3.style.left = el.t3[0].style.left = el.t3[1].style.left = el.t3[2].style.left = '150px';
+      // ข้อความสามบรรทัดต้องอยู่หน้าหน้าต่างเสมอ: วัดบรรทัดที่ยาวที่สุด (แสดงครบทุกตัว) แล้วย่อฟอนต์ให้พอดีช่องซ้าย
+      el.t3.forEach((line) => { line.style.fontSize = ''; });
+      const widest = Math.max(...el.t3.map((line) => line.scrollWidth));
+      const room = WIN_X - 60 - 940 * WIN_S / 2 - 70 - 150;
+      if (widest > room) el.t3.forEach((line) => { line.style.fontSize = `${px(92 * room / widest)}px`; });
+      middle(el.e3, 300); middle(el.t3[0], 420); middle(el.t3[1], 540); middle(el.t3[2], 660);
+      middle(el.t4, 190); middle(el.t5, 540); middle(el.t6, 165); middle(el.s6sub, 258);
+      [['endWord', 500], ['endLine', 612], ['endNotes', 702], ['endUrl', 760], ['endBy', 890]].forEach(([id, cy]) => middle($(id), cy));
+      ready = true;
     }
-
-    // ความสูงการ์ด = ความสูงของส่วนโปรแกรมในขั้นปัจจุบัน (ยืด/หดนุ่มๆ ตอนเปลี่ยนขั้น)
-    const cardHeight = (t) => lerp(lerp(M.partH[0], M.partH[1], ramp(t, 5.15, 5.55)), M.partH[2], ramp(t, 7.8, 8.2));
-    // จุดในการ์ด (พิกัดของโปรแกรม) → ตำแหน่งบนจอ
-    const onScreen = (p, h, s) => ({ x: CARD.x + s * (p.x - 290), y: CARD.y + s * (p.y - h / 2) });
-    function dotAt(t) {
-      const targets = [M.paste, M.chip4k, M.go];
-      const moves = [[3.35, 3.75], [5.75, 6.15], [8.25, 8.6]];
-      const k = t < 5.3 ? 0 : t < 7.95 ? 1 : 2;
-      const goal = targets[k];
-      return mix({ x: goal.x + 90, y: goal.y + 110 }, goal, ramp(t, ...moves[k]));
-    }
-    function tapRing(t, h, center) {
-      const p = clamp((t - h) / .45);
-      if (!show(el.ring, t >= h ? (1 - p) * .9 : 0)) return;
-      el.ring.style.transform = `translate(${px(center.x)}px,${px(center.y)}px) scale(${lerp(1, 3.2, E.expo(p)).toFixed(3)})`;
-    }
-    const blurWith = (amount, extra) => (amount > .05 ? `blur(${px(amount)}px) ${extra}` : extra);
-
-    // ย่อเวลา: ไทม์ไลน์จริง → เวลาออกแบบเดิม: ช่วงขั้นตอนถูกบีบ ช่วงหน้าต่างโปรแกรมค้างนานขึ้น
-    const WARP = [[0, 0], [2.3, 2.7], [9.4, 10.9], [9.9, 11.45], [12.5, 12.55], [12.9, 12.95], [15, 15]];
-    function warp(t) {
-      for (let i = 1; i < WARP.length; i++) {
-        const [n0, o0] = WARP[i - 1], [n1, o1] = WARP[i];
-        if (t <= n1) return lerp(o0, o1, (t - n0) / (n1 - n0));
-      }
-      return 15;
-    }
-    // whip pan: ฉากพุ่งเข้าจากขวาแล้วสะบัดออกซ้าย (motion blur จาก render.js ทำให้เป็นเส้นเร็ว)
-    const whip = (t, inA, inB, outA, outB) => 1400 * (1 - ramp(t, inA, inB, E.expo)) - 1500 * ramp(t, outA, outB, E.in);
 
     function render(t) {
-      if (!M) return;
-      t = warp(t);
-      const blob = (node, size, cx, cy, s) => { node.style.transform = `translate(${px(cx - size / 2)}px,${px(cy - size / 2)}px) scale(${s.toFixed(4)})`; };
-      blob(el.blobs[0], 1400, 560 + 140 * Math.sin(t * .3), 300 + 90 * Math.cos(t * .27), 1 + .05 * Math.sin(t * .4));
-      blob(el.blobs[1], 1200, 1500 + 110 * Math.cos(t * .25), 850 + 90 * Math.sin(t * .33), 1 + .06 * Math.cos(t * .35));
-      blob(el.blobs[2], 1000, 250 + 90 * Math.sin(t * .21 + 1), 950 + 60 * Math.cos(t * .29), 1);
-      blob(el.blobs[3], 1300, 960 + 60 * Math.sin(t * .2), 500 + 40 * Math.cos(t * .23), 1);
-      el.fade.style.opacity = (1 - ramp(t, 0, .35)).toFixed(3);
-      const on = [t < 2.7, t > 2.45 && t < 11, t > 10.75 && t < 13, t > 12.75];
-      el.scenes.forEach((scene, i) => show(scene, on[i] ? 1 : 0));
-      el.scenes[0].style.transform = `translateX(${px(whip(t, -1, 0, 2.3, 2.62))}px)`;
-      el.scenes[1].style.transform = `translateX(${px(whip(t, 2.45, 3.05, 10.6, 10.95))}px)`;
-      // ฉาก 3 → 4 ใช้ zoom ทะลุ: หน้าต่างพุ่งเข้าหากล้อง ฉากปิดท้ายถอยออกมาจากระยะใกล้
-      const zoomOut = ramp(t, 12.55, 12.95, E.in), zoomIn = ramp(t, 12.8, 13.35, E.expo);
-      el.scenes[2].style.transform = `translateX(${px(whip(t, 10.8, 11.35, 99, 100))}px) scale(${lerp(1, 2.2, zoomOut).toFixed(4)})`;
-      el.scenes[3].style.transform = `scale(${lerp(1.5, 1, zoomIn).toFixed(4)})`;
+      if (!ready) return;
+      place(el.glows[0], 1500, 520 + 150 * Math.sin(t * .23), 260 + 90 * Math.cos(t * .2), 1 + .05 * Math.sin(t * .31));
+      place(el.glows[1], 1300, 1500 + 120 * Math.cos(t * .19), 860 + 80 * Math.sin(t * .26));
+      place(el.glows[2], 1400, 1560 + 90 * Math.sin(t * .17 + 1), 200 + 70 * Math.cos(t * .22));
+      place(el.glows[3], 1200, 960 + 60 * Math.sin(t * .2), 540 + 40 * Math.cos(t * .23));
+      el.fade.style.opacity = Math.max(1 - ramp(t, 0, .45), ramp(t, OUT, DURATION)).toFixed(3);
+      const on = {};
+      for (const k in SCENES) {
+        const [a, b] = SCENES[k];
+        on[k] = t > a - .05 && t < b + .36;
+        const f = focus(k, t), scene = el.scenes[k];
+        if (!show(scene, on[k] ? f.op : 0)) continue;
+        scene.style.filter = blurCss(f.blur);
+        scene.style.transform = `scale(${f.s.toFixed(4)})`;
+      }
+      let ptr = null, press = 0, ring = null;
 
-      // ฉาก 1: โลโก้
-      if (on[0]) {
-        const a = ramp(t, .25, .85, E.back), settle = ramp(t, .25, .85, E.expo), q = ramp(t, 2.25, 2.6, E.in);
-        el.logoCard.style.transform = `translate(800px,${px(240 - 420 * (1 - settle))}px) perspective(1200px) rotateX(${lerp(24, 0, settle).toFixed(3)}deg) scale(${(lerp(.6, 1, a) * lerp(1, .9, q)).toFixed(4)})`;
-        el.logoCard.style.filter = blurCss((1 - ramp(t, .25, .7)) * 12 + q * 12);
-        show(el.logoCard, ramp(t, .25, .5) * (1 - q));
-        iconMotion(el.logoArrow, el.logoUnder, ramp(t, .55, .95, E.back), ramp(t, .85, 1.15, E.expo));
-        sweep(el.logoSheen, ramp(t, 1.1, 1.6), 320);
-        el.logoLetters.forEach((n, i) => fx(n, ramp(t, .9 + i * .04, 1.4 + i * .04, E.expo), q, { rise: 90, lift: -24 }));
-        el.logoSub.forEach((n, j) => fx(n, ramp(t, 1.25 + j * .06, 1.75 + j * .06, E.expo), q, { rise: 18, blur: 10 }));
+      // 1: การ์ดกระจกลอยขึ้นทีละใบ (ระยะชัดตื้น) + พิมพ์ประโยคเปิด → การ์ดกระจายออกจากกลางจอ
+      if (on[1]) {
+        const spread = ramp(t, 2.6, 3.13, E.in);
+        el.tiles.forEach((tile, i) => {
+          const [, x, y, depth] = TILES[i];
+          const e = ramp(t, .1 + i * .07, .75 + i * .07, E.out4);
+          const s = 1.5 * (1 - .1 * depth) * lerp(.94, 1, e);
+          const dx = (x - 960) * .5 * spread, dy = (y - 540) * .5 * spread;
+          put(tile, x - 30 * ramp(t, 0, 3, E.lin) * (1 - depth * .3) + dx, y + 40 * (1 - e) + dy, `scale(${s.toFixed(4)})`);
+          tile.style.filter = blurCss(depth * 2.6 + (1 - e) * 8);
+          show(tile, e);
+        });
+        reveal(el.t1, t, .5);
       }
 
-      // ฉาก 2: สามขั้นตอน
-      if (on[1]) {
-        const ce = ramp(t, 2.55, 3.15, E.expo), cq = ramp(t, 10.55, 10.95, E.in);
-        const h = cardHeight(t);
-        const s = CARD.s * lerp(.92, 1, ce) * lerp(1, .96, cq) * (1 + .05 * (bump(t, 5.4, .4) + bump(t, 8.05, .4)));
-        el.panel.style.height = `${px(h)}px`;
-        el.card.style.transform = `translate(${px(CARD.x - 290)}px,${px(CARD.y - h / 2 + (1 - ce) * 40)}px) scale(${s.toFixed(4)})`;
-        el.card.style.filter = blurCss((1 - ce) * 12 + cq * 12);
-        show(el.card, ce * (1 - cq));
-        show(el.barBox, ce * (1 - cq));
-        el.bars.forEach((bar, k) => { bar.style.transform = `scaleX(${ramp(t, STEPS[k][0], STEPS[k][0] + .5).toFixed(4)})`; });
+      // 2: การ์ดโลโก้กระจก · ลูกศรตกตรงจังหวะ 3.72 · พิมพ์ชื่อโปรแกรม
+      if (on[2]) {
+        put(el.logoCard, 960, 520, `scale(${lerp(.94, 1, ramp(t, 3.06, 3.7, E.out4)).toFixed(4)})`);
+        iconMotion(el.logoArrow, el.logoUnder, ramp(t, 3.5, 4.0, E.back), ramp(t, 3.72, 3.98, E.expo));
+        reveal(el.logoWord, t, 3.85);
+        fx(el.logoSub, ramp(t, 4.3, 4.8, E.expo));
+      }
 
-        STEPS.forEach(([start, end], k) => {
-          const last = k === STEPS.length - 1;
-          const partIn = ramp(t, start + .05, start + .35), partOut = last ? 0 : ramp(t, end - .2, end + .05);
-          show(el.parts[k], partIn * (1 - partOut));
-          el.parts[k].style.transform = `translateY(${px((1 - partIn) * 14 - partOut * 14)}px)`;
-          const out = last ? cq : ramp(t, end - .2, end + .05, E.in);
-          // หัวข้อขั้นตอนสไลด์เข้าจากขวา สะบัดออกซ้าย
-          const slideIn = k ? 260 * (1 - ramp(t, start, start + .45, E.expo)) : 0;
-          el.steps[k].root.style.transform = `translateX(${px(slideIn - (last ? 0 : 320 * out))}px)`;
-          el.steps[k].words.forEach((n, j) => fx(n, ramp(t, start + j * .05, start + .5 + j * .05, E.expo), out));
-        });
-
-        // จุดแตะแทนนิ้ว: วางลิงก์ → 4K → เริ่มดาวน์โหลด
-        const dotOn = Math.max(ramp(t, 3.25, 3.4) * (1 - ramp(t, 4.1, 4.35)), ramp(t, 5.65, 5.8) * (1 - ramp(t, 6.5, 6.75)), ramp(t, 8.15, 8.3) * (1 - ramp(t, 8.85, 9.1)));
-        const press = TAPS.reduce((v, x) => Math.max(v, bump(t, x, .24)), 0);
-        const d = onScreen(dotAt(t), h, s);
-        el.dot.style.transform = `translate(${px(d.x)}px,${px(d.y)}px) scale(${(1 - .22 * press).toFixed(3)})`;
-        show(el.dot, dotOn);
-        const tap = TAPS.filter((x) => x <= t).pop();
-        if (tap === undefined) show(el.ring, 0);
-        else tapRing(t, tap, onScreen([M.paste, M.chip4k, M.go][TAPS.indexOf(tap)], h, s));
-        [el.kPaste, el.chips[1], el.kGo].forEach((node, k) => { node.style.transform = `scale(${(1 - .06 * bump(t, TAPS[k], .24)).toFixed(4)})`; });
-
-        const pasted = t >= TAPS[0] + .03;
-        if (shown.get(el.kIn) !== pasted) {
-          shown.set(el.kIn, pasted);
-          el.kIn.innerHTML = pasted ? URL_TEXT : `<span class="ph">${u.placeholder}</span>`;
-        }
-        el.kIn.style.borderColor = pasted ? 'var(--accent)' : '';
-        el.kIn.style.boxShadow = pasted ? '0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent)' : '';
-        el.kIn.style.background = pasted ? `color-mix(in srgb, var(--accent-soft) ${Math.round(100 * (1 - ramp(t, TAPS[0], TAPS[0] + .6)))}%, var(--field))` : '';
-        const fourK = t >= TAPS[1] + .03;
+      // 3: "ง่ายใน 3 ขั้น" + พิมพ์ทีละบรรทัดคู่กับการกดในหน้าต่างจริง (วางลิงก์ 5.9 · 4K 6.95 · ดาวน์โหลด 7.9)
+      if (on[3]) {
+        const d = ramp(t, 5.28, 8.75, E.lin);
+        put(el.win, WIN_X - 60 * d, 560, `perspective(2200px) rotateY(${px(-15 + 6 * d)}deg) rotateX(${px(4 - 2 * d)}deg) scale(${WIN_S})`);
+        fx(el.e3, ramp(t, 5.35, 5.8, E.expo));
+        reveal(el.t3[0], t, 5.5);
+        reveal(el.t3[1], t, 6.55);
+        reveal(el.t3[2], t, 7.5);
+        el.t3.forEach((line, k) => { if (line.style.visibility !== 'hidden') line.style.opacity = lerp(1, .42, k < 2 ? ramp(t, [6.55, 7.5][k], [6.55, 7.5][k] + .4) : 0).toFixed(3); });
+        const pasted = t >= CLICKS[0] + .02;
+        if (shown.get(el.wIn) !== pasted) { shown.set(el.wIn, pasted); el.wIn.innerHTML = pasted ? URL_TEXT : `<span class="ph">${u.placeholder}</span>`; }
+        const flash = pasted ? 1 - ramp(t, CLICKS[0] + .1, CLICKS[0] + 1.1) : 0;
+        el.wIn.style.borderColor = pasted ? 'var(--accent)' : '';
+        el.wIn.style.boxShadow = pasted ? `0 0 0 ${px(2 + 4 * flash)}px color-mix(in srgb, var(--accent) ${Math.round(16 + 22 * flash)}%, transparent)` : '';
+        const fourK = t >= CLICKS[1] + .02;
         el.chips[0].classList.toggle('on', !fourK);
         el.chips[1].classList.toggle('on', fourK);
-
-        // ความคืบหน้าแบบเดียวกับโปรแกรม: ดาวน์โหลด → แปลงไฟล์ → เสร็จแล้ว
-        const start = TAPS[2] + .05, convertAt = 9.58, doneAt = 10.18;
-        text(el.kGo, t >= start && t < doneAt ? u.working : u.start);
-        show(el.kProg, ramp(t, start, start + .15));
-        let pct = 1, speed = '', eta = '';
-        if (t < convertAt) {
-          pct = ramp(t, start + .05, convertAt - .03);
-          text(el.kPhase, u.downloading);
-          speed = '42.80MiB/s';
-          eta = `${u.remaining}00:0${Math.max(1, Math.ceil((1 - pct) * 4))}`;
-        } else if (t < doneAt) {
-          pct = ramp(t, convertAt, doneAt - .03);
-          text(el.kPhase, `${u.converting} · ${FILE}`);
-          speed = '6.1×';
-          eta = `${u.remaining}00:0${Math.max(1, Math.ceil((1 - pct) * 3))}`;
-        } else text(el.kPhase, u.finished);
-        el.kFill.style.transform = `scaleX(${pct.toFixed(4)})`;
-        text(el.kPct, pct > 0 ? `${(pct * 100).toFixed(1)}%` : '');
-        text(el.kSpeed, speed);
-        text(el.kEta, eta);
-        const result = ramp(t, doneAt + .02, doneAt + .25);
-        show(el.kResult, result);
-        el.kResult.style.transform = `translateY(${px((1 - result) * 8)}px)`;
+        el.chips[1].style.transform = `scale(${(1 + .1 * bump(t, CLICKS[1] + .05, .35)).toFixed(4)})`;
+        const dl = CLICKS[2] + .05;
+        text(el.wGo, t >= dl ? u.working : u.start);
+        show(el.wProg, ramp(t, dl, dl + .15));
+        const pct = ramp(t, dl + .05, 8.75, E.lin) * .58;
+        text(el.wPhase, u.downloading);
+        el.wFill.style.transform = `scaleX(${pct.toFixed(4)})`;
+        el.wFill.style.transformOrigin = 'left';
+        text(el.wPct, `${(pct * 100).toFixed(1)}%`);
+        text(el.wSpeed, '42.80MiB/s');
+        text(el.wEta, `${T.remaining}00:0${Math.max(1, Math.ceil((1 - pct) * 4))}`);
+        [el.wPaste, el.wGo].forEach((node, k) => { node.style.transform = `scale(${(1 - .07 * bump(t, [CLICKS[0], CLICKS[2]][k], .24)).toFixed(4)})`; });
+        if (t > 5.4 && t < 8.35) {
+          const targets = [centerOnStage(el.wPaste), centerOnStage(el.chips[1]), centerOnStage(el.wGo)];
+          const at = pointerPath(t, [[5.45, 5.8, { x: 1500, y: 980 }, targets[0]], [6.45, 6.85, targets[0], targets[1]], [7.4, 7.8, targets[1], targets[2]]]);
+          ptr = { at, o: ramp(t, 5.4, 5.55) * (1 - ramp(t, 8.1, 8.3)) };
+          press = CLICKS.reduce((v, c) => Math.max(v, bump(t, c, .22)), 0);
+          const last = CLICKS.filter((c) => c <= t).pop();
+          if (last !== undefined) ring = { at: targets[CLICKS.indexOf(last)], t: last };
+        }
       }
 
-      // ฉาก 3: หน้าต่างโปรแกรมเต็มจอ "ครบในหน้าจอเดียว"
-      if (on[2]) {
-        const e = ramp(t, 10.85, 11.5, E.expo), q = ramp(t, 12.55, 12.95, E.in);
-        const s = lerp(.84, .92, ramp(t, 10.85, 12.95));
-        el.win.style.transform = `translate(960px,612px) perspective(1800px) rotateX(${lerp(14, 3, e).toFixed(3)}deg) scale(${s.toFixed(4)}) translate(${px(-M.winW / 2)}px,${px(-M.winH / 2)}px)`;
-        el.win.style.filter = blurCss((1 - e) * 12 + q * 12);
-        show(el.win, e * (1 - q));
-        el.winTitle.forEach((n, j) => fx(n, ramp(t, 10.95 + j * .08, 11.45 + j * .08, E.expo), q, { rise: 24 }));
+      // 4: "แปลงไฟล์ด้วยการ์ดจอ" + แผงความคืบหน้าขนาดใหญ่ → บันทึกไฟล์แล้ว
+      if (on[4]) {
+        reveal(el.t4, t, 8.8);
+        el.pills.forEach((pill, k) => {
+          const a = ramp(t, 9.05 + k * .1, 9.5 + k * .1, E.expo);
+          put(pill, 960 + (k - 1) * 420, 345 + 16 * (1 - a));
+          pill.style.filter = blurCss((1 - a) * 10);
+          show(pill, a);
+        });
+        put(el.bigProg, 960, 590, '');
+        const done = t >= 10.02;
+        const pct = done ? 1 : ramp(t, 8.72, 10.0, E.inOut);
+        text(el.bpPhase, done ? u.finished : T.converting);
+        el.bpFill.style.transform = `scaleX(${pct.toFixed(4)})`;
+        text(el.bpPct, `${(pct * 100).toFixed(1)}%`);
+        text(el.bpSpeed, done ? '' : '6.1×');
+        text(el.bpEta, done ? '' : `${T.remaining}00:0${Math.max(1, Math.ceil((1 - pct) * 3))}`);
+        const r = ramp(t, 10.05, 10.4, E.out4);
+        put(el.bigResult, 960, 830 + 30 * (1 - r), '');
+        el.bigResult.style.filter = blurCss((1 - r) * 8);
+        show(el.bigResult, r);
       }
 
-      // ฉาก 4: โลโก้ + สโลแกน + ลิงก์ดาวน์โหลด
-      if (on[3]) {
-        const ia = ramp(t, 12.85, 13.4, E.back);
-        el.endIcon.style.transform = `translate(870px,240px) scale(${lerp(.6, 1, ia).toFixed(4)})`;
-        el.endIcon.style.filter = blurWith((1 - ramp(t, 12.85, 13.15)) * 12, 'drop-shadow(0 18px 30px rgb(28 25 23 / 28%))');
-        show(el.endIcon, ramp(t, 12.85, 13.05));
-        iconMotion(el.endArrow, el.endUnder, ramp(t, 13.05, 13.45, E.back), ramp(t, 13.3, 13.6, E.expo));
-        el.endLetters.forEach((n, i) => fx(n, ramp(t, 13.15 + i * .04, 13.65 + i * .04, E.expo), 0, { rise: 90 }));
-        el.endLine.forEach((n, j) => fx(n, ramp(t, 13.5 + j * .06, 14 + j * .06, E.expo), 0, { rise: 18, blur: 10 }));
-        el.endNotes.forEach((n, j) => fx(n, ramp(t, 13.75 + j * .05, 14.25 + j * .05, E.expo), 0, { rise: 14, blur: 10 }));
-        fx(el.endUrl, ramp(t, 13.95, 14.4, E.expo), 0, { rise: 14, blur: 10 });
+      // 5: การ์ดไฟล์ลอยรอบข้อความ (ชิ้นไกลเบลอ) ค่อยๆ ลอยออกจากกลางจอ
+      if (on[5]) {
+        reveal(el.t5, t, 11.0);
+        const drift = ramp(t, 10.88, 13.3, E.lin);
+        const items = [...el.fcards.map((n, i) => [n, ...FCARDS[i].slice(1)]), [el.edPill, 960, 740, 1], [el.kPill, 960, 290, 2]];
+        items.forEach(([node, x, y, depth], i) => {
+          const e = ramp(t, 10.95 + i * .08, 11.55 + i * .08, E.out4);
+          const s = (1.05 - .14 * depth) * lerp(.9, 1, e);
+          put(node, x + (x - 960) * .06 * drift, y + (y - 540) * .06 * drift + 30 * (1 - e), `scale(${s.toFixed(4)})`);
+          node.style.filter = blurCss(depth * 3 + (1 - e) * 10);
+          show(node, e * (1 - .15 * depth));
+        });
       }
+
+      // 6: การ์ดฟีเจอร์ 8 ใบเอียงเป็นผืนครึ่งล่าง ลอยขึ้นทีละใบ กล้องเลื่อนผ่านช้าๆ + "ครบในหน้าจอเดียว" ด้านบนบนพื้นเรียบ
+      if (on[6]) {
+        const e = ramp(t, 13.28, 13.95, E.out4), d = ramp(t, 13.28, 15.5, E.lin);
+        el.plane.style.transform = `translate(${960 - 1180}px,${680 - 350}px) perspective(1800px) rotateX(${px(lerp(56, 44, e))}deg) rotateZ(-12deg) translateX(${px(lerp(300, -300, d))}px) scale(${lerp(.92, 1, e).toFixed(4)})`;
+        el.gcards.forEach((card, k) => {
+          const a = ramp(t, 13.32 + k * .05, 13.85 + k * .05, E.out4);
+          show(card, a);
+          card.style.transform = `translateY(${px((1 - a) * 80)}px)`;
+        });
+        reveal(el.t6, t, 13.45);
+        fx(el.s6sub, ramp(t, 13.85, 14.35, E.expo), { rise: 14 });
+      }
+
+      // 7: ปิดท้าย · ไอคอนเด้ง → เพลงกลับมา (15.74) ลูกศรตก → พิมพ์ชื่อ FramePort → รายละเอียด → ค้างให้อ่าน
+      if (on[7]) {
+        const ip = ramp(t, 15.38, 15.8, E.back);
+        show(el.endIcon, ip > .01 ? 1 : 0);
+        place(el.endIcon, 190, 960, 285, ip);
+        show(el.endGlow, ramp(t, 15.4, 15.9) * (.7 + .3 * bump(t, HIT + .1, .9)));
+        place(el.endGlow, 760, 960, 285, 1 + .08 * bump(t, HIT + .1, .9));
+        iconMotion(el.endArrow, el.endUnder, ramp(t, 15.5, 16.05, E.back), ramp(t, HIT, HIT + .28, E.expo));
+        reveal(el.endWord, t, 15.9);
+        el.endLine.forEach((n, j) => fx(n, ramp(t, 16.45 + j * .06, 16.95 + j * .06, E.expo)));
+        el.endNotes.forEach((n, j) => fx(n, ramp(t, 16.65 + j * .05, 17.15 + j * .05, E.expo), { rise: 18, blur: 10 }));
+        el.endUrl.forEach((n) => fx(n, ramp(t, 16.82, 17.3, E.expo), { rise: 18, blur: 10 }));
+        fx(el.byLabel, ramp(t, 16.98, 17.5, E.expo), { rise: 16, blur: 10 });
+        fx(el.byChip, ramp(t, 17.05, 17.55, E.expo), { rise: 16, blur: 10 });
+      }
+
+      if (show(el.pointer, ptr ? ptr.o : 0)) el.pointer.style.transform = `translate(${px(ptr.at.x)}px,${px(ptr.at.y)}px) scale(${(1 - .16 * press).toFixed(3)})`;
+      const rp = ring ? (t - ring.t) / .5 : 1;
+      if (show(el.clickRing, rp < 1 ? (1 - rp) * .9 : 0)) el.clickRing.style.transform = `translate(${px(ring.at.x)}px,${px(ring.at.y)}px) scale(${lerp(.3, 2.2, E.expo(rp)).toFixed(3)})`;
     }
     // ---------- เล่นดูในเบราว์เซอร์ (?t=วินาที&paused&lang=en) หรือให้ promo/render.js คุมทีละเฟรม (?render) ----------
     const rendering = params.has('render');
     let playhead = clamp(Number(params.get('t')) || 0, 0, DURATION);
     let last = 0;
     const draw = () => render(playhead);
-    function loop(now) {
-      const dt = last ? Math.min(.25, (now - last) / 1000) : 0;
-      last = now;
+    function loop(frame) {
+      const dt = last ? Math.min(.25, (frame - last) / 1000) : 0;
+      last = frame;
       if (!params.has('paused')) playhead = (playhead + dt) % DURATION;
       draw();
       requestAnimationFrame(loop);
@@ -641,7 +722,7 @@
     const relayout = () => { measure(); draw(); };
     document.fonts?.addEventListener('loadingdone', relayout);
     // โหลดฟอนต์ทุกน้ำหนักและทุกตัวอักษรที่ใช้ก่อนเริ่ม ทุกเฟรมจึงใช้ฟอนต์เดียวกัน
-    const sample = [JSON.stringify(COPY), URL_TEXT, FILE, FOLDER, SITE, '0123456789 %×·…✓'].join(' ');
+    const sample = [JSON.stringify(COPY), URL_TEXT, FILE, FOLDER, SITE, 'CandyCore', '0123456789 %×·…✓/'].join(' ');
     const fontsReady = Promise.all(['400', '500', '600', '700'].flatMap((weight) =>
       ['IBM Plex Sans Thai', 'IBM Plex Sans', 'Urbanist'].map((family) => document.fonts.load(`${weight} 40px "${family}"`, sample))))
       .catch(() => {})
@@ -649,9 +730,9 @@
       .then(relayout);
     if (!rendering) fontsReady.then(() => requestAnimationFrame(loop));
 
-    // สเปกคลิปสำหรับ promo/render.js: 24fps, motion blur = เฟรมย่อย 16 เฟรมภายในชัตเตอร์ 216°
+    // สเปกคลิปสำหรับ promo/render.js: 24fps, motion blur ทุกเฟรม = เฟรมย่อย 16 เฟรมภายในชัตเตอร์ 360° (เบลอยาวต่อเนื่องเต็มช่วงเฟรม)
     window.FramePortClip = {
-      duration: DURATION, fps: 24, samples: 16, shutter: .6,
+      duration: DURATION, fps: 24, samples: 16, shutter: 1,
       ready: () => fontsReady.then(() => DURATION),
       renderAt: (v) => {
         playhead = v;

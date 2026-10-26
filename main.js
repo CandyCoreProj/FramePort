@@ -560,10 +560,17 @@ async function convert(file, ff, { encoder, target, language, name = path.basena
 // quality (audio): 'mp3' | 'wav' | 'flac'
 // output (video): 'h264' | 'hevc' | 'original'
 ipcMain.handle('download', async (_e, options) => {
-  const { url, kind, quality, playlist, encoder = 'auto', output = 'h264', language = 'th' } = options;
-  const link = String(url || '').trim();
+  const { kind, quality, playlist, encoder = 'auto', output = 'h264', language = 'th' } = options;
   if (busy) throw new Error(say(language, 'มีงานดาวน์โหลดกำลังทำงานอยู่', 'A download is already running'));
-  if (!/^https?:\/\/\S+$/i.test(link)) {
+
+  const inputUrls = Array.isArray(options.urls) && options.urls.length
+    ? options.urls
+    : (options.url || '').match(/https?:\/\/[^\s"'<>]+/gi) || [];
+  const urls = [...new Set(inputUrls
+    .map((u) => String(u || '').trim().replace(/[.,;:)\]]+$/, ''))
+    .filter((u) => /^https?:\/\/\S+$/i.test(u)))];
+
+  if (!urls.length) {
     throw new Error(say(language, 'ลิงก์ไม่ถูกต้อง ต้องขึ้นต้นด้วย http:// หรือ https://', 'Invalid link. It must start with http:// or https://'));
   }
   const [bin, ff] = await Promise.all([findYtdlp(), findFfmpeg()]);
@@ -575,6 +582,7 @@ ipcMain.handle('download', async (_e, options) => {
   busy = true;
   cancelled = false;
   let tempPrefix = '';
+  let batchFile = '';
   const preserveFiles = new Set();
   try {
     const target = TARGETS[output] ? output : null;
@@ -593,7 +601,7 @@ ipcMain.handle('download', async (_e, options) => {
       '--js-runtimes', `node:${process.execPath}`,
       '--remote-components', 'ejs:github',
       '--progress-template',
-      'download:[P]%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.playlist_index)s|%(info.n_entries)s',
+      'download:[P]%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.playlist_index)s|%(info.n_entries)s|%(info.title)s',
       // ได้ชื่อไฟล์ทันทีที่แต่ละไฟล์เสร็จ เพื่อแปลงไฟล์ก่อนหน้าไปพร้อมกับดาวน์โหลดไฟล์ถัดไป
       '--print', 'after_move:[F]%(filepath)j',
       playlist ? '--yes-playlist' : '--no-playlist',
@@ -601,7 +609,8 @@ ipcMain.handle('download', async (_e, options) => {
     if (ff === 'local') args.push('--ffmpeg-location', binDir());
     const signedIn = fs.existsSync(cookieFile());
     if (signedIn) args.push('--cookies', cookieFile());
-    if (isYoutube(link)) args.push(...await potArgs(language));
+    const hasYoutube = urls.some(isYoutube);
+    if (hasYoutube) args.push(...await potArgs(language));
 
     if (kind === 'audio') {
       args.push('-f', 'ba/b', '-x', '--audio-format', quality, '--audio-quality', '0', '--embed-metadata');
@@ -614,6 +623,12 @@ ipcMain.handle('download', async (_e, options) => {
         '--merge-output-format', 'mp4',
         '--remux-video', 'mp4',
       );
+    }
+
+    if (urls.length > 1) {
+      batchFile = path.join(os.tmpdir(), `frameport-batch-${randomBytes(6).toString('hex')}.txt`);
+      await fs.promises.writeFile(batchFile, urls.join('\n'), 'utf8');
+      args.push('-a', batchFile);
     }
 
     const files = [];
@@ -660,14 +675,21 @@ ipcMain.handle('download', async (_e, options) => {
 
     const label = say(language, 'กำลังดาวน์โหลด', 'Downloading');
     let lastProgress = 0;
-    const download = (extra = []) => run(bin, [...args, ...extra, '--', link], (line) => {
+    const download = (extra = []) => run(bin, [...args, ...extra, ...(urls.length === 1 ? ['--', urls[0]] : [])], (line) => {
       if (line.startsWith('[P]')) {
-        const [pct, speed, eta, index, total] = line.slice(3).split('|').map((s) => s.trim());
+        const [pct, speed, eta, index, total, title] = line.slice(3).split('|').map((s) => s.trim());
         const value = parseFloat(pct) || 0;
         if (Date.now() - lastProgress < 120 && value < 100) return;
         lastProgress = Date.now();
-        const item = /^\d+$/.test(index) && /^\d+$/.test(total) ? `${index}/${total}` : '';
-        send('progress', { stage: 'download', pct: value, speed, eta, label, item });
+        let item = '';
+        if (/^\d+$/.test(index) && /^\d+$/.test(total)) {
+          item = `${index}/${total}`;
+        } else if (urls.length > 1) {
+          const currentNum = Math.min(seen.size + 1, urls.length);
+          item = `${currentNum}/${urls.length}`;
+        }
+        const name = title && title !== 'NA' ? title : '';
+        send('progress', { stage: 'download', pct: value, speed, eta, label, item, name });
       } else if (line.startsWith('[F]')) {
         onFile(JSON.parse(line.slice(3).trim()));
       } else {
@@ -677,7 +699,7 @@ ipcMain.handle('download', async (_e, options) => {
     });
     let code = await download();
     // โดน bot check ก่อนได้ไฟล์ใดเลย: ลองใหม่ด้วยคุกกี้ผู้เยี่ยมชมและไคลเอนต์อื่นโดยไม่ต้องเข้าสู่ระบบ
-    if (code !== 0 && !cancelled && !seen.size && isYoutube(link) && isBotCheck(lastError)) {
+    if (code !== 0 && !cancelled && !seen.size && hasYoutube && isBotCheck(lastError)) {
       send('log', say(language, 'YouTube ขอยืนยันว่าไม่ใช่บอท กำลังลองวิธีอื่นที่ไม่ต้องเข้าสู่ระบบ…',
         'YouTube asked to confirm you are not a bot. Retrying without sign-in…'));
       send('progress', { stage: 'download', pct: 0, label: say(language, 'กำลังลองใหม่', 'Retrying') });
@@ -732,14 +754,23 @@ ipcMain.handle('download', async (_e, options) => {
           `Could not organize the file; it remains at ${entry.file}: ${error.message}`));
       }
     }
-    if (code === 0) code = convertCode;
-    if (code === 0 && files.length === 0) {
-      code = 1;
-      lastError = say(language, 'ไม่มีไฟล์ที่ดาวน์โหลดสำเร็จ', 'No downloaded file was produced');
+    const partial = files.length > 0 && (code !== 0 || files.length < urls.length);
+    const finalCode = cancelled ? -1 : (files.length > 0 ? 0 : (code === 0 ? convertCode : code));
+    if (finalCode === 0 && files.length === 0) {
+      return { code: 1, files: [], error: say(language, 'ไม่มีไฟล์ที่ดาวน์โหลดสำเร็จ', 'No downloaded file was produced'), partial: false, total: urls.length };
     }
-    return { code: cancelled ? -1 : code, files, error: code === 0 ? '' : lastError };
+    return {
+      code: finalCode,
+      files,
+      error: finalCode === 0 && !partial ? '' : lastError,
+      partial,
+      total: urls.length,
+    };
   } finally {
     try {
+      if (batchFile) {
+        await fs.promises.rm(batchFile, { force: true }).catch(() => {});
+      }
       if (tempPrefix) {
         for (const name of fs.readdirSync(folder)) {
           const file = path.join(folder, name);
